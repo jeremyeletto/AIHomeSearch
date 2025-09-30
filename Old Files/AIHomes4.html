@@ -1,0 +1,1738 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Home Upgrades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Modern CSS Variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Search Page Animations */
+        .animate-fade-in {
+            animation: fadeIn 1s ease-out;
+        }
+
+        .animate-slide-up {
+            animation: slideUp 1s ease-out 0.3s both;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 1s ease-out 0.6s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Search Hero Container */
+        .search-hero-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 3rem 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .search-header h2 {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .search-input-container {
+            margin: 2rem 0;
+        }
+
+        .search-input-group {
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-input-group:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-icon {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1rem 1.2rem;
+        }
+
+        .search-input {
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            background: white;
+        }
+
+        .search-input:focus {
+            box-shadow: none;
+            border: none;
+        }
+
+        .search-btn {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn .btn-text {
+            margin-right: 0.5rem;
+        }
+
+        .search-btn .btn-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .search-btn:hover .btn-icon {
+            transform: scale(1.2);
+        }
+
+        /* Popular Locations */
+        .popular-locations {
+            text-align: center;
+        }
+
+        .location-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .location-tag {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .location-tag:hover {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Modern Home Cards */
+        .home-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .home-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.2);
+        }
+
+        .home-card .card-img-top {
+            border-radius: 20px 20px 0 0;
+            transition: transform 0.4s ease;
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+
+        .home-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .home-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .home-card .card-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .home-card .card-text {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        /* Modern Buttons */
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-outline-primary:hover::before {
+            left: 100%;
+        }
+
+        /* Modern Modal */
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Container for the buttons */
+        .preset-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 15px;
+        }
+
+        /* Sparkly Pill Style */
+        .upgrade-pill {
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 25px;
+            border: 1px solid #667eea;
+            background: rgba(255, 255, 255, 0.8);
+            color: #667eea;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            flex: 0 0 auto;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Sparkle Animation */
+        .upgrade-pill::before {
+            content: '✨';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-pill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        /* Hover and Selected States with Sparkles */
+        .upgrade-pill:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #5a67d8;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
+        }
+
+        .upgrade-pill:hover::before {
+            opacity: 1;
+            transform: scale(1) rotate(360deg);
+        }
+
+        .upgrade-pill:hover::after {
+            left: 100%;
+        }
+
+        .upgrade-pill.selected {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px) scale(1.05);
+            animation: sparklePulse 2s infinite;
+        }
+
+        .upgrade-pill.selected::before {
+            opacity: 1;
+            transform: scale(1.2);
+            animation: sparkleTwinkle 1.5s infinite;
+        }
+
+        /* Sparkle Animations */
+        @keyframes sparklePulse {
+            0%, 100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+            50% { box-shadow: 0 8px 35px rgba(102, 126, 234, 0.6), 0 0 20px rgba(102, 126, 234, 0.3); }
+        }
+
+        @keyframes sparkleTwinkle {
+            0%, 100% { transform: scale(1.2) rotate(0deg); opacity: 1; }
+            50% { transform: scale(1.5) rotate(180deg); opacity: 0.7; }
+        }
+
+        /* --- Image and Loading Styles --- */
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 66.66%; 
+            overflow: hidden;
+            border-radius: 15px;
+        }
+
+        .image-container img, .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+            cursor: pointer;
+        }
+
+        .image-container img:hover {
+            opacity: 0.9;
+        }
+
+        /* Image Navigation Bubbles */
+        .image-bubbles {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        .image-bubble {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .image-bubble.active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.2);
+        }
+
+        .image-bubble:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+        
+        .loading-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-overlay .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        /* Value Display Enhancement */
+        .bg-light {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .home-card {
+                margin-bottom: 1.5rem;
+            }
+            
+            .btn-outline-primary {
+                width: 100%;
+                margin-top: 1rem;
+            }
+            
+            .modal-dialog {
+                margin: 1rem;
+            }
+
+            .preset-options {
+                padding: 10px;
+                gap: 6px;
+            }
+
+            .upgrade-pill {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="#">🏡 homeupgrades.ai</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#" onclick="showHomePage()">Homes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showAboutPage()">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Page Content -->
+    <main id="searchPage" class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+        <div class="text-center">
+            <!-- Animated Title -->
+            <div class="hero-title mb-5">
+                <h1 class="display-2 fw-bold mb-3 gradient-text animate-fade-in">
+                    🏡 homeupgrades.ai
+                </h1>
+                <p class="lead text-muted mb-4 animate-slide-up">Visualize Your Dream Home Upgrades ✨</p>
+            </div>
+            
+            <!-- Flashy Search Container -->
+            <div class="search-hero-container animate-scale-in">
+                <div class="search-card">
+                    <div class="search-header">
+                        <h2 class="h3 mb-3">Find Your Perfect Home</h2>
+                        <p class="text-muted">Enter any location to discover amazing properties</p>
+                    </div>
+                    
+                    <!-- Animated Search Bar -->
+                    <div class="search-input-container">
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text search-icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </span>
+                            <input type="text" class="form-control search-input" id="locationSearch" placeholder="Enter location (e.g., New York, NY)" autocomplete="off">
+                            <button class="btn btn-primary search-btn" type="button" onclick="searchHomes()">
+                                <span class="btn-text">Search</span>
+                                <i class="fas fa-search btn-icon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Popular Locations -->
+                    <div class="popular-locations mt-4">
+                        <p class="small text-muted mb-2">Popular searches:</p>
+                        <div class="location-tags">
+                            <span class="location-tag" onclick="searchLocation('New York, NY')">New York, NY</span>
+                            <span class="location-tag" onclick="searchLocation('Los Angeles, CA')">Los Angeles, CA</span>
+                            <span class="location-tag" onclick="searchLocation('Chicago, IL')">Chicago, IL</span>
+                            <span class="location-tag" onclick="searchLocation('Austin, TX')">Austin, TX</span>
+                            <span class="location-tag" onclick="searchLocation('Miami, FL')">Miami, FL</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Home Page Content (Hidden Initially) -->
+    <main id="homePage" class="container my-5" style="display: none;">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Visualize Your Dream Home Upgrades ✨
+            </h1>
+            <p class="lead text-muted mb-4">Click "Imagine Upgrades" on any listing to see the possibilities with our preset designs.</p>
+            
+            <!-- Location Search Bar -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="locationSearchHome" placeholder="Enter location (e.g., New York, NY)">
+                        <button class="btn btn-primary" type="button" onclick="searchHomesFromHome()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted">Loading homes for sale...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="text-center py-5" style="display: none;">
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading">Unable to Load Homes</h4>
+                <p>We're having trouble loading the latest home listings. Please try again later.</p>
+                <button class="btn btn-outline-primary" onclick="loadHomes()">Try Again</button>
+            </div>
+        </div>
+
+        <!-- Homes Grid -->
+        <div id="homesGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" style="display: none;">
+            <!-- Homes will be dynamically loaded here -->
+        </div>
+    </main>
+
+    <!-- About Page Content -->
+    <main id="aboutPage" class="container my-5" style="display: none;">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 fw-bold mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        About HomeUpgrades.ai 🏡
+                    </h1>
+                    <p class="lead text-muted">Transforming real estate visualization with AI-powered home upgrades</p>
+                </div>
+
+                <div class="card home-card mb-5">
+                    <div class="card-body p-5">
+                        <h3 class="fw-bold mb-4" style="color: #667eea;">What We Do</h3>
+                        <p class="fs-5 mb-4">
+                            HomeUpgrades.ai is an innovative platform that helps potential homebuyers and real estate professionals 
+                            visualize what homes for sale would look like after various upgrades and improvements.
+                        </p>
+                        <p class="fs-5 mb-4">
+                            Our AI-powered technology allows you to see the potential of any property by applying different 
+                            design styles, exterior improvements, and modern enhancements to existing home listings.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="card home-card h-100">
+                            <div class="card-body p-4">
+                                <div class="text-center mb-3">
+                                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3" style="width: 64px; height: 64px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-white text-2xl">🎨</span>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bold mb-3" style="color: #667eea;">Visual Transformation</h4>
+                                <p class="text-muted">
+                                    See how different upgrades like modern exteriors, stone walkways, new windows, 
+                                    and siding changes would transform any home's appearance.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card home-card h-100">
+                            <div class="card-body p-4">
+                                <div class="text-center mb-3">
+                                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-3" style="width: 64px; height: 64px; background: var(--success-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-white text-2xl">💰</span>
+                                    </div>
+                                </div>
+                                <h4 class="fw-bold mb-3" style="color: #667eea;">Value Impact</h4>
+                                <p class="text-muted">
+                                    Get instant estimates of how different upgrades would affect the home's value, 
+                                    helping you make informed investment decisions.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card home-card mb-5">
+                    <div class="card-body p-5">
+                        <h3 class="fw-bold mb-4" style="color: #667eea;">How It Works</h3>
+                        <div class="row g-4">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <div class="w-12 h-12 bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-white fw-bold">1</span>
+                                    </div>
+                                </div>
+                                <h5 class="fw-bold mb-2">Select a Home</h5>
+                                <p class="text-muted small">Choose from available home listings to visualize upgrades</p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <div class="w-12 h-12 bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-white fw-bold">2</span>
+                                    </div>
+                                </div>
+                                <h5 class="fw-bold mb-2">Choose Upgrades</h5>
+                                <p class="text-muted small">Select from preset designs or create custom upgrade requests</p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="mb-3">
+                                    <div class="w-12 h-12 bg-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 48px; height: 48px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <span class="text-white fw-bold">3</span>
+                                    </div>
+                                </div>
+                                <h5 class="fw-bold mb-2">See Results</h5>
+                                <p class="text-muted small">View the transformed home and updated value estimate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card home-card">
+                    <div class="card-body p-5 text-center">
+                        <h3 class="fw-bold mb-4" style="color: #667eea;">Ready to Transform Your Home Vision?</h3>
+                        <p class="fs-5 mb-4 text-muted">
+                            Start exploring the potential of any home with our AI-powered upgrade visualization tool.
+                        </p>
+                        <button class="btn btn-outline-primary btn-lg" onclick="showHomePage()">
+                            Explore Homes Now ✨
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="upgradeModalLabel">Select Your Upgrade Design</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="container-fluid">
+                        <div class="row">
+                          <div class="col-md-6 p-0 border-end">
+                            <div class="image-container">
+                                <img id="upgraded-image" 
+                                    src="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_1095.png" 
+                                    alt="Upgraded Home View">
+                                
+                                <div id="loading-overlay" class="loading-overlay">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 text-primary fw-bold">Generating AI Visualization...</p>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light border-top">
+                                <h6 class="mb-2 fw-bold">Estimated Home Value</h6>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Current Value:</span>
+                                    <span id="current-value" class="fw-bold text-muted">$350,000</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Estimated Upgraded Value:</span>
+                                    <span id="upgraded-value" class="fw-bold text-success">$350,000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="col-md-6">
+                                <h6 class="mt-3 mb-2 text-muted text-uppercase small px-3">Preset Designs</h6>
+                                <div class="preset-options">
+                                    
+                                    <a href="#" class="upgrade-pill" 
+                                    data-upgrade-image="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_1095.png" 
+                                    data-cost-increase="75000" data-design-name="Modern white exterior, black trim, and walkway">
+                                        Modern white exterior, black trim, and walkway
+                                    </a>
+
+                                    <a href="#" class="upgrade-pill" data-upgrade-image="https://via.placeholder.com/400x600/6c757d/ffffff?text=Stone+Walkway" data-cost-increase="15000" data-design-name="Add Stone Walkway">
+                                        Add Stone Walkway
+                                    </a>
+
+                                    <a href="#" class="upgrade-pill" data-upgrade-image="https://via.placeholder.com/400x600/343a40/ffffff?text=Modern+Black+Windows" data-cost-increase="10000" data-design-name="Modern Black Windows">
+                                        Modern Black Windows
+                                    </a>
+
+                                    <a href="#" class="upgrade-pill" data-upgrade-image="https://via.placeholder.com/400x600/f8f9fa/333333?text=White+Vinyl+Siding" data-cost-increase="25000" data-design-name="Imagine White Vinyl Siding">
+                                        Imagine White Vinyl Siding
+                                    </a>
+                                    
+                                    <a href="#" class="upgrade-pill" data-upgrade-image="https://via.placeholder.com/400x600/8d6e63/ffffff?text=Wrap-around+Porch" data-cost-increase="40000" data-design-name="Wrap-around Porch">
+                                        Wrap-around Porch
+                                    </a>
+
+                                    <a href="#" class="upgrade-pill" data-upgrade-image="https://via.placeholder.com/400x600/dc3545/ffffff?text=Brick+Exterior" data-cost-increase="50000" data-design-name="Brick Exterior">
+                                        Brick Exterior
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: rgba(255, 255, 255, 0.8); border-top: 1px solid rgba(102, 126, 234, 0.1);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 50px; padding: 0.5rem 1.5rem;">Close</button>
+                    <button type="button" class="btn btn-success disabled" style="border-radius: 50px; padding: 0.5rem 1.5rem; background: var(--success-gradient); border: none;">Save & Compare</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        // Function to format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+        }
+
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add intersection observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all home cards
+        document.querySelectorAll('.home-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+
+        // Page navigation functions
+        function showHomePage() {
+            // Redirect to the main search page
+            window.location.href = 'index.html';
+        }
+
+        function showAboutPage() {
+            // Redirect to about page
+            window.location.href = 'about.html';
+        }
+
+        // Image cache to prevent repeated requests
+        const imageCache = new Map();
+        
+        // Real Estate API Integration using Realtor16 API
+        async function loadHomes(location = 'Wantagh, NY') {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const homesGrid = document.getElementById('homesGrid');
+            
+            // Show loading state
+            loadingState.style.display = 'block';
+            errorState.style.display = 'none';
+            homesGrid.style.display = 'none';
+            
+            try {
+                // ADD YOUR RAPIDAPI KEY HERE - Replace 'YOUR_API_KEY_HERE' with your actual key
+                const apiKey = '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed';
+                
+                if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+                    console.log('Please add your RapidAPI key to use real data');
+                    errorState.style.display = 'block';
+                    loadingState.style.display = 'none';
+                    return;
+                }
+                
+                console.log('Fetching real estate data from Realtor16 API for location:', location);
+                
+                // Encode the location for the API URL
+                const encodedLocation = encodeURIComponent(location);
+                const apiUrl = `https://realtor16.p.rapidapi.com/search/forsale?location=${encodedLocation}&search_radius=0`;
+                
+                // Fetch properties from Realtor16 API using the user-specified location
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': apiKey,
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                // Get top 6 most recent listings from Wantagh, NY
+                let recentProperties = [];
+                
+                console.log('Data structure:', Object.keys(data));
+                console.log('Properties array:', data.properties);
+                
+                // Log first property structure for debugging
+                if (data.properties && data.properties.length > 0) {
+                    console.log('First property structure:', data.properties[0]);
+                    console.log('First property keys:', Object.keys(data.properties[0]));
+                }
+                
+                if (data.properties && Array.isArray(data.properties)) {
+                    console.log(`Total properties found: ${data.properties.length}`);
+                    
+                    // Since we're already filtering by location in the API call, just sort by most recent
+                    recentProperties = data.properties
+                        .sort((a, b) => {
+                            // Sort by list_date, created_at, or other date fields
+                            const dateA = new Date(a.list_date || a.created_at || a.date || 0);
+                            const dateB = new Date(b.list_date || b.created_at || b.date || 0);
+                            return dateB - dateA; // Most recent first
+                        })
+                        .slice(0, 6);
+                        
+                    console.log(`Wantagh properties found: ${recentProperties.length}`);
+                } else {
+                    console.log('No properties array found in response');
+                    console.log('Available keys:', Object.keys(data));
+                }
+                
+                // Transform API data to our format
+                const homes = await Promise.all(recentProperties.map(async (property, index) => {
+                    console.log('Processing property:', property);
+                    
+                    // Build address from location.address.line (primary field)
+                    let address = '';
+                    if (property.location && property.location.address && property.location.address.line) {
+                        address = property.location.address.line;
+                    } else if (property.address) {
+                        address = property.address;
+                    } else if (property.street_number && property.street_name) {
+                        address = `${property.street_number} ${property.street_name}`;
+                    } else if (property.street_address) {
+                        address = property.street_address;
+                    } else if (property.line) {
+                        address = property.line;
+                    }
+                    
+                    // Add city, state, zip from location.address
+                    const city = property.location?.address?.city || property.city || property.locality || 'Wantagh';
+                    const state = property.location?.address?.state_code || property.state || property.state_code || 'NY';
+                    const zip = property.location?.address?.postal_code || property.postal_code || property.postal_code_plus4 || property.zip || '11793';
+                    
+                    if (address) {
+                        address = `${address}, ${city}, ${state} ${zip}`;
+                    } else {
+                        address = `${city}, ${state} ${zip}`;
+                    }
+                    
+                    // Get bedrooms and bathrooms from description object
+                    const bedrooms = property.description?.beds || property.beds || property.bedrooms || property.bed_count || property.bedrooms_total || 0;
+                    const bathrooms = property.description?.baths_consolidated || property.baths || property.bathrooms || property.bath_count || property.bathrooms_total || 0;
+                    
+                    // Get description, handling object case
+                    let description = property.description?.text || property.description?.value || property.remarks || "Beautiful home with great potential for upgrades.";
+                    if (typeof description === 'object') {
+                        description = description.text || description.value || "Beautiful home with great potential for upgrades.";
+                    }
+                    
+                    // Get images for this property
+                    console.log(`Fetching images for property ${index + 1}/${recentProperties.length}: ${address}`);
+                    const images = getPropertyImagesFromAPI(property) || getPropertyImages(index + 1);
+                    console.log(`Property ${index + 1} images loaded: ${images ? images.length : 0} images`);
+                    
+                    return {
+                        id: property.property_id || property.id || index + 1,
+                        address: address,
+                        price: property.list_price || property.price || property.list_price_min || 0,
+                        bedrooms: bedrooms,
+                        bathrooms: bathrooms,
+                        yearBuilt: property.description?.year_built || property.year_built || property.year || property.year_constructed || 0,
+                        description: description,
+                        images: images,
+                        sqft: property.description?.sqft || property.sqft || property.square_feet || property.living_area || property.gross_sqft || 0,
+                        zestimate: property.zestimate || property.estimated_value || property.list_price || property.price || 0,
+                        daysOnMarket: property.days_on_market || property.dom || 0,
+                        propertyType: property.description?.type || property.property_type || property.type || property.class || 'Residential'
+                    };
+                }));
+                
+                // Display the homes
+                if (homes.length > 0) {
+                    console.log(`Found ${homes.length} properties from API`);
+                    console.log('All properties processed, displaying homes...');
+                    displayHomes(homes);
+                    
+                    // Phase 1: Fetch first image for all properties simultaneously
+                    console.log('Phase 1: Fetching first high-quality image for all properties...');
+                    const firstImagePromises = homes.map(async (home, index) => {
+                        const property = recentProperties[index];
+                        if (property) {
+                            console.log(`Fetching first image for property ${index + 1}...`);
+                            const firstImage = await fetchFirstHighQualityPhoto(property);
+                            if (firstImage) {
+                                console.log(`Updating property ${index + 1} with first high-quality image`);
+                                // Update the home object with the first high-quality image
+                                home.images = [firstImage, ...home.images.slice(1)];
+                                // Update the displayed card
+                                updateHomeCardFirstImage(home, index);
+                                return { index, success: true, imageCount: 1 };
+                            } else {
+                                console.log(`No first high-quality image found for property ${index + 1}`);
+                                return { index, success: false, imageCount: 0 };
+                            }
+                        }
+                        return { index, success: false, imageCount: 0 };
+                    });
+                    
+                    Promise.all(firstImagePromises).then((results) => {
+                        console.log('Phase 1 completed - First images loaded:', results);
+                        const successful = results.filter(r => r.success);
+                        console.log(`Successfully updated ${successful.length} properties with first high-quality images`);
+                        
+                        // Phase 2: Lazy load remaining images for all properties
+                        console.log('Phase 2: Lazy loading remaining high-quality images...');
+                        homes.forEach((home, index) => {
+                            const property = recentProperties[index];
+                            if (property) {
+                                // Use setTimeout to stagger the requests slightly
+                                setTimeout(() => {
+                                    fetchRemainingHighQualityPhotos(property, home, index);
+                                }, index * 100); // 100ms delay between each property
+                            }
+                        });
+                    }).catch(error => {
+                        console.error('Error fetching first high-quality images:', error);
+                    });
+                } else {
+                    console.log('No properties found from API');
+                    errorState.style.display = 'block';
+                    loadingState.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error loading homes from Realtor16 API:', error);
+                errorState.style.display = 'block';
+                loadingState.style.display = 'none';
+            }
+        }
+
+        function getPropertyImagesFromAPI(property) {
+            // Extract images from API response with caching
+            let images = [];
+            const propertyId = property.property_id || property.id;
+            
+            console.log('Getting images for property:', propertyId);
+            console.log('Property image fields:', {
+                photos: property.photos,
+                images: property.images,
+                media: property.media,
+                photo: property.photo,
+                photos_list: property.photos_list
+            });
+            
+            // Try property data fields first (synchronous)
+            if (property.photos && Array.isArray(property.photos) && property.photos.length > 0) {
+                images = property.photos.map(photo => photo.href || photo.url || photo);
+            } else if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+                images = property.images.map(image => image.href || image.url || image);
+            } else if (property.media && Array.isArray(property.media) && property.media.length > 0) {
+                images = property.media
+                    .filter(media => media.type === 'photo' || media.category === 'Photo' || media.type === 'image')
+                    .map(media => media.url || media.href || media);
+            } else if (property.photo && Array.isArray(property.photo) && property.photo.length > 0) {
+                images = property.photo.map(photo => photo.href || photo.url || photo);
+            } else if (property.photos_list && Array.isArray(property.photos_list) && property.photos_list.length > 0) {
+                images = property.photos_list.map(photo => photo.href || photo.url || photo);
+            }
+            
+            // Filter out invalid URLs and limit to reasonable number (up to 15 images)
+            images = images.filter(img => img && typeof img === 'string' && img.startsWith('http')).slice(0, 15);
+            
+            console.log(`Found ${images.length} images for property from property data`);
+            
+            // Cache images to prevent repeated requests
+            if (images.length > 0 && propertyId) {
+                imageCache.set(propertyId, images);
+            }
+            
+            return images.length > 0 ? images : null;
+        }
+        
+        async function fetchFirstHighQualityPhoto(property) {
+            // Fetch only the first high-quality photo from the dedicated photos endpoint
+            const propertyId = property.property_id || property.id;
+            
+            if (!propertyId) {
+                console.log('No property ID found for first photo fetch');
+                return null;
+            }
+            
+            try {
+                console.log('Fetching first high-quality photo for property:', propertyId);
+                
+                // Build the photos URL - prioritize property URL over property_id
+                let photosUrl = '';
+                if (property.url || property.property_url || property.rdc_web_url) {
+                    const propertyUrl = encodeURIComponent(property.url || property.property_url || property.rdc_web_url);
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${propertyUrl}`;
+                } else {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+                }
+                
+                const photosResponse = await fetch(photosUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                if (photosResponse.ok) {
+                    const photosData = await photosResponse.json();
+                    
+                    // Get the first high-quality image
+                    if (Array.isArray(photosData) && photosData.length > 0) {
+                        const firstPhoto = photosData.find(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image');
+                        if (firstPhoto) {
+                            console.log(`Found first high-quality photo for property ${propertyId}`);
+                            return firstPhoto.href;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('First photo fetch failed for property', propertyId, ':', error);
+            }
+            
+            return null;
+        }
+        
+        async function fetchRemainingHighQualityPhotos(property, home, index) {
+            // Fetch all remaining high-quality photos from the dedicated photos endpoint
+            const propertyId = property.property_id || property.id;
+            
+            if (!propertyId) {
+                console.log('No property ID found for remaining photos fetch');
+                return;
+            }
+            
+            try {
+                console.log(`Lazy loading remaining photos for property ${index + 1}...`);
+                
+                // Build the photos URL - prioritize property URL over property_id
+                let photosUrl = '';
+                if (property.url || property.property_url || property.rdc_web_url) {
+                    const propertyUrl = encodeURIComponent(property.url || property.property_url || property.rdc_web_url);
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${propertyUrl}`;
+                } else {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+                }
+                
+                const photosResponse = await fetch(photosUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                if (photosResponse.ok) {
+                    const photosData = await photosResponse.json();
+                    
+                    // Get all high-quality images
+                    let images = [];
+                    if (Array.isArray(photosData) && photosData.length > 0) {
+                        images = photosData
+                            .filter(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image')
+                            .map(photo => photo.href);
+                        console.log(`Found ${images.length} total high-quality photos for property ${index + 1}`);
+                    }
+                    
+                    if (images.length > 0) {
+                        // Update the home object with all high-quality images
+                        home.images = images;
+                        // Update the displayed card
+                        updateHomeCardImages(home, index);
+                        // Cache images to prevent repeated requests
+                        imageCache.set(propertyId, images);
+                        console.log(`Updated property ${index + 1} with ${images.length} high-quality images`);
+                    }
+                }
+            } catch (error) {
+                console.log('Remaining photos fetch failed for property', propertyId, ':', error);
+            }
+        }
+        
+        async function fetchHighQualityPhotos(property) {
+            // Legacy function - kept for compatibility
+            const propertyId = property.property_id || property.id;
+            
+            if (!propertyId) {
+                console.log('No property ID found for photo fetch');
+                return null;
+            }
+            
+            try {
+                console.log('Fetching high-quality photos from /property/photos endpoint for property:', propertyId);
+                
+                // Build the photos URL - prioritize property URL over property_id
+                let photosUrl = '';
+                if (property.url || property.property_url || property.rdc_web_url) {
+                    const propertyUrl = encodeURIComponent(property.url || property.property_url || property.rdc_web_url);
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${propertyUrl}`;
+                } else {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+                }
+                
+                console.log('Photos URL for property', propertyId, ':', photosUrl);
+                
+                const photosResponse = await fetch(photosUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                console.log('Photos response status for property', propertyId, ':', photosResponse.status);
+                
+                if (photosResponse.ok) {
+                    const photosData = await photosResponse.json();
+                    console.log('Photos API response for property', propertyId, ':', photosData);
+                    
+                    // Handle the response structure - it's an array of photo objects with href field
+                    let images = [];
+                    if (Array.isArray(photosData) && photosData.length > 0) {
+                        images = photosData
+                            .filter(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image')
+                            .map(photo => photo.href);
+                        console.log(`Found ${images.length} high-quality photos from photos endpoint for property ${propertyId}`);
+                    } else if (photosData.photos && Array.isArray(photosData.photos) && photosData.photos.length > 0) {
+                        images = photosData.photos
+                            .filter(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image')
+                            .map(photo => photo.href);
+                        console.log(`Found ${images.length} high-quality photos from photos endpoint for property ${propertyId}`);
+                    }
+                    
+                    // Log some sample image URLs for debugging
+                    if (images.length > 0) {
+                        console.log('Sample image URLs for property', propertyId, ':', images.slice(0, 3));
+                    }
+                    
+                    // Cache images to prevent repeated requests
+                    if (images.length > 0) {
+                        imageCache.set(propertyId, images);
+                    }
+                    
+                    return images.length > 0 ? images : null;
+                } else {
+                    console.log('Photos response not OK for property', propertyId, ':', photosResponse.status, photosResponse.statusText);
+                }
+            } catch (error) {
+                console.log('Photos endpoint failed for property', propertyId, ':', error);
+            }
+            
+            return null;
+        }
+        
+        function getCachedImages(propertyId) {
+            // Return cached images if available
+            return imageCache.get(propertyId) || null;
+        }
+        
+        function updateHomeCardFirstImage(home, index) {
+            // Update only the first image for immediate display
+            const homesGrid = document.getElementById('homesGrid');
+            const cards = homesGrid.querySelectorAll('.home-card');
+            
+            if (cards[index]) {
+                const card = cards[index];
+                const cardImage = card.querySelector('.card-img-top');
+                
+                if (cardImage && home.images && home.images.length > 0) {
+                    // Update main image
+                    cardImage.src = home.images[0];
+                    
+                    // Update modal data attributes
+                    const imagineButton = card.querySelector('[data-bs-toggle="modal"]');
+                    if (imagineButton) {
+                        imagineButton.setAttribute('data-original-image', home.images[0]);
+                        imagineButton.setAttribute('data-original-images', home.images.join(','));
+                    }
+                }
+            }
+        }
+        
+        function updateHomeCardImages(home, index) {
+            // Update the displayed card with new high-quality images
+            const homesGrid = document.getElementById('homesGrid');
+            const cards = homesGrid.querySelectorAll('.home-card');
+            
+            if (cards[index]) {
+                const card = cards[index];
+                const cardImage = card.querySelector('.card-img-top');
+                const imageBubbles = card.querySelector('.image-bubbles');
+                
+                if (cardImage && home.images && home.images.length > 0) {
+                    // Update main image
+                    cardImage.src = home.images[0];
+                    
+                    // Update image bubbles
+                    if (imageBubbles && home.images.length > 1) {
+                        imageBubbles.innerHTML = home.images.map((_, imgIndex) => `
+                            <div class="image-bubble ${imgIndex === 0 ? 'active' : ''}" 
+                                 data-image-index="${imgIndex}" 
+                                 data-image-src="${home.images[imgIndex]}"></div>
+                        `).join('');
+                        
+                        // Re-attach click handlers
+                        const bubbles = imageBubbles.querySelectorAll('.image-bubble');
+                        bubbles.forEach((bubble, imgIndex) => {
+                            bubble.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                
+                                bubbles.forEach(b => b.classList.remove('active'));
+                                bubble.classList.add('active');
+                                
+                                cardImage.src = home.images[imgIndex];
+                            });
+                        });
+                    }
+                    
+                    // Update modal data attributes
+                    const imagineButton = card.querySelector('[data-bs-toggle="modal"]');
+                    if (imagineButton) {
+                        imagineButton.setAttribute('data-original-image', home.images[0]);
+                        imagineButton.setAttribute('data-original-images', home.images.join(','));
+                    }
+                }
+            }
+        }
+
+
+        function getStreetName(index) {
+            const streets = ['Main', 'Oak', 'Pine', 'Elm', 'Maple', 'Cedar', 'Birch', 'Spruce'];
+            return streets[index % streets.length];
+        }
+
+        function getPropertyImages(propertyId) {
+            // Using different house images for each property to make them look distinct
+            // Each house has 5 different images: front, side, back, interior, garden
+            const houseImageSets = [
+                // House 1 - 243 Elm Dr S, Levittown, NY 11756 (Levittown style)
+                [
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Levittown style
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Levittown architecture
+                    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Levittown backyard
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Levittown living room
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Levittown landscaping
+                ],
+                // House 2 - 3562 Southview Ave, Wantagh, NY 11793 (Spacious family home)
+                [
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Spacious family home
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4b?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Family home side
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4c?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Family backyard
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Family living room
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Family garden
+                ],
+                // House 3 - 1773 Roland Ave, Wantagh, NY 11793 (Classic Wantagh home)
+                [
+                    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Classic Wantagh
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Classic side
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Classic backyard
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Classic interior
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4b?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Classic garden
+                ],
+                // House 4 - 875 Woodside Dr, Wantagh, NY 11793 (Larger Wantagh home)
+                [
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4c?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Larger home
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Larger side
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Larger backyard
+                    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Larger interior
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Larger garden
+                ],
+                // House 5 - 2486 Mermaid Ave, Wantagh, NY 11793 (Charming Wantagh home)
+                [
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Charming home
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Charming side
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4b?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Charming backyard
+                    'https://images.unsplash.com/photo-1600566753198-0b4b0b4b0b4c?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Charming interior
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Charming garden
+                ],
+                // House 6 - 3737 Maxwell Dr, Wantagh, NY 11793 (Beautiful Wantagh home)
+                [
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop&auto=format&q=80', // Front view - Beautiful home
+                    'https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=800&h=600&fit=crop&auto=format&q=80', // Side view - Beautiful side
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop&auto=format&q=80', // Back view - Beautiful backyard
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop&auto=format&q=80', // Interior - Beautiful interior
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80'  // Garden - Beautiful garden
+                ]
+            ];
+            
+            // Get the image set for this property
+            const imageSet = houseImageSets[propertyId % houseImageSets.length];
+            
+            // Return all images for this house
+            return imageSet;
+        }
+
+
+        function displayHomes(homes) {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const homesGrid = document.getElementById('homesGrid');
+            
+            // Hide loading state
+            loadingState.style.display = 'none';
+            errorState.style.display = 'none';
+            
+            // Clear existing homes
+            homesGrid.innerHTML = '';
+            
+            // Display each home
+            homes.forEach(home => {
+                const homeCard = createHomeCard(home);
+                homesGrid.appendChild(homeCard);
+            });
+            
+            // Show homes grid
+            homesGrid.style.display = 'flex';
+            
+            // Re-observe cards for animations
+            document.querySelectorAll('.home-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        }
+
+        function createHomeCard(home) {
+            const col = document.createElement('div');
+            col.className = 'col';
+            
+            const price = formatCurrency(home.price);
+            const yearBuilt = home.yearBuilt || 'Unknown';
+            const sqft = home.sqft ? ` | ${home.sqft.toLocaleString()} sqft` : '';
+            
+            // Handle multiple images - use first image as main, store all images in data attribute
+            const mainImage = home.images ? home.images[0] : home.image;
+            const allImages = home.images ? home.images.join(',') : home.image;
+            
+            // Add Zestimate information if available
+            const zestimateInfo = home.zestimate ? `
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span>Zestimate: ${formatCurrency(home.zestimate)}</span>
+                    ${home.daysOnMarket ? `<span>${home.daysOnMarket} days on market</span>` : ''}
+                </div>
+            ` : '';
+            
+            // Create image bubbles for navigation
+            const imageBubbles = home.images && home.images.length > 1 ? `
+                <div class="image-bubbles">
+                    ${home.images.map((_, index) => `
+                        <div class="image-bubble ${index === 0 ? 'active' : ''}" 
+                             data-image-index="${index}" 
+                             data-image-src="${home.images[index]}"></div>
+                    `).join('')}
+                </div>
+            ` : '';
+            
+            col.innerHTML = `
+                <div class="card h-100 home-card">
+                    <div class="position-relative">
+                        <img src="${mainImage}" class="card-img-top" alt="Home at ${home.address}" 
+                             onerror="this.src='https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop'">
+                        ${imageBubbles}
+                        ${home.propertyType ? `
+                            <div class="position-absolute top-0 start-0 m-2">
+                                <span class="badge bg-secondary">${home.propertyType}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">${home.address}</h5>
+                        <p class="card-text mb-1"><strong>${price}</strong> | ${home.bedrooms} Bed, ${home.bathrooms} Bath${sqft}</p>
+                        ${zestimateInfo}
+                        <p class="card-text text-muted small">Built in ${yearBuilt}. ${home.description}</p>
+                        <button type="button" class="btn btn-outline-primary w-100 mt-2" 
+                                data-bs-toggle="modal" data-bs-target="#upgradeModal" 
+                                data-original-image="${mainImage}" 
+                                data-original-images="${allImages}"
+                                data-original-value="${home.price}">
+                            Imagine Upgrades
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add click handlers for image bubbles
+            if (home.images && home.images.length > 1) {
+                const card = col.querySelector('.home-card');
+                const cardImage = card.querySelector('.card-img-top');
+                const bubbles = card.querySelectorAll('.image-bubble');
+                
+                bubbles.forEach((bubble, index) => {
+                    bubble.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        
+                        // Update active bubble
+                        bubbles.forEach(b => b.classList.remove('active'));
+                        bubble.classList.add('active');
+                        
+                        // Update image
+                        cardImage.src = home.images[index];
+                    });
+                });
+            }
+            
+            return col;
+        }
+
+        // Search function for location-based home search
+        function searchHomes() {
+            const locationInput = document.getElementById('locationSearch');
+            const location = locationInput.value.trim();
+            
+            if (location) {
+                console.log('Searching for homes in:', location);
+                // Redirect to results page with location parameter
+                const encodedLocation = encodeURIComponent(location);
+                window.location.href = `results.html?location=${encodedLocation}`;
+            } else {
+                alert('Please enter a location to search for homes.');
+            }
+        }
+
+        // Search function for popular location tags
+        function searchLocation(location) {
+            // Redirect directly to results page with location parameter
+            const encodedLocation = encodeURIComponent(location);
+            window.location.href = `results.html?location=${encodedLocation}`;
+        }
+
+        // Search function from home page
+        function searchHomesFromHome() {
+            const locationInput = document.getElementById('locationSearchHome');
+            const location = locationInput.value.trim();
+            
+            if (location) {
+                console.log('Searching for homes in:', location);
+                // Redirect to results page with location parameter
+                const encodedLocation = encodeURIComponent(location);
+                window.location.href = `results.html?location=${encodedLocation}`;
+            } else {
+                alert('Please enter a location to search for homes.');
+            }
+        }
+        
+        // Allow Enter key to trigger search
+        document.addEventListener('DOMContentLoaded', function() {
+            const locationInput = document.getElementById('locationSearch');
+            if (locationInput) {
+                locationInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchHomes();
+                    }
+                });
+            }
+        });
+        
+        // Load homes when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're on the results page and have a location parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const location = urlParams.get('location');
+            
+            if (location) {
+                // We're on the results page, show home page and load homes
+                document.getElementById('searchPage').style.display = 'none';
+                document.getElementById('homePage').style.display = 'block';
+                document.getElementById('locationSearchHome').value = decodeURIComponent(location);
+                loadHomes(decodeURIComponent(location));
+            } else {
+                // We're on the search page, just show it
+                console.log('Search page loaded - waiting for user input');
+            }
+        });
+
+        const upgradeModal = document.getElementById('upgradeModal');
+        upgradeModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const originalImage = button.getAttribute('data-original-image');
+            const originalImages = button.getAttribute('data-original-images');
+            const originalValue = parseFloat(button.getAttribute('data-original-value'));
+
+            const modalImage = upgradeModal.querySelector('#upgraded-image');
+            const loadingOverlay = upgradeModal.querySelector('#loading-overlay');
+            const currentValueSpan = upgradeModal.querySelector('#current-value');
+            const upgradedValueSpan = upgradeModal.querySelector('#upgraded-value');
+            
+            // Use the new class 'upgrade-pill'
+            const upgradePills = upgradeModal.querySelectorAll('.upgrade-pill'); 
+
+            // Store all images for cycling
+            let allImages = originalImages ? originalImages.split(',') : [originalImage];
+            let currentImageIndex = 0;
+
+            // Set default state (original image and value)
+            const resetModalState = () => {
+                modalImage.src = originalImage;
+                upgradedValueSpan.textContent = formatCurrency(originalValue);
+                upgradedValueSpan.classList.remove('text-success'); 
+                upgradedValueSpan.classList.add('text-muted'); 
+                upgradePills.forEach(pill => pill.classList.remove('selected'));
+                currentImageIndex = 0;
+            };
+
+            // Initialize modal view
+            resetModalState();
+            currentValueSpan.textContent = formatCurrency(originalValue);
+            modalImage.style.opacity = '1';
+
+            // Add image cycling functionality
+            modalImage.addEventListener('click', () => {
+                if (allImages.length > 1) {
+                    currentImageIndex = (currentImageIndex + 1) % allImages.length;
+                    modalImage.src = allImages[currentImageIndex];
+                    
+                    // Add a subtle transition effect
+                    modalImage.style.opacity = '0.7';
+                    setTimeout(() => {
+                        modalImage.style.opacity = '1';
+                    }, 150);
+                }
+            });
+
+            // Add keyboard navigation for images
+            document.addEventListener('keydown', (e) => {
+                if (upgradeModal.classList.contains('show') && allImages.length > 1) {
+                    if (e.key === 'ArrowLeft') {
+                        currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+                        modalImage.src = allImages[currentImageIndex];
+                    } else if (e.key === 'ArrowRight') {
+                        currentImageIndex = (currentImageIndex + 1) % allImages.length;
+                        modalImage.src = allImages[currentImageIndex];
+                    }
+                }
+            });
+
+            // Attach click listeners to the pills
+            upgradePills.forEach(pill => {
+                // Remove previous listeners to prevent duplicates upon modal re-opening
+                pill.onclick = null; 
+
+                pill.onclick = (e) => {
+                    e.preventDefault();
+                    
+                    // If the pill is already selected, deselect it and revert the state
+                    if (pill.classList.contains('selected')) {
+                        resetModalState(); // Revert to original home
+                        return; // Stop execution
+                    }
+
+                    // --- PROCEED WITH NEW UPGRADE SELECTION ---
+
+                    // Deselect all pills first, then select the current one
+                    upgradePills.forEach(p => p.classList.remove('selected'));
+                    pill.classList.add('selected');
+
+                    // Get upgrade details
+                    const upgradeImgSrc = pill.getAttribute('data-upgrade-image');
+                    const costIncrease = parseFloat(pill.getAttribute('data-cost-increase'));
+
+                    // 1. SHOW LOADING ANIMATION
+                    modalImage.style.opacity = '0.1'; // Fade out current visual
+                    loadingOverlay.classList.add('visible'); // Show spinner
+
+                    // 2. WAIT 3 SECONDS
+                    setTimeout(() => {
+                        // 3. HIDE LOADING ANIMATION
+                        loadingOverlay.classList.remove('visible'); // Hide spinner
+                        
+                        // 4. DISPLAY NEW IMAGE
+                        modalImage.src = upgradeImgSrc;
+                        modalImage.style.opacity = '1'; // Fade new image back in
+
+                        // 5. DISPLAY NEW UPGRADED VALUE
+                        const newUpgradedValue = originalValue + costIncrease;
+                        upgradedValueSpan.textContent = formatCurrency(newUpgradedValue);
+                        upgradedValueSpan.classList.add('text-success'); 
+                        upgradedValueSpan.classList.remove('text-muted');
+                    }, 3000); // 3000 milliseconds = 3 seconds
+                };
+            });
+        });
+    </script>
+</body>
+</html>

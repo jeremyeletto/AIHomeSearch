@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Proxy - AI Home Upgrades</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+        }
+        .result img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .error {
+            background: #fee;
+            border-color: #fcc;
+            color: #c33;
+        }
+        .success {
+            background: #efe;
+            border-color: #cfc;
+            color: #363;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            borderRadius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .step h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Gemini Image Generation Test</h1>
+        
+        <div class="step">
+            <h3>Step 1: Test Gemini API Connectivity</h3>
+            <p>Click the button below to test if Gemini API is accessible:</p>
+            <button onclick="testGeminiAPI()" id="testBtn">🔍 Test Gemini 2.5 Flash</button>
+            <button onclick="listAvailableModels().then(models => console.log('📋 Models:', models))" style="margin-left: 10px;">📋 List All Models</button>
+            <p><small><strong>Using:</strong> gemini-2.5-flash with proper Google API headers</small></p>
+            <div id="testResult"></div>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Image Generation Test</h3>
+            <p>Use this form to test image generation with your house images:</p>
+            
+            <div class="form-group">
+                <label for="imageUrl">House Image URL:</label>
+                <input type="url" id="imageUrl" placeholder="Paste your house image URL here...">
+                <small>Copy a house image URL from your homes.html page</small>
+            </div>
+
+            <div class="form-group">
+                <label for="upgradeType">Upgrade Type:</label>
+                <select id="upgradeType">
+                    <option value="stone-walkway">Stone Walkway</option>
+                    <option value="black-windows">Modern Black Windows</option>
+                    <option value="white-siding" selected>White Vinyl Siding</option>
+                    <option value="wrap-porch">Wrap-around Porch</option>
+                    <option value="brick-exterior">Brick Exterior</option>
+                </select>
+            </div>
+
+            <button onclick="generateUpgrade()" id="generateBtn">Generate Upgrade</button>
+            
+            <div id="generateResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const GEMINI_API_KEY = 'AIzaSyBmIYwYoxphBKEmra76G_0lqj_hdDADrVM';
+        const GEMINI_PROJECT = '549560236821';
+        const GEMINI_MODEL = 'gemini-2.5-flash';
+        
+        // Using CORS proxy to bypass browser restrictions
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        
+        // Use correct Gemini API endpoint - v1beta with proper model name
+        const GEMINI_API_URL = `${CORS_PROXY}${encodeURIComponent(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`)}`;
+        
+        // Also create URL to list all available models
+        const LIST_MODELS_URL = `${CORS_PROXY}${encodeURIComponent(`https://generativelanguage.googleapis.com/v1beta/models`)}`;
+
+        async function listAvailableModels() {
+            try {
+                console.log('📋 Listing available models...');
+                const response = await fetch(`${LIST_MODELS_URL}`, {
+                    headers: {
+                        'x-goog-api-key': GEMINI_API_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Model list failed: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('📋 Available Models:', result);
+                
+                if (result.models && result.models.length > 0) {
+                    console.log('✅ Models available for your API key:');
+                    result.models.forEach(model => {
+                        console.log(`  - ${model.name} (supports: ${model.supportedGenerationMethods?.join(', ') || 'unknown'})`);
+                    });
+                    return result.models;
+                } else {
+                    console.warn('⚠️ No models found for your API key');
+                    return [];
+                }
+            } catch (error) {
+                console.error('❌ Failed to list models:', error);
+                return [];
+            }
+        }
+
+        async function testGeminiAPI() {
+            const btn = document.getElementById('testBtn');
+            const resultDiv = document.getElementById('testResult');
+            
+            btn.disabled = true;
+            btn.textContent = 'Finding models...';
+            resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Checking available models...</p>';
+            
+            try {
+                // First, list available models
+                const models = await listAvailableModels();
+                
+                if (models.length === 0) {
+                    throw new Error('No models available for your API key. Check console for details.');
+                }
+                
+                // Find a model that supports generateContent
+                const generateContentModel = models.find(model => 
+                    model.supportedGenerationMethods?.includes('generateContent')
+                );
+                
+                if (!generateContentModel) {
+                    throw new Error('No models support generateContent. Available models don\'t have this capability.');
+                }
+                
+                console.log('🎯 Using model:', generateContentModel.name);
+                btn.textContent = 'Testing...';
+                resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Testing with found model...</p>';
+                
+                // Update the URL to use the working model
+                const modelName = generateContentModel.name.replace('models/', '');
+                const workingApiUrl = `${CORS_PROXY}${encodeURIComponent(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`)}`;
+                console.log('🔄 Updated API URL for working model:', workingApiUrl);
+                const response = await fetch(`${workingApiUrl}`, {
+                    method: 'POST',
+                    headers: {
+                        'x-goog-api-key': GEMINI_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: "user",
+                                parts: [{ text: "Say hello and confirm API is working" }]
+                            }
+                        ]
+                    })
+                });
+
+                console.log('📡 Response Status:', response.status);
+                console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('✅ API Response:', result);
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <strong>✅ Gemini API Test Successful!</strong><br>
+                        Status: ${response.status}<br>
+                        Working Model: ${generateContentModel.name}<br>
+                        Available Models: ${models.length} found<br>
+                        Response: ${result.candidates?.[0]?.content?.parts?.[0]?.text || 'Success'}<br>
+                        <small>✅ Check console for detailed model list</small>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('❌ Gemini API Test Error:', error);
+                console.error('❌ Full Error Details:', error);
+                console.error('❌ Error Stack:', error.stack);
+                
+                let errorMessage = error.message;
+                let troubleshooting = '';
+                
+                if (error.message.includes('Failed to fetch')) {
+                    troubleshooting = 'This indicates a network connectivity issue or blocked API endpoint.';
+                } else if (error.message.includes('403')) {
+                    troubleshooting = 'API key may not have Gemini API permissions enabled.';
+                } else if (error.message.includes('404')) {
+                    troubleshooting = 'The API endpoint or model might be incorrect.';
+                } else {
+                    troubleshooting = 'Check browser console (F12) for detailed debugging info.';
+                }
+                
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ Gemini API Test Failed</strong><br>
+                        Error: ${errorMessage}<br>
+                        ${troubleshooting}<br>
+                        <small>🔍 Check browser console (F12) for detailed debugging info</small>
+                    </div>
+                `;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Test Gemini API';
+        }
+
+        async function generateUpgrade() {
+            const imageUrl = document.getElementById('imageUrl').value;
+            const upgradeType = document.getElementById('upgradeType').value;
+            
+            if (!imageUrl) {
+                alert('Please enter an image URL');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const resultDiv = document.getElementById('generateResult');
+            
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+            
+            try {
+                // Show conversion process
+                resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Converting image to base64...</p>';
+                
+                // Convert image to base64
+                const base64Image = await imageUrlToBase64(imageUrl);
+                console.log('Image converted to base64, length:', base64Image.length);
+                
+                // Prepare prompt
+                const upgradePrompts = {
+                    'stone-walkway': 'Add Stone Walkway',
+                    'black-windows': 'Modern Black Windows', 
+                    'white-siding': 'Imagine White Vinyl Siding',
+                    'wrap-porch': 'Wrap-around Porch',
+                    'brick-exterior': 'Brick Exterior'
+                };
+
+                const prompt = `Please upgrade this house by adding ${upgradePrompts[upgradeType]}. Return an edited image that reflects these upgrades realistically.`;
+                
+                resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Sending request to Gemini API...</p>';
+                
+                // Make API request
+                const response = await fetch(`${GEMINI_API_URL}`, {
+                    method: 'POST',
+                    headers: {
+                        'x-goog-api-key': GEMINI_API_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: "user",
+                                parts: [
+                                    {
+                                        inlineData: {
+                                            mimeType: "image/png",
+                                            data: base64Image
+                                        }
+                                    },
+                                    {
+                                        text: prompt
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            responseMimeType: "application/json"
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Gemini API Response:', result);
+
+                // Extract generated image
+                if (result.candidates?.[0]?.content?.parts?.[0]) {
+                    const part = result.candidates[0].content.parts[0];
+                    const inlineData = part.inlineData || part.inline_data;
+                    
+                    if (inlineData?.data) {
+                        const mimeType = inlineData.mimeType || inlineData.mime_type || 'image/png';
+                        const generatedImageUrl = `data:${mimeType};base64,${inlineData.data}`;
+                        
+                        resultDiv.innerHTML = `
+                            <div class="result success">
+                                <strong>🎉 Upgrade Generated Successfully!</strong><br>
+                                Upgrade Type: ${upgradePrompts[upgradeType]}<br>
+                                Generated Image:
+                                <img src="${generatedImageUrl}" alt="Generated upgrade">
+                                <p><strong>Original:</strong></p>
+                                <img src="${imageUrl}" alt="Original image">
+                            </div>
+                        `;
+                    } else {
+                        throw new Error('No image data in response');
+                    }
+                } else {
+                    throw new Error('Invalid response format');
+                }
+                
+            } catch (error) {
+                console.error('Error generating upgrade:', error);
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <strong>❌ Generation Failed</strong><br>
+                        Error: ${error.message}<br>
+                        Check browser console for more details.
+                    </div>
+                `;
+            }
+            
+            btn.disabled = false;
+            btn.textContent = 'Generate Upgrade';
+        }
+
+        async function imageUrlToBase64(imageUrl) {
+            try {
+                const response = await fetch(imageUrl, {
+                    mode: 'cors'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Image fetch failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const blob = await response.blob();
+                
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.error('Error converting image to base64:', error);
+                throw error;
+            }
+        }
+    </script>
+</body>
+</html>

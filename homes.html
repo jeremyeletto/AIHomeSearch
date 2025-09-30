@@ -1,0 +1,1466 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Homes - AI Home Upgrades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Modern CSS Variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles */
+        body {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Modern Home Cards */
+        .home-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .home-card .card-img-top {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .home-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .home-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .home-card .card-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .home-card .card-text {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        /* Image Navigation Bubbles */
+        .image-bubbles {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 5;
+        }
+
+        .image-bubble {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .image-bubble.active {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.2);
+        }
+
+        .image-bubble:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+        
+        .loading-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-overlay .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        /* Value Display Enhancement */
+        .bg-light {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Modern Buttons */
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Upgrade Pills */
+        .upgrade-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .upgrade-pill {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .upgrade-pill:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .upgrade-pill.active {
+            background: var(--primary-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .upgrade-pill i {
+            font-size: 1rem;
+        }
+
+        /* Loading Animation for Upgrade Modal */
+        .upgrade-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            margin: 1rem 0;
+        }
+
+        .upgrade-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 0.3em solid rgba(102, 126, 234, 0.3);
+            border-top: 0.3em solid var(--primary-gradient);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .home-card .card-img-top {
+                height: 200px;
+            }
+            
+            .home-card .card-body {
+                padding: 1rem;
+            }
+        }
+
+        /* Shimmer Animation */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-gradient);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">
+                homeupgrades.ai
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showHomesPage()">Homes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showAboutPage()">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Visualize Your Dream Home Upgrades
+            </h1>
+            <p class="lead text-muted mb-4">Click "Imagine Upgrades" on any listing to see the possibilities with our preset designs.</p>
+            
+            <!-- Location Search Bar -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="locationSearchHome" placeholder="Enter location (e.g., New York, NY)">
+                        <button class="btn btn-primary" type="button" onclick="searchHomesFromHome()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sort and Filter Controls -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-3">
+                        <div class="d-flex align-items-center">
+                            <label for="sortSelect" class="form-label me-2 mb-0">Sort by:</label>
+                            <select class="form-select" id="sortSelect" style="width: auto;" onchange="changeSort()">
+                                <option value="relevant">Most Relevant</option>
+                                <option value="newest_listing">Newest Listing</option>
+                                <option value="highest_price">Highest Price</option>
+                                <option value="lowest_price">Lowest Price</option>
+                                <option value="open_house_date">Open House Date</option>
+                                <option value="recently_reduced">Recently Reduced</option>
+                            </select>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted me-2">Page:</span>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="prevPageBtn" onclick="changePage(-1)">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="currentPageBtn" disabled>
+                                    <span id="currentPageNumber">1</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" id="nextPageBtn" onclick="changePage(1)">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <h4>Loading Amazing Properties...</h4>
+            <p class="text-muted">Finding the perfect homes for you</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="text-center py-5" style="display: none;">
+            <div class="alert alert-danger" role="alert">
+                <h4 class="alert-heading">Unable to Load Homes</h4>
+                <p>We're having trouble loading the latest home listings. Please try again later.</p>
+                <hr>
+                <p class="mb-0">If the problem persists, please check your internet connection and try refreshing the page.</p>
+            </div>
+        </div>
+
+        <!-- Homes Grid -->
+        <div id="homesGrid" class="row g-4" style="display: none;">
+            <!-- Homes will be dynamically loaded here -->
+        </div>
+    </main>
+
+    <!-- Upgrade Modal -->
+    <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="upgradeModalLabel">AI-Powered Home Upgrades</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Current Property</h6>
+                            <img id="originalImage" src="" alt="Original" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
+                            <div class="bg-light p-3 rounded text-center">
+                                <strong>Current Value: </strong><span id="currentValue">$0</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3">AI-Generated Upgrade Preview</h6>
+                            <div id="upgradedImageContainer" style="position: relative;">
+                                <img id="upgradedImage" src="" alt="AI Generated" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover; display: none;">
+                                <div id="upgradeDescription" style="display: none;"></div>
+                                <div id="generationLoading" class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Generating upgrade...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">AI is imagining your upgrade...</p>
+                                </div>
+                            </div>
+                            <div class="bg-light p-3 rounded text-center">
+                                <strong>Estimated Value: </strong><span id="upgradedValue">$0</span>
+                                <div class="text-success small mt-1" id="valueIncrease"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h6 class="mb-3">Choose Your Upgrade:</h6>
+                        <div class="upgrade-pills">
+                            <button class="upgrade-pill" data-upgrade="stone-walkway">
+                                <i class="fas fa-walking"></i>
+                                <span>Stone Walkway</span>
+                            </button>
+                            <button class="upgrade-pill" data-upgrade="black-windows">
+                                <i class="fas fa-window-restore"></i>
+                                <span>Modern Black Windows</span>
+                            </button>
+                            <button class="upgrade-pill" data-upgrade="white-siding">
+                                <i class="fas fa-home"></i>
+                                <span>White Vinyl Siding</span>
+                            </button>
+                            <button class="upgrade-pill" data-upgrade="wrap-porch">
+                                <i class="fas fa-door-open"></i>
+                                <span>Wrap-around Porch</span>
+                            </button>
+                            <button class="upgrade-pill" data-upgrade="brick-exterior">
+                                <i class="fas fa-layer-group"></i>
+                                <span>Brick Exterior</span>
+                            </button>
+                        </div>
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Click any upgrade button above to see how it would look on your property using AI generation
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-primary" id="comparisonToggle" onclick="toggleComparisonView()" style="display: none;">
+                        <i class="fas fa-toggle-off"></i> Toggle Comparison View
+                    </button>
+                    <button type="button" class="btn btn-primary" id="saveUpgrade" disabled>
+                        <i class="fas fa-save"></i> Save Upgrade Plan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // Configuration
+        const API_BASE_URL = window.location.hostname === 'localhost' ? '' : 'https://your-railway-url.railway.app';
+        
+        // Page navigation functions
+        function showHomesPage() {
+            // Stay on current page
+            return;
+        }
+
+        function showAboutPage() {
+            window.location.href = 'about.html';
+        }
+
+        // Search function from home page
+        function searchHomesFromHome() {
+            const locationInput = document.getElementById('locationSearchHome');
+            const location = locationInput.value.trim();
+            
+            if (location) {
+                console.log('Searching for homes in:', location);
+                // Load homes directly without redirect
+                loadHomes(location, 1, 'relevant');
+            } else {
+                alert('Please enter a location to search for homes.');
+            }
+        }
+
+        // Image cache to prevent repeated requests
+        const imageCache = new Map();
+        
+        // Generated image cache for AI upgrades
+        const generatedImageCache = new Map();
+        
+        // REST API configuration - Using CORS proxy to bypass browser restrictions
+        const CORS_PROXY = 'https://corsproxy.io/?';
+        // Use the correct Gemini API endpoint format - without project ID
+        const GEMINI_API_URL = `${CORS_PROXY}${encodeURIComponent('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent')}`;
+        
+        console.log('🚀 USING CORS PROXY:', {
+            proxy: CORS_PROXY,
+            geminiUrl: GEMINI_API_URL,
+            status: 'CORS-Free Solution'
+        });
+        
+        // Test API connectivity
+        async function testAPIs() {
+            try {
+                console.log('Testing API connectivity...');
+                
+                // Test Bedrock first (primary service)
+                console.log('Testing AWS Bedrock connectivity...');
+                const bedrockResponse = await fetch(`${API_BASE_URL}/api/test-bedrock`);
+                const bedrockResult = await bedrockResponse.json();
+                
+                if (bedrockResult.success) {
+                    console.log('✅ AWS Bedrock is accessible');
+                    console.log('Model:', bedrockResult.modelId);
+                    console.log('Region:', bedrockResult.region);
+                } else {
+                    console.log('❌ AWS Bedrock test failed:', bedrockResult.error);
+                }
+                
+                // Test Gemini as backup
+                console.log('Testing Gemini API connectivity...');
+                const geminiResponse = await fetch(`${API_BASE_URL}/api/test-gemini`);
+                const geminiResult = await geminiResponse.json();
+                
+                if (geminiResult.success) {
+                    console.log('✅ Gemini API is accessible');
+                } else {
+                    console.log('❌ Gemini API test failed:', geminiResult.error);
+                }
+                
+                return bedrockResult.success;
+            } catch (error) {
+                console.error('API test failed:', error);
+                console.error('Error details:', error.message);
+                console.log('💡 Make sure to start the server: npm start');
+                return false;
+            }
+        }
+        
+        // Pagination and sorting state
+        let currentPage = 1;
+        let currentSort = 'relevant';
+        let currentLocation = 'New York, NY';
+        let totalPages = 1;
+        
+        // Real Estate API Integration using Realtor16 API
+        async function loadHomes(location = 'New York, NY', page = 1, sort = 'relevant') {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const homesGrid = document.getElementById('homesGrid');
+            
+            loadingState.style.display = 'block';
+            errorState.style.display = 'none';
+            homesGrid.style.display = 'none';
+            
+            // Update global state
+            currentPage = page;
+            currentSort = sort;
+            currentLocation = location;
+            
+            try {
+                const apiKey = '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed';
+                
+                if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
+                    console.log('Please add your RapidAPI key to use real data');
+                    errorState.style.display = 'block';
+                    loadingState.style.display = 'none';
+                    return;
+                }
+                
+                console.log('Fetching real estate data from Realtor16 API for location:', location, 'page:', page, 'sort:', sort);
+                
+                const encodedLocation = encodeURIComponent(location);
+                const apiUrl = `https://realtor16.p.rapidapi.com/search/forsale?location=${encodedLocation}&search_radius=0&page=${page}&limit=6&sort=${sort}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': apiKey,
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error Response:', errorText);
+                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('API Response:', data);
+                
+                let recentProperties = [];
+                
+                console.log('Data structure:', Object.keys(data));
+                console.log('Properties array:', data.properties);
+                
+                if (data.properties && data.properties.length > 0) {
+                    console.log('First property structure:', data.properties[0]);
+                    console.log('First property keys:', Object.keys(data.properties[0]));
+                }
+                
+                if (data.properties && Array.isArray(data.properties)) {
+                    console.log(`Total properties found: ${data.properties.length}`);
+                    
+                    // Use properties directly from API (already sorted and paginated)
+                    recentProperties = data.properties;
+                    
+                    // Calculate total pages based on total count
+                    const totalCount = data.total || data.count || 0;
+                    totalPages = Math.ceil(totalCount / 6);
+                    
+                    console.log(`Properties found: ${recentProperties.length}, Total pages: ${totalPages}`);
+                } else {
+                    console.log('No properties array found in response');
+                    console.log('Available keys:', Object.keys(data));
+                }
+                
+                const homes = await Promise.all(recentProperties.map(async (property, index) => {
+                    console.log('Processing property:', property);
+                    
+                    // Build address from location.address.line (primary field)
+                    let address = '';
+                    if (property.location && property.location.address && property.location.address.line) {
+                        address = property.location.address.line;
+                    } else if (property.address) {
+                        address = property.address;
+                    } else if (property.street_number && property.street_name) {
+                        address = `${property.street_number} ${property.street_name}`;
+                    } else if (property.street_address) {
+                        address = property.street_address;
+                    } else if (property.line) {
+                        address = property.line;
+                    }
+                    
+                    // Add city, state, zip from location.address
+                    const city = property.location?.address?.city || property.city || property.locality || 'New York';
+                    const state = property.location?.address?.state_code || property.state || property.state_code || 'NY';
+                    const zip = property.location?.address?.postal_code || property.postal_code || property.postal_code_plus4 || property.zip || '10001';
+                    
+                    if (address) {
+                        address = `${address}, ${city}, ${state} ${zip}`;
+                    } else {
+                        address = `${city}, ${state} ${zip}`;
+                    }
+                    
+                    // Get bedrooms and bathrooms from description object
+                    const bedrooms = property.description?.beds || property.beds || property.bedrooms || property.bed_count || property.bedrooms_total || 0;
+                    const bathrooms = property.description?.baths_consolidated || property.baths || property.bathrooms || property.bath_count || property.bathrooms_total || 0;
+                    
+                    // Get description, handling object case
+                    let description = property.description?.text || property.description?.value || property.remarks || "Beautiful home with great potential for upgrades.";
+                    if (typeof description === 'object') {
+                        description = description.text || description.value || "Beautiful home with great potential for upgrades.";
+                    }
+                    
+                    // Get images for this property
+                    console.log(`Fetching images for property ${index + 1}/${recentProperties.length}: ${address}`);
+                    const images = getPropertyImagesFromAPI(property) || getPropertyImages(index + 1);
+                    console.log(`Property ${index + 1} images loaded: ${images ? images.length : 0} images`);
+                    
+                    return {
+                        id: property.property_id || property.id || index + 1,
+                        address: address,
+                        price: property.list_price || property.price || property.list_price_min || 0,
+                        bedrooms: bedrooms,
+                        bathrooms: bathrooms,
+                        yearBuilt: property.description?.year_built || property.year_built || property.year || property.year_constructed || 0,
+                        description: description,
+                        images: images,
+                        sqft: property.description?.sqft || property.sqft || property.square_feet || property.living_area || property.gross_sqft || 0,
+                        zestimate: property.zestimate || property.estimated_value || property.list_price || property.price || 0,
+                        daysOnMarket: property.days_on_market || property.dom || 0,
+                        propertyType: property.description?.type || property.property_type || property.type || property.class || 'Residential'
+                    };
+                }));
+                
+                // Display the homes
+                if (homes.length > 0) {
+                    console.log(`Found ${homes.length} properties from API`);
+                    console.log('All properties processed, displaying homes...');
+                    displayHomes(homes);
+                    updatePaginationControls();
+                    
+                    // Phase 1: Fetch first image for all properties simultaneously
+                    console.log('Phase 1: Fetching first high-quality image for all properties...');
+                    const firstImagePromises = homes.map(async (home, index) => {
+                        const property = recentProperties[index];
+                        if (property) {
+                            console.log(`Fetching first image for property ${index + 1}...`);
+                            const firstImage = await fetchFirstHighQualityPhoto(property);
+                            if (firstImage) {
+                                console.log(`Updating property ${index + 1} with first high-quality image`);
+                                // Update the home object with the first high-quality image
+                                home.images = [firstImage, ...home.images.slice(1)];
+                                // Update the displayed card
+                                updateHomeCardFirstImage(home, index);
+                                return { index, success: true, imageCount: 1 };
+                            } else {
+                                console.log(`No first high-quality image found for property ${index + 1}`);
+                                return { index, success: false, imageCount: 0 };
+                            }
+                        }
+                        return { index, success: false, imageCount: 0 };
+                    });
+                    
+                    Promise.all(firstImagePromises).then((results) => {
+                        console.log('Phase 1 completed - First images loaded:', results);
+                        const successful = results.filter(r => r.success);
+                        console.log(`Successfully updated ${successful.length} properties with first high-quality images`);
+                        
+                        // Phase 2: Lazy load remaining images for all properties
+                        console.log('Phase 2: Lazy loading remaining high-quality images...');
+                        homes.forEach((home, index) => {
+                            const property = recentProperties[index];
+                            if (property) {
+                                // Use setTimeout to stagger the requests slightly
+                                setTimeout(() => {
+                                    fetchRemainingHighQualityPhotos(property, home, index);
+                                }, index * 100); // 100ms delay between each property
+                            }
+                        });
+                    }).catch(error => {
+                        console.error('Error fetching first high-quality images:', error);
+                    });
+                } else {
+                    console.log('No properties found from API');
+                    errorState.style.display = 'block';
+                    loadingState.style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error loading homes from Realtor16 API:', error);
+                errorState.style.display = 'block';
+                loadingState.style.display = 'none';
+            }
+        }
+
+        // Get property images from API response
+        function getPropertyImagesFromAPI(property) {
+            const propertyId = property.property_id || property.id;
+            
+            // Check cache first
+            if (imageCache.has(propertyId)) {
+                console.log(`Using cached images for property ${propertyId}`);
+                return imageCache.get(propertyId);
+            }
+            
+            let images = [];
+            
+            // Extract images from various fields in the API response
+            if (property.photos && Array.isArray(property.photos)) {
+                images = property.photos.map(photo => photo.href || photo.url || photo).filter(Boolean);
+            } else if (property.images && Array.isArray(property.images)) {
+                images = property.images.map(img => img.href || img.url || img).filter(Boolean);
+            } else if (property.media && Array.isArray(property.media)) {
+                images = property.media.map(media => media.href || media.url || media).filter(Boolean);
+            } else if (property.photo && Array.isArray(property.photo)) {
+                images = property.photo.map(photo => photo.href || photo.url || photo).filter(Boolean);
+            } else if (property.photos_list && Array.isArray(property.photos_list)) {
+                images = property.photos_list.map(photo => photo.href || photo.url || photo).filter(Boolean);
+            }
+            
+            // If we found images, cache them
+            if (images.length > 0) {
+                imageCache.set(propertyId, images);
+                console.log(`Cached ${images.length} images for property ${propertyId}`);
+            }
+            
+            return images.length > 0 ? images : null;
+        }
+
+        // Fetch first high-quality photo from dedicated endpoint
+        async function fetchFirstHighQualityPhoto(property) {
+            try {
+                const propertyId = property.property_id || property.id;
+                const propertyUrl = property.url || property.property_url || property.rdc_web_url;
+                
+                let photosUrl;
+                if (propertyUrl) {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
+                } else if (propertyId) {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+                } else {
+                    console.log('No property ID or URL available for photos');
+                    return null;
+                }
+                
+                console.log(`Fetching first high-quality photo from: ${photosUrl}`);
+                
+                const response = await fetch(photosUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.log(`Photos API request failed: ${response.status}`);
+                    return null;
+                }
+                
+                const photosData = await response.json();
+                console.log(`Photos API response for property ${propertyId}:`, photosData);
+                
+                if (Array.isArray(photosData) && photosData.length > 0) {
+                    // Find the first high-quality image
+                    const firstPhoto = photosData.find(photo => 
+                        photo.href && photo.type === 'realtordotcom_mls_listing_image'
+                    ) || photosData[0];
+                    
+                    if (firstPhoto && firstPhoto.href) {
+                        console.log(`Found first high-quality photo: ${firstPhoto.href}`);
+                        return firstPhoto.href;
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('Error fetching first high-quality photo:', error);
+                return null;
+            }
+        }
+
+        // Fetch remaining high-quality photos from dedicated endpoint
+        async function fetchRemainingHighQualityPhotos(property, home, index) {
+            try {
+                const propertyId = property.property_id || property.id;
+                const propertyUrl = property.url || property.property_url || property.rdc_web_url;
+                
+                let photosUrl;
+                if (propertyUrl) {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
+                } else if (propertyId) {
+                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+                } else {
+                    console.log('No property ID or URL available for photos');
+                    return;
+                }
+                
+                console.log(`Fetching remaining high-quality photos from: ${photosUrl}`);
+                
+                const response = await fetch(photosUrl, {
+                    method: 'GET',
+                    headers: {
+                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
+                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                    }
+                });
+                
+                if (!response.ok) {
+                    console.log(`Photos API request failed: ${response.status}`);
+                    return;
+                }
+                
+                const photosData = await response.json();
+                console.log(`Photos API response for property ${propertyId}:`, photosData);
+                
+                if (Array.isArray(photosData) && photosData.length > 0) {
+                    // Filter for high-quality images
+                    const highQualityPhotos = photosData
+                        .filter(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image')
+                        .map(photo => photo.href);
+                    
+                    if (highQualityPhotos.length > 0) {
+                        console.log(`Found ${highQualityPhotos.length} high-quality photos for property ${propertyId}`);
+                        
+                        // Update the home object with all high-quality images
+                        home.images = highQualityPhotos;
+                        
+                        // Update the displayed card
+                        updateHomeCardImages(home, index);
+                        
+                        // Cache the images
+                        imageCache.set(propertyId, highQualityPhotos);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching remaining high-quality photos:', error);
+            }
+        }
+
+        // Update home card with first high-quality image
+        function updateHomeCardFirstImage(home, index) {
+            const card = document.querySelector(`[data-home-id="${home.id}"]`);
+            if (card && home.images && home.images.length > 0) {
+                const img = card.querySelector('.card-img-top');
+                if (img) {
+                    img.src = home.images[0];
+                    img.alt = home.address;
+                }
+                
+                // Update modal data attributes
+                const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
+                if (modalButton) {
+                    modalButton.setAttribute('data-original-image', home.images[0]);
+                    modalButton.setAttribute('data-images', JSON.stringify(home.images));
+                }
+            }
+        }
+
+        // Update home card with all high-quality images
+        function updateHomeCardImages(home, index) {
+            const card = document.querySelector(`[data-home-id="${home.id}"]`);
+            if (card && home.images && home.images.length > 0) {
+                const img = card.querySelector('.card-img-top');
+                if (img) {
+                    img.src = home.images[0];
+                    img.alt = home.address;
+                }
+                
+                // Update image bubbles
+                const bubblesContainer = card.querySelector('.image-bubbles');
+                if (bubblesContainer) {
+                    bubblesContainer.innerHTML = '';
+                    home.images.forEach((_, imgIndex) => {
+                        const bubble = document.createElement('div');
+                        bubble.className = `image-bubble ${imgIndex === 0 ? 'active' : ''}`;
+                        bubble.onclick = () => switchImage(card, imgIndex);
+                        bubblesContainer.appendChild(bubble);
+                    });
+                }
+                
+                // Update modal data attributes
+                const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
+                if (modalButton) {
+                    modalButton.setAttribute('data-original-image', home.images[0]);
+                    modalButton.setAttribute('data-images', JSON.stringify(home.images));
+                }
+            }
+        }
+
+        // Get fallback images for properties
+        function getPropertyImages(propertyId) {
+            const imageSets = {
+                1: [
+                    'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop&auto=format&q=80'
+                ],
+                2: [
+                    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&h=600&fit=crop&auto=format&q=80'
+                ],
+                3: [
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80'
+                ],
+                4: [
+                    'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=800&h=600&fit=crop&auto=format&q=80'
+                ],
+                5: [
+                    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=800&h=600&fit=crop&auto=format&q=80'
+                ],
+                6: [
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80',
+                    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop&auto=format&q=80'
+                ]
+            };
+            
+            return imageSets[propertyId] || imageSets[1];
+        }
+
+        // Display homes in the grid
+        function displayHomes(homes) {
+            const homesGrid = document.getElementById('homesGrid');
+            const loadingState = document.getElementById('loadingState');
+            
+            homesGrid.innerHTML = '';
+            
+            homes.forEach((home, index) => {
+                const col = createHomeCard(home, index);
+                homesGrid.appendChild(col);
+            });
+            
+            loadingState.style.display = 'none';
+            homesGrid.style.display = 'flex';
+        }
+
+        // Create a home card
+        function createHomeCard(home, index) {
+            const col = document.createElement('div');
+            col.className = 'col-md-6 col-lg-4';
+            
+            const images = home.images || getPropertyImages(index + 1);
+            const currentImage = images[0] || 'https://via.placeholder.com/400x250?text=No+Image';
+            
+            col.innerHTML = `
+                <div class="card home-card" data-home-id="${home.id}">
+                    <div class="position-relative">
+                        <img src="${currentImage}" class="card-img-top" alt="${home.address}" loading="lazy">
+                        <div class="image-bubbles">
+                            ${images.map((_, imgIndex) => 
+                                `<div class="image-bubble ${imgIndex === 0 ? 'active' : ''}" onclick="switchImage(this.closest('.card'), ${imgIndex})"></div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">${home.address}</h5>
+                        <p class="card-text">
+                            <strong>$${home.price.toLocaleString()}</strong><br>
+                            ${home.bedrooms} bed • ${home.bathrooms} bath<br>
+                            ${home.sqft ? home.sqft.toLocaleString() + ' sqft' : 'Size not available'}
+                        </p>
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#upgradeModal" 
+                                data-original-image="${currentImage}" 
+                                data-images='${JSON.stringify(images)}'
+                                data-current-value="${home.price}"
+                                data-upgraded-value="${Math.round(home.price * 1.15)}">
+                            <i class="fas fa-magic me-2"></i>Imagine Upgrades
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            return col;
+        }
+
+        // Switch image in a card
+        function switchImage(card, imageIndex) {
+            const homeId = card.getAttribute('data-home-id');
+            const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
+            const images = JSON.parse(modalButton.getAttribute('data-images'));
+            
+            if (images && images[imageIndex]) {
+                const img = card.querySelector('.card-img-top');
+                img.src = images[imageIndex];
+                
+                // Update active bubble
+                const bubbles = card.querySelectorAll('.image-bubble');
+                bubbles.forEach((bubble, index) => {
+                    bubble.classList.toggle('active', index === imageIndex);
+                });
+                
+                // Update modal data
+                modalButton.setAttribute('data-original-image', images[imageIndex]);
+            }
+        }
+
+        // Pagination and sorting functions
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 1 && newPage <= totalPages) {
+                loadHomes(currentLocation, newPage, currentSort);
+            }
+        }
+        
+        function changeSort() {
+            const sortSelect = document.getElementById('sortSelect');
+            const newSort = sortSelect.value;
+            loadHomes(currentLocation, 1, newSort); // Reset to page 1 when changing sort
+        }
+        
+        function updatePaginationControls() {
+            const currentPageNumber = document.getElementById('currentPageNumber');
+            const prevPageBtn = document.getElementById('prevPageBtn');
+            const nextPageBtn = document.getElementById('nextPageBtn');
+            
+            currentPageNumber.textContent = currentPage;
+            
+            // Enable/disable pagination buttons
+            prevPageBtn.disabled = currentPage <= 1;
+            nextPageBtn.disabled = currentPage >= totalPages;
+            
+            // Update sort select to match current sort
+            const sortSelect = document.getElementById('sortSelect');
+            sortSelect.value = currentSort;
+        }
+
+        // Convert image URL to base64
+        async function imageUrlToBase64(imageUrl) {
+            try {
+                console.log('Converting image to base64:', imageUrl);
+                
+                // Handle CORS issues by creating a canvas
+                const response = await fetch(imageUrl, {
+                    mode: 'cors'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Image fetch failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const blob = await response.blob();
+                console.log('Image blob size:', blob.size, 'bytes');
+                console.log('Image blob type:', blob.type);
+                
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const result = reader.result.split(',')[1]; // Remove data:image/... prefix
+                        console.log('Base64 conversion completed, length:', result.length);
+                        resolve(result);
+                    };
+                    reader.onerror = (error) => {
+                        console.error('FileReader error:', error);
+                        reject(error);
+                    };
+                    reader.readAsDataURL(blob);
+                });
+            } catch (error) {
+                console.error('Error converting image to base64:', error);
+                console.error('Image URL was:', imageUrl);
+                throw error;
+            }
+        }
+
+        // Generate upgrade image using AWS Bedrock
+        async function generateUpgradeImage(originalImageUrl, upgradeType) {
+            const cacheKey = `${originalImageUrl}_${upgradeType}`;
+            
+            // Check cache first
+            if (generatedImageCache.has(cacheKey)) {
+                console.log('Using cached generated image');
+                return generatedImageCache.get(cacheKey);
+            }
+            
+            try {
+                console.log('Generating upgrade image with AWS Bedrock for:', upgradeType);
+                
+                // Show loading state
+                showGenerationLoading(true);
+                resetGenerationLoading();
+                
+                // Convert original image to base64
+                const base64Image = await imageUrlToBase64(originalImageUrl);
+                console.log('Image converted to base64, length:', base64Image.length);
+                
+                // Make request to our server's Bedrock endpoint
+                const response = await fetch(`${API_BASE_URL}/api/generate-upgrade-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        base64Image: base64Image,
+                        upgradeType: upgradeType
+                    })
+                });
+                
+                console.log('Bedrock response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error('Bedrock API Error:', response.status, errorData);
+                    throw new Error(`Bedrock API request failed: ${response.status} - ${errorData}`);
+                }
+                
+                const result = await response.json();
+                console.log('Bedrock API Response:', result);
+                
+                if (result.success && result.imageUrl) {
+                    console.log('✅ Image generated successfully with AWS Bedrock');
+                    
+                    // Cache the result
+                    generatedImageCache.set(cacheKey, result.imageUrl);
+                    
+                    return result.imageUrl;
+                } else {
+                    throw new Error(result.error || 'No image data in Bedrock response');
+                }
+                
+            } catch (error) {
+                console.error('Error generating upgrade image with Bedrock:', error);
+                const errorMessage = error.message || error.toString();
+                showGenerationError(errorMessage);
+                
+                // Don't re-throw, just show error in UI
+                console.log('Showing error in UI instead of throwing');
+                return null;
+            }
+        }
+
+        // Show/hide generation loading state
+        function showGenerationLoading(show) {
+            const loadingDiv = document.getElementById('generationLoading');
+            const upgradedImage = document.getElementById('upgradedImage');
+            
+            if (show) {
+                loadingDiv.style.display = 'block';
+                upgradedImage.style.display = 'none';
+            } else {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        // Show generation error with specific message
+        function showGenerationError(errorMessage = 'Unknown error occurred') {
+            const loadingDiv = document.getElementById('generationLoading');
+            
+            loadingDiv.innerHTML = `
+                <div class="text-danger text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <p class="mb-0"><strong>Failed to generate upgrade image</strong></p>
+                    <small class="text-muted">Error: ${errorMessage}</small>
+                    <br><small class="text-muted mt-2 d-block">Check browser console for more details</small>
+                </div>
+            `;
+        }
+        
+        // Reset loading state
+        function resetGenerationLoading() {
+            const loadingDiv = document.getElementById('generationLoading');
+            
+            loadingDiv.innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Generating upgrade...</span>
+                </div>
+                <p class="mt-2 text-muted">AI is imagining your upgrade...</p>
+            `;
+        }
+
+        // Toggle comparison view
+        function toggleComparisonView() {
+            const upgradedImage = document.getElementById('upgradedImage');
+            const originalImage = document.getElementById('originalImage');
+            const toggleBtn = document.getElementById('comparisonToggle');
+            
+            if (originalImage.src && upgradedImage.src !== '') {
+                // Create a sliding comparison effect
+                if (!upgradedImage.hasAttribute('data-original-src')) {
+                    upgradedImage.setAttribute('data-original-src', upgradedImage.src);
+                }
+                
+                // Simple toggle between images
+                if (toggleBtn.innerHTML.includes('Toggle Off')) {
+                    toggleBtn.innerHTML = '<i class="fas fa-toggle-on"></i> Show Original';
+                    upgradedImage.src = upgradedImage.getAttribute('data-original-src');
+                } else {
+                    toggleBtn.innerHTML = '<i class="fas fa-toggle-off"></i> Show Upgrade';
+                    upgradedImage.src = originalImage.src;
+                }
+            }
+        }
+
+        // Handle upgrade pill clicks with debug information
+        async function handleUpgradePillClick(pillButton) {
+            const upgradeType = pillButton.getAttribute('data-upgrade');
+            const originalImageSrc = document.getElementById('originalImage').src;
+            const currentValue = parseInt(document.getElementById('currentValue').textContent.replace(/\D/g, ''));
+            
+            console.log('=== UPGRADE PILL CLICKED ===');
+            console.log('Upgrade type:', upgradeType);
+            console.log('Original image src:', originalImageSrc);
+            console.log('Current value:', currentValue);
+            
+            // Test if image URL is accessible
+            try {
+                const testResponse = await fetch(originalImageSrc, {method: 'HEAD'});
+                console.log('Image accessibility test:', testResponse.status, testResponse.ok);
+            } catch (error) {
+                console.error('Image accessibility test failed:', error);
+            }
+            
+            // Remove active class from all pills
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.classList.remove('active');
+            });
+            
+            // Add active class to clicked pill
+            pillButton.classList.add('active');
+            
+            // Disable all pills during generation
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.disabled = true;
+            });
+            
+            try {
+                console.log('Starting image generation process...');
+                
+                // Generate the upgrade image
+                const generatedImageUrl = await generateUpgradeImage(originalImageSrc, upgradeType);
+                
+                if (!generatedImageUrl) {
+                    console.log('❌ Image generation failed - no URL returned');
+                    // Error is already displayed by generateUpgradeImage function
+                    // Reset UI
+                    document.getElementById('comparisonToggle').style.display = 'none';
+                    document.getElementById('saveUpgrade').disabled = true;
+                    
+                    // Enable pills again
+                    document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                        pill.disabled = false;
+                    });
+                    return;
+                }
+                
+                console.log('✅ Upgrade analysis successful, updating UI...');
+                
+                // Display the generated image from AWS Bedrock
+                const upgradedImage = document.getElementById('upgradedImage');
+                const upgradeDescriptionDiv = document.getElementById('upgradeDescription');
+                
+                // Hide text description and show image
+                if (upgradeDescriptionDiv) {
+                    upgradeDescriptionDiv.style.display = 'none';
+                }
+                
+                // Show the generated image
+                upgradedImage.style.display = 'block';
+                upgradedImage.src = generatedImageUrl;
+                
+                upgradedImage.onload = () => {
+                    console.log('✅ Generated image loaded successfully from AWS Bedrock');
+                };
+                upgradedImage.onerror = () => {
+                    console.error('❌ Generated image failed to load');
+                    showGenerationError('Generated image failed to load');
+                };
+                
+                // Hide loading state
+                showGenerationLoading(false);
+                
+                // Calculate new value (15% increase)
+                const upgradedValue = Math.round(currentValue * 1.15);
+                const valueIncrease = upgradedValue - currentValue;
+                
+                document.getElementById('upgradedValue').textContent = `$${upgradedValue.toLocaleString()}`;
+                document.getElementById('valueIncrease').innerHTML = `
+                    <i class="fas fa-arrow-up"></i> +$${valueIncrease.toLocaleString()} (15% increase)
+                `;
+                
+                // Enable comparison toggle and save button
+                document.getElementById('comparisonToggle').style.display = 'inline-block';
+                document.getElementById('saveUpgrade').disabled = false;
+                
+                // Enable pills again
+                document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                    pill.disabled = false;
+                });
+                
+                console.log('🎉 Upgrade generation completed successfully');
+                
+            } catch (error) {
+                console.error('❌ Error handling upgrade:', error);
+                console.error('Error stack:', error.stack);
+                
+                // Reset UI on error
+                document.getElementById('comparisonToggle').style.display = 'none';
+                document.getElementById('saveUpgrade').disabled = true;
+                
+                // Enable pills again
+                document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                    pill.disabled = false;
+                });
+                
+                // Show error message with more details
+                const errorMessage = `${error.message || error.toString()} (Check console for full details)`;
+                showGenerationError(errorMessage);
+            }
+        }
+
+        // Load homes when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, testing APIs...');
+            
+            // Test APIs first
+            testAPIs().then(success => {
+                if (success) {
+                    console.log('✅ AWS Bedrock is working correctly');
+                } else {
+                    console.log('❌ API tests failed - check console for details');
+                    console.log('💡 Setup Instructions:');
+                    console.log('1. Sign up for AWS Bedrock');
+                    console.log('2. Configure AWS credentials');
+                    console.log('3. Enable Titan Image Generator model access');
+                    console.log('4. Start server: npm start');
+                }
+            });
+            
+            // Check if we have a location parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const location = urlParams.get('location');
+            
+            if (location) {
+                // Load homes for the specified location
+                document.getElementById('locationSearchHome').value = decodeURIComponent(location);
+                loadHomes(decodeURIComponent(location), 1, 'relevant');
+            } else {
+                // Default to New York, NY
+                loadHomes('New York, NY', 1, 'relevant');
+            }
+        });
+
+        const upgradeModal = document.getElementById('upgradeModal');
+        upgradeModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const originalImage = button.getAttribute('data-original-image');
+            const currentValue = button.getAttribute('data-current-value');
+            
+            // Set original image and current value
+            document.getElementById('originalImage').src = originalImage;
+            document.getElementById('currentValue').textContent = `$${parseInt(currentValue).toLocaleString()}`;
+            
+            // Reset upgraded image and controls
+            const upgradedImage = document.getElementById('upgradedImage');
+            upgradedImage.style.display = 'none';
+            upgradedImage.src = '';
+            
+            // Reset values
+            document.getElementById('upgradedValue').textContent = '$0';
+            document.getElementById('valueIncrease').textContent = '';
+            
+            // Hide controls until upgrade is selected
+            document.getElementById('comparisonToggle').style.display = 'none';
+            document.getElementById('saveUpgrade').disabled = true;
+            
+            // Reset upgrade pills
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.classList.remove('active');
+                pill.disabled = false;
+            });
+            
+            // Show loading div
+            showGenerationLoading(false); // Reset to normal loading state
+            document.getElementById('generationLoading').style.display = 'none';
+            
+            // Add debug info to modal
+            console.log('Modal opened with original image:', originalImage);
+            console.log('Modal opened with current value:', currentValue);
+        });
+
+        // Add global click handler for upgrade pills (works after DOM loads)
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.upgrade-pill')) {
+                event.preventDefault();
+                handleUpgradePillClick(event.target.closest('.upgrade-pill'));
+            }
+        });
+    </script>
+</body>
+</html>

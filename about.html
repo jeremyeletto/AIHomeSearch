@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About -  homeupgrades.ai</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar {
+            background: rgba(255, 255, 255, 0.9) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* About Page Styles */
+        .about-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .about-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 3rem 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .about-title {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .about-content {
+            color: #4a5568;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li::before {
+            content: '✨';
+            margin-right: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .about-card {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+            
+            .about-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="landing.html">
+                 homeupgrades.ai
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showHomesPage()">Homes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showAboutPage()">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- About Page Content -->
+    <main class="container about-container">
+        <div class="about-card">
+            <h1 class="about-title gradient-text">About homeupgrades.ai</h1>
+            
+            <div class="about-content">
+                <p class="mb-4">
+                    Welcome to <strong>homeupgrades.ai</strong> - your AI-powered platform for visualizing home upgrades and their impact on property value!
+                </p>
+                
+                <h3 class="h4 mt-4 mb-3">What We Do</h3>
+                <p class="mb-4">
+                    Our platform helps homeowners, real estate professionals, and investors visualize potential home improvements and understand how these upgrades can affect property values. Using advanced AI technology, we provide realistic visualizations of home transformations.
+                </p>
+                
+                <h3 class="h4 mt-4 mb-3">Key Features</h3>
+                <ul class="feature-list">
+                    <li>Browse real estate listings from across the country</li>
+                    <li>Visualize home upgrades with AI-powered transformations</li>
+                    <li>See estimated value impact of different improvements</li>
+                    <li>Compare before and after scenarios</li>
+                    <li>Get insights on popular upgrade trends</li>
+                    <li>Access high-quality property images and details</li>
+                </ul>
+                
+                <h3 class="h4 mt-4 mb-3">How It Works</h3>
+                <p class="mb-4">
+                    1. <strong>Search</strong> for properties in your desired location<br>
+                    2. <strong>Select</strong> a property that interests you<br>
+                    3. <strong>Click</strong> "Imagine Upgrades" to see transformation options<br>
+                    4. <strong>Explore</strong> different upgrade scenarios and their value impact<br>
+                    5. <strong>Make informed decisions</strong> about your home improvement projects
+                </p>
+                
+                <h3 class="h4 mt-4 mb-3">Our Mission</h3>
+                <p class="mb-4">
+                    We believe that every homeowner should have access to powerful tools that help them make informed decisions about their property investments. By combining real estate data with AI visualization technology, we're making home improvement planning more accessible and data-driven.
+                </p>
+                
+                <div class="text-center mt-5">
+                    <a href="index.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-home me-2"></i>Start Exploring Homes
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Page navigation functions
+        function showHomesPage() {
+            // Redirect to homes page
+            window.location.href = 'homes.html';
+        }
+
+        function showAboutPage() {
+            // Stay on current page (about page)
+            return;
+        }
+    </script>
+</body>
+</html>

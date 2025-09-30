@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Real Estate Visualizer – Bootstrap</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Modern CSS Variables */
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      --glass-bg: rgba(255, 255, 255, 0.25);
+      --glass-border: rgba(255, 255, 255, 0.18);
+      --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Global Styles */
+    body { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* Modern Cards */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .house-img { 
+      border-radius: 15px; 
+      box-shadow: 0 10px 25px rgba(0,0,0,.15); 
+      width:100%; 
+      height:auto;
+      transition: transform 0.3s ease;
+    }
+
+    .house-img:hover {
+      transform: scale(1.02);
+    }
+
+    /* Modern Pills */
+    .pill { 
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px; 
+      padding: 0.5rem 1rem; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .pill:hover {
+      background: var(--primary-gradient);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .pill button { 
+      line-height: 1; 
+      border: none; 
+      background: transparent;
+      color: inherit;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .pill button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+
+    /* Modern Buttons */
+    .btn-preset { 
+      white-space: normal;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: #667eea;
+    }
+
+    .btn-preset:hover {
+      background: var(--primary-gradient);
+      color: white;
+      border-color: transparent;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-secondary {
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: 50px;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    /* Enhanced Form Controls */
+    .form-control {
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 0.75rem 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      background: rgba(255, 255, 255, 0.4);
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    /* Value Display */
+    .card-estimate .value { 
+      font-weight: 700; 
+      font-size: 1.5rem;
+      background: var(--success-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .feature-list { 
+      max-height: 180px; 
+      overflow: auto;
+      padding-right: 0.5rem;
+    }
+
+    /* Custom Scrollbar */
+    .feature-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .feature-list::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    .feature-list::-webkit-scrollbar-thumb {
+      background: var(--primary-gradient);
+      border-radius: 10px;
+    }
+
+    /* Typography */
+    h3 {
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h6 {
+      color: #2d3748;
+      font-weight: 600;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .btn-preset {
+        width: 100%;
+        margin-bottom: 0.5rem;
+      }
+      
+      .pill {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="row g-4">
+      <!-- LEFT: Image + presets -->
+      <div class="col-12 col-lg-6">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <img id="houseImg" class="house-img" alt="House" src="sandbox:/mnt/data/IMG_4498.png" />
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <h6 class="fw-semibold mb-2">Preset Designs</h6>
+          <div id="presetButtons" class="d-flex flex-wrap gap-2">
+            <!-- buttons inserted by JS -->
+          </div>
+          <div id="appliedPills" class="mt-2 d-flex flex-wrap gap-2 text-muted">
+            <!-- feature pills inserted by JS -->
+            <small class="text-secondary" id="pillHint">Added features will appear here as pills.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Custom + estimate -->
+      <div class="col-12 col-lg-6">
+        <h3 class="fw-bold">Visualize Your Dream Home</h3>
+        <p class="text-secondary">Select design presets below the photo. You can stack multiple features—e.g., walkway + modern black windows.</p>
+
+        <div class="card shadow-sm mt-2">
+          <div class="card-body">
+            <h6 class="fw-semibold mb-3">Custom Request</h6>
+            <div class="d-flex gap-2">
+              <input id="customInput" class="form-control" placeholder="e.g., Add a two-car garage with dormers" />
+              <button id="customBtn" class="btn btn-secondary">Submit</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card shadow-sm card-estimate mt-3">
+          <div class="card-body">
+            <h6 class="fw-semibold mb-3">Estimated Value</h6>
+            <div class="row g-2 small">
+              <div class="col">Base</div>
+              <div class="col text-end fw-medium" id="baseValue"></div>
+              <div class="col">Feature Uplift</div>
+              <div class="col text-end fw-medium" id="upliftValue"></div>
+              <div class="col-12"><hr class="my-2"></div>
+              <div class="col fw-semibold">New Estimate</div>
+              <div class="col text-end value" id="estimateValue"></div>
+            </div>
+            <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="small fw-medium">Applied Features</span>
+                <button id="clearAll" class="btn btn-link btn-sm text-decoration-none">Clear all</button>
+              </div>
+              <ul id="featureList" class="list-unstyled feature-list mb-0 small">
+                <!-- rows inserted by JS -->
+                <li class="text-secondary" id="featureHint">No features added yet.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data & helpers (mirroring your React logic) ---
+    const YELLOW_HOUSE = 'sandbox:/mnt/data/IMG_4498.png';
+    const PRESET_MODERN_FULL = 'Imagine Modern white exterior, black trim, and walkway';
+    const DEFAULT_PROMPTS = [
+      PRESET_MODERN_FULL,
+      'Add Stone Walkway',
+      'Modern Black Windows',
+      'Imagine White Vinyl Siding',
+      'Wrap-around Porch',
+      'Brick Exterior'
+    ];
+
+    const state = {
+      basePrice: 500000,
+      applied: [] // {name, delta}
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => document.querySelectorAll(sel);
+
+    function validatePrompt(p){ return typeof p === 'string' && p.trim().length > 0; }
+    function normalizeFeatureName(name){ const n = name.trim().toLowerCase(); if(n==='black modern windows') return 'Modern Black Windows'; return name.trim(); }
+
+    function formatUSD(n){ try{ return n.toLocaleString(undefined,{style:'currency',currency:'USD',maximumFractionDigits:0}); }catch{ return '$'+Math.round(n);} }
+
+    function estimateDeltaForFeature(name, base){
+      if(name === PRESET_MODERN_FULL) return 150000; // special rule
+      const fixed = { 'Add Stone Walkway':8000, 'Imagine White Vinyl Siding':4500 };
+      const pct = { 'Modern Black Windows':0.02, 'Wrap-around Porch':0.04, 'Brick Exterior':0.03 };
+      if(name in fixed) return fixed[name];
+      if(name in pct) return Math.round(base * pct[name]);
+      return 3000; // default
+    }
+
+    function computeEstimate(){
+      const uplift = state.applied.reduce((s,f)=>s+(f.delta||0),0);
+      return { uplift, estimate: state.basePrice + uplift };
+    }
+
+    function renderEstimate(){
+      const {uplift, estimate} = computeEstimate();
+      $('#baseValue').textContent = formatUSD(state.basePrice);
+      $('#upliftValue').textContent = formatUSD(uplift);
+      $('#estimateValue').textContent = formatUSD(estimate);
+    }
+
+    function renderPills(){
+      const wrap = $('#appliedPills');
+      wrap.innerHTML = '';
+      if(state.applied.length === 0){
+        wrap.innerHTML = '<small class="text-secondary">Added features will appear here as pills.</small>';
+        return;
+      }
+      state.applied.forEach(f => {
+        const pill = document.createElement('span');
+        pill.className = 'pill';
+        pill.innerHTML = `${f.name} <button aria-label="Remove ${f.name}">×</button>`;
+        pill.querySelector('button').onclick = () => removeFeature(f.name);
+        wrap.appendChild(pill);
+      });
+    }
+
+    function renderFeatureList(){
+      const list = $('#featureList');
+      list.innerHTML = '';
+      if(state.applied.length === 0){
+        list.innerHTML = '<li class="text-secondary" id="featureHint">No features added yet.</li>';
+        return;
+      }
+      state.applied.forEach(f => {
+        const li = document.createElement('li');
+        li.className = 'd-flex justify-content-between align-items-center py-1';
+        li.innerHTML = `<span>${f.name}</span><span class="ms-3 fw-medium">${formatUSD(f.delta)}</span>`;
+        list.appendChild(li);
+      });
+    }
+
+    function applyFeature(raw){
+      if(!validatePrompt(raw)) return;
+      const name = normalizeFeatureName(raw);
+      if(state.applied.some(f=>f.name===name)) return;
+      const delta = estimateDeltaForFeature(name, state.basePrice);
+      state.applied.push({name, delta});
+      renderAll();
+    }
+
+    function removeFeature(name){
+      state.applied = state.applied.filter(f=>f.name!==name);
+      renderAll();
+    }
+
+    function clearAll(){ state.applied = []; renderAll(); }
+
+    function renderPresetButtons(){
+      const host = $('#presetButtons');
+      host.innerHTML = '';
+      DEFAULT_PROMPTS.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'btn btn-outline-secondary btn-sm btn-preset';
+        btn.textContent = p;
+        btn.onclick = () => applyFeature(p);
+        host.appendChild(btn);
+      });
+    }
+
+    function renderAll(){
+      renderPills();
+      renderFeatureList();
+      renderEstimate();
+    }
+
+    // Init handlers
+    $('#customBtn').onclick = () => {
+      const v = $('#customInput').value; applyFeature(v); $('#customInput').value='';
+    };
+    $('#clearAll').onclick = clearAll;
+
+    // Initial render
+    renderPresetButtons();
+    renderAll();
+
+    // --- Lightweight tests (console.assert) ---
+    (function runTests(){
+      const base = 500000;
+      console.assert(estimateDeltaForFeature('Add Stone Walkway', base) === 8000, 'Walkway +$8k');
+      console.assert(estimateDeltaForFeature(PRESET_MODERN_FULL, base) === 150000, 'Modern preset +$150k');
+      const tmp = { basePrice: 500000, applied: [{name:'Add Stone Walkway', delta:8000}] };
+      console.assert((tmp.basePrice + tmp.applied[0].delta) === 508000, 'Example 500k → 508k');
+      console.log('✅ Bootstrap UI smoke tests passed');
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

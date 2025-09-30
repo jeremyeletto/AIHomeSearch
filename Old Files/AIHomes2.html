@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Home Upgrades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+        /* Modern CSS Variables */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Global Styles */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        /* Glassmorphism Navbar */
+        .navbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Modern Home Cards */
+        .home-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+
+        .home-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .home-card .card-img-top {
+            border-radius: 20px 20px 0 0;
+            transition: transform 0.4s ease;
+        }
+
+        .home-card:hover .card-img-top {
+            transform: scale(1.05);
+        }
+
+        .home-card .card-body {
+            padding: 1.5rem;
+        }
+
+        .home-card .card-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .home-card .card-text {
+            color: #4a5568;
+            line-height: 1.6;
+        }
+
+        /* Modern Buttons */
+        .btn-outline-primary {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-outline-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-outline-primary:hover::before {
+            left: 100%;
+        }
+
+        /* Modern Modal */
+        .modal-content {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.5rem;
+        }
+
+        .modal-title {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Upgrade Options */
+        .upgrade-option {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 15px;
+            margin: 0.5rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upgrade-option:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .upgrade-option.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .upgrade-option h6 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .upgrade-option p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+
+        /* --- Enhanced CSS for Aspect Ratio and Loading --- */
+        .image-container {
+            position: relative;
+            width: 100%;
+            padding-top: 66.66%; 
+            overflow: hidden;
+            border-radius: 15px;
+        }
+
+        .image-container img, .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-overlay {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            border-radius: 15px;
+        }
+        
+        .loading-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .loading-overlay .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        /* Value Display Enhancement */
+        .bg-light {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .home-card {
+                margin-bottom: 1.5rem;
+            }
+            
+            .btn-outline-primary {
+                width: 100%;
+                margin-top: 1rem;
+            }
+            
+            .modal-dialog {
+                margin: 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top border-bottom">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="#">🏡 homeupgrades.ai</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Homes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        <div class="text-center mb-5">
+            <h1 class="display-4 fw-bold mb-3" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Visualize Your Dream Home Upgrades ✨
+            </h1>
+            <p class="lead text-white-50 mb-0">Click "Imagine Upgrades" on any listing to see the possibilities with our preset designs.</p>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+
+            <div class="col">
+                <div class="card h-100 home-card">
+                    <img src="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_0145.jpeg" class="card-img-top" alt="Current Home View">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">123 Main St, Anytown, USA</h5>
+                        <p class="card-text mb-1"><strong>$350,000</strong> | 3 Bed, 2 Bath</p>
+                        <p class="card-text text-muted small">Built in 1985. Great curb appeal potential!</p>
+                        <button type="button" class="btn btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#upgradeModal" data-original-image="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_0145.jpeg" data-original-value="350000">
+                            Imagine Upgrades
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 home-card">
+                    <img src="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_4498.png" class="card-img-top" alt="Current Home View">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">456 Oak Ln, Cityville, USA</h5>
+                        <p class="card-text mb-1"><strong>$525,000</strong> | 4 Bed, 3 Bath</p>
+                        <p class="card-text text-muted small">Classic style. Ready for a modern touch.</p>
+                        <button type="button" class="btn btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#upgradeModal" data-original-image="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_4498.png" data-original-value="525000">
+                            Imagine Upgrades
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card h-100 home-card">
+                    <img src="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_9999.png" class="card-img-top" alt="Current Home View">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">789 Pine Ave, Suburbia</h5>
+                        <p class="card-text mb-1"><strong>$289,900</strong> | 2 Bed, 1 Bath</p>
+                        <p class="card-text text-muted small">A perfect canvas for exterior renovations.</p>
+                        <button type="button" class="btn btn-outline-primary w-100 mt-2" data-bs-toggle="modal" data-bs-target="#upgradeModal" data-original-image="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_9999.png" data-original-value="289900">
+                            Imagine Upgrades
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            </div>
+    </main>
+
+    <div class="modal fade" id="upgradeModal" tabindex="-1" aria-labelledby="upgradeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="upgradeModalLabel">Select Your Upgrade Design</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="container-fluid">
+                        <div class="row">
+                          <div class="col-md-6 p-0 border-end">
+                            <div class="image-container">
+                                <img id="upgraded-image" 
+                                    src="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_1095.png" 
+                                    alt="Upgraded Home View">
+                                
+                                <div id="loading-overlay" class="loading-overlay">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 text-primary fw-bold">Generating AI Visualization...</p>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light border-top">
+                                <h6 class="mb-2 fw-bold">Estimated Home Value</h6>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Current Value:</span>
+                                    <span id="current-value" class="fw-bold text-muted">$350,000</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Estimated Upgraded Value:</span>
+                                    <span id="upgraded-value" class="fw-bold text-success">$350,000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                            <div class="col-md-6">
+                                <h6 class="mt-3 mb-2 text-muted text-uppercase small px-3">Preset Designs</h6>
+                                <div class="list-group list-group-flush">
+                                    
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" 
+                                       data-upgrade-image="/Users/jeremyeletto/Desktop/AIhomesIMGs/IMG_1095.png" 
+                                       data-cost-increase="75000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Modern white exterior, black trim, and walkway</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">A complete contemporary transformation.</p>
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" data-upgrade-image="https://via.placeholder.com/400x600/6c757d/ffffff?text=Stone+Walkway" data-cost-increase="15000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Add Stone Walkway</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">Adds an elegant, rugged stone walkway and steps.</p>
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" data-upgrade-image="https://via.placeholder.com/400x600/343a40/ffffff?text=Modern+Black+Windows" data-cost-increase="10000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Modern Black Windows</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">Imagines a full replacement with modern black-framed windows.</p>
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" data-upgrade-image="https://via.placeholder.com/400x600/f8f9fa/333333?text=White+Vinyl+Siding" data-cost-increase="25000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Imagine White Vinyl Siding</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">A complete exterior refresh with crisp white vinyl siding.</p>
+                                    </a>
+                                    
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" data-upgrade-image="https://via.placeholder.com/400x600/8d6e63/ffffff?text=Wrap-around+Porch" data-cost-increase="40000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Wrap-around Porch</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">Adds a charming, full wrap-around wooden porch.</p>
+                                    </a>
+
+                                    <a href="#" class="list-group-item list-group-item-action upgrade-option" data-upgrade-image="https://via.placeholder.com/400x600/dc3545/ffffff?text=Brick+Exterior" data-cost-increase="50000">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1 fw-bold">Brick Exterior</h6>
+                                        </div>
+                                        <p class="mb-1 small text-muted">Renders the home with a classic red brick facade.</p>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: var(--glass-bg); border-top: 1px solid var(--glass-border);">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 50px; padding: 0.5rem 1.5rem;">Close</button>
+                    <button type="button" class="btn btn-success disabled" style="border-radius: 50px; padding: 0.5rem 1.5rem; background: var(--success-gradient); border: none;">Save & Compare</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        // Function to format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(value);
+        }
+
+        // Add smooth scroll behavior
+        document.documentElement.style.scrollBehavior = 'smooth';
+
+        // Add intersection observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all home cards
+        document.querySelectorAll('.home-card').forEach(card => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(card);
+        });
+
+        const upgradeModal = document.getElementById('upgradeModal');
+        upgradeModal.addEventListener('show.bs.modal', event => {
+            // Button that triggered the modal
+            const button = event.relatedTarget;
+            // Extract info from data-* attributes
+            const originalImage = button.getAttribute('data-original-image');
+            const originalValue = parseFloat(button.getAttribute('data-original-value'));
+
+            // Get elements once the modal opens
+            const modalImage = upgradeModal.querySelector('#upgraded-image');
+            const loadingOverlay = upgradeModal.querySelector('#loading-overlay');
+            const currentValueSpan = upgradeModal.querySelector('#current-value');
+            const upgradedValueSpan = upgradeModal.querySelector('#upgraded-value');
+            const upgradeOptions = upgradeModal.querySelectorAll('.upgrade-option');
+
+            // Set default state
+            modalImage.src = originalImage;
+            currentValueSpan.textContent = formatCurrency(originalValue);
+            upgradedValueSpan.textContent = formatCurrency(originalValue);
+            upgradedValueSpan.classList.remove('text-success'); 
+            upgradedValueSpan.classList.add('text-muted'); 
+            upgradeOptions.forEach(opt => opt.classList.remove('active'));
+
+            // Add event listeners for upgrade options within the modal
+            upgradeOptions.forEach(item => {
+                item.onclick = (e) => {
+                    e.preventDefault();
+                    
+                    // Highlight the selected option immediately
+                    upgradeOptions.forEach(opt => opt.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Get upgrade details
+                    const upgradeImgSrc = item.getAttribute('data-upgrade-image');
+                    const costIncrease = parseFloat(item.getAttribute('data-cost-increase'));
+
+                    // 1. SHOW LOADING ANIMATION
+                    modalImage.style.opacity = '0.1'; // Fade out current image
+                    loadingOverlay.classList.add('visible'); // Show spinner
+
+                    // 2. WAIT 3 SECONDS
+                    setTimeout(() => {
+                        // 3. HIDE LOADING ANIMATION
+                        loadingOverlay.classList.remove('visible'); // Hide spinner
+                        
+                        // 4. DISPLAY NEW IMAGE
+                        modalImage.src = upgradeImgSrc;
+                        modalImage.style.opacity = '1'; // Fade new image back in
+
+                        // 5. DISPLAY NEW UPGRADED VALUE (Loads simultaneously with new image)
+                        const newUpgradedValue = originalValue + costIncrease;
+                        upgradedValueSpan.textContent = formatCurrency(newUpgradedValue);
+                        upgradedValueSpan.classList.add('text-success'); 
+                        upgradedValueSpan.classList.remove('text-muted');
+                    }, 3000); // 3000 milliseconds = 3 seconds
+                };
+            });
+        });
+    </script>
+</body>
+</html>
