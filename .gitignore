@@ -81,3 +81,10 @@ jspm_packages/
 ehthumbs.db
 Thumbs.db
 .vercel
+
+# Sensitive files
+*.csv
+*.numbers
+*.pkg
+*.key
+*.pem
