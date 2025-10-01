@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
 // Model Configuration - Easy switching between providers
-const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'aws'
+const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'aws' - Default to Gemini Nano Banana
 
 // Gemini API configuration
 const GEMINI_API_KEY = 'AIzaSyBmIYwYoxphBKEmra76G_0lqj_hdDADrVM';
