@@ -279,6 +279,46 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--secondary-gradient);
         }
+
+        /* Loading Indicator Styles */
+        .loading-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(2px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 0.375rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-text {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Fade out animation for loading indicator */
+        .loading-indicator.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -923,6 +963,14 @@
                     console.log('Phase 1: Fetching first high-quality image for all properties... (v3.0 - Fast Concurrent Loading)');
                     console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests with 3 concurrent connections`);
                     
+                    // Show loading indicators for all property cards
+                    homes.forEach((home, index) => {
+                        const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                        if (card) {
+                            showLoadingIndicator(card);
+                        }
+                    });
+                    
                     // Use FAST Phase 1 queue system for priority loading (3 concurrent, 1 second intervals)
                     const firstImagePromises = homes.map((home, index) => {
                         const property = recentProperties[index];
@@ -941,10 +989,20 @@
                                             resolve({ index, success: true, imageCount: 1 });
                                         } else {
                                             console.log(`[PHASE1] No first high-quality image found for property ${index + 1}`);
+                                            // Hide loading indicator even if no image found
+                                            const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                                            if (card) {
+                                                hideLoadingIndicator(card);
+                                            }
                                             resolve({ index, success: false, imageCount: 0 });
                                         }
                                     } catch (error) {
                                         console.error(`[PHASE1] Error fetching first image for property ${index + 1}:`, error);
+                                        // Hide loading indicator on error
+                                        const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                                        if (card) {
+                                            hideLoadingIndicator(card);
+                                        }
                                         resolve({ index, success: false, imageCount: 0 });
                                     }
                                 });
@@ -1177,6 +1235,9 @@
                 if (img) {
                     img.src = home.images[0];
                     img.alt = home.address;
+                    
+                    // Hide loading indicator when image loads
+                    hideLoadingIndicator(card);
                 }
                 
                 // Update modal data attributes
@@ -1185,6 +1246,53 @@
                     modalButton.setAttribute('data-original-image', home.images[0]);
                     modalButton.setAttribute('data-images', JSON.stringify(home.images));
                 }
+            }
+        }
+        
+        // Show loading indicator for a property card
+        function showLoadingIndicator(card) {
+            if (!card) return;
+            
+            // Create loading indicator if it doesn't exist
+            let loadingIndicator = card.querySelector('.loading-indicator');
+            if (!loadingIndicator) {
+                loadingIndicator = document.createElement('div');
+                loadingIndicator.className = 'loading-indicator';
+                loadingIndicator.innerHTML = `
+                    <div class="loading-spinner">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div class="loading-text">Loading high-quality image...</div>
+                `;
+                
+                // Position it over the image
+                const imgContainer = card.querySelector('.card-img-top').parentElement;
+                if (imgContainer) {
+                    imgContainer.style.position = 'relative';
+                    imgContainer.appendChild(loadingIndicator);
+                }
+            }
+            
+            loadingIndicator.style.display = 'flex';
+        }
+        
+        // Hide loading indicator for a property card
+        function hideLoadingIndicator(card) {
+            if (!card) return;
+            
+            const loadingIndicator = card.querySelector('.loading-indicator');
+            if (loadingIndicator) {
+                // Add fade-out class for smooth transition
+                loadingIndicator.classList.add('fade-out');
+                
+                // Remove the element after animation completes
+                setTimeout(() => {
+                    if (loadingIndicator.parentNode) {
+                        loadingIndicator.parentNode.removeChild(loadingIndicator);
+                    }
+                }, 300);
             }
         }
 
