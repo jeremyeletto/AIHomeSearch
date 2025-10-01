@@ -536,6 +536,153 @@ app.get('/api/prompts', (req, res) => {
   }
 });
 
+// Custom Gemini generation function
+async function generateCustomWithGemini(base64Image, customPrompt, negativePrompt) {
+  try {
+    console.log('Using Gemini 2.5 Flash Image (Nano Banana) for custom upgrade generation');
+    
+    // Gemini 2.5 Flash Image request format for image-to-image generation
+    const requestBody = {
+      contents: [
+        {
+          parts: [
+            {
+              text: customPrompt
+            },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image
+              }
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.4,
+        topK: 32,
+        topP: 1,
+        maxOutputTokens: 4096,
+      }
+    };
+
+    console.log('Making request to Gemini API...');
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    console.log('Gemini API response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API Error:', response.status, errorText);
+      return {
+        success: false,
+        error: `Gemini API request failed: ${response.status} - ${errorText}`
+      };
+    }
+
+    const data = await response.json();
+    console.log('Gemini API Response received');
+
+    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      const parts = data.candidates[0].content.parts;
+      
+      // Look for image data in the response
+      for (const part of parts) {
+        if (part.inline_data && part.inline_data.data) {
+          const imageData = part.inline_data.data;
+          const imageUrl = `data:image/jpeg;base64,${imageData}`;
+          
+          console.log('✅ Custom upgrade image generated successfully with Gemini');
+          return {
+            success: true,
+            imageUrl: imageUrl
+          };
+        }
+      }
+    }
+
+    console.error('❌ No image data found in Gemini response');
+    return {
+      success: false,
+      error: 'No image data found in Gemini response'
+    };
+
+  } catch (error) {
+    console.error('Error in custom Gemini generation:', error);
+    return {
+      success: false,
+      error: `Gemini generation failed: ${error.message}`
+    };
+  }
+}
+
+// Custom AWS generation function
+async function generateCustomWithAWS(base64Image, customPrompt, negativePrompt) {
+  try {
+    console.log('Using AWS Bedrock Titan Image Generator v2 for custom upgrade generation');
+    
+    const bedrock = new AWS.BedrockRuntime({ region: AWS_REGION });
+    
+    const requestBody = {
+      taskType: "IMAGE_VARIATION",
+      imageVariationParams: {
+        text: customPrompt,
+        negativeText: negativePrompt,
+        images: [base64Image]
+      },
+      imageGenerationConfig: {
+        numberOfImages: 1,
+        quality: "premium",
+        height: 1024,
+        width: 1024,
+        cfgScale: 8.0,
+        seed: Math.floor(Math.random() * 1000000)
+      }
+    };
+
+    console.log('Making request to AWS Bedrock...');
+    const response = await bedrock.invokeModel({
+      modelId: BEDROCK_MODEL_ID,
+      contentType: 'application/json',
+      body: JSON.stringify(requestBody)
+    }).promise();
+
+    console.log('AWS Bedrock response received');
+    const responseBody = JSON.parse(response.body.toString());
+    
+    if (responseBody.images && responseBody.images.length > 0) {
+      const imageData = responseBody.images[0];
+      const imageUrl = `data:image/jpeg;base64,${imageData}`;
+      
+      console.log('✅ Custom upgrade image generated successfully with AWS Bedrock');
+      return {
+        success: true,
+        imageUrl: imageUrl
+      };
+    } else {
+      console.error('❌ No image data found in AWS Bedrock response');
+      return {
+        success: false,
+        error: 'No image data found in AWS Bedrock response'
+      };
+    }
+
+  } catch (error) {
+    console.error('Error in custom AWS generation:', error);
+    return {
+      success: false,
+      error: `AWS Bedrock generation failed: ${error.message}`
+    };
+  }
+}
+
 // Custom upgrade endpoint
 app.post('/api/generate-custom-upgrade', async (req, res) => {
   try {
@@ -575,9 +722,9 @@ Transform this home according to the custom request: ${customText}`;
     let result;
     
     if (MODEL_PROVIDER === 'aws') {
-      result = await generateWithAWS(base64Image, customPrompt, negativePrompt);
+      result = await generateCustomWithAWS(base64Image, customPrompt, negativePrompt);
     } else {
-      result = await generateWithGemini(base64Image, customPrompt, negativePrompt);
+      result = await generateCustomWithGemini(base64Image, customPrompt, negativePrompt);
     }
     
     if (result.success) {
