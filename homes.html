@@ -538,27 +538,14 @@
                     
                     <div class="mt-4">
                         <h6 class="mb-3">Choose Your Upgrade:</h6>
-                        <div class="upgrade-pills">
-                            <button class="upgrade-pill" data-upgrade="stone-walkway">
-                                <i class="fas fa-walking"></i>
-                                <span>Stone Walkway</span>
-                            </button>
-                            <button class="upgrade-pill" data-upgrade="black-windows">
-                                <i class="fas fa-window-restore"></i>
-                                <span>Modern Black Windows</span>
-                            </button>
-                            <button class="upgrade-pill" data-upgrade="white-siding">
-                                <i class="fas fa-home"></i>
-                                <span>White Vinyl Siding</span>
-                            </button>
-                            <button class="upgrade-pill" data-upgrade="wrap-porch">
-                                <i class="fas fa-door-open"></i>
-                                <span>Wrap-around Porch</span>
-                            </button>
-                            <button class="upgrade-pill" data-upgrade="brick-exterior">
-                                <i class="fas fa-layer-group"></i>
-                                <span>Brick Exterior</span>
-                            </button>
+                        <div class="upgrade-pills" id="upgradePillsContainer">
+                            <!-- Upgrade pills will be dynamically loaded here -->
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading upgrades...</span>
+                                </div>
+                                <small class="text-muted ms-2">Loading upgrade options...</small>
+                            </div>
                         </div>
                         <div class="mt-3">
                             <small class="text-muted">
@@ -824,6 +811,84 @@
         
         // Generated image cache for AI upgrades
         const generatedImageCache = new Map();
+        
+        // Prompts configuration cache
+        let promptsConfig = null;
+        
+        // Load prompts from API
+        async function loadPrompts() {
+            try {
+                console.log('Loading prompts from API...');
+                const response = await fetch(`${API_BASE_URL}/api/prompts`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    promptsConfig = data;
+                    console.log(`✅ Loaded ${data.metadata.totalPrompts} prompts from configuration`);
+                    renderUpgradePills();
+                } else {
+                    console.error('Failed to load prompts:', data.error);
+                    renderFallbackPills();
+                }
+            } catch (error) {
+                console.error('Error loading prompts:', error);
+                renderFallbackPills();
+            }
+        }
+        
+        // Render upgrade pills dynamically
+        function renderUpgradePills() {
+            const container = document.getElementById('upgradePillsContainer');
+            if (!container || !promptsConfig) return;
+            
+            // Sort prompts by priority
+            const sortedPrompts = Object.entries(promptsConfig.prompts)
+                .sort(([,a], [,b]) => a.priority - b.priority);
+            
+            container.innerHTML = '';
+            
+            sortedPrompts.forEach(([key, prompt]) => {
+                const pill = document.createElement('button');
+                pill.className = 'upgrade-pill';
+                pill.setAttribute('data-upgrade', key);
+                pill.setAttribute('data-prompt-id', prompt.id);
+                pill.innerHTML = `
+                    <i class="${prompt.icon}"></i>
+                    <span>${prompt.name}</span>
+                `;
+                container.appendChild(pill);
+            });
+            
+            console.log(`✅ Rendered ${sortedPrompts.length} upgrade pills`);
+        }
+        
+        // Fallback pills if API fails
+        function renderFallbackPills() {
+            const container = document.getElementById('upgradePillsContainer');
+            if (!container) return;
+            
+            const fallbackPrompts = [
+                { key: 'stone-walkway', icon: 'fas fa-walking', name: 'Stone Walkway' },
+                { key: 'black-windows', icon: 'fas fa-window-restore', name: 'Modern Black Windows' },
+                { key: 'white-siding', icon: 'fas fa-home', name: 'White Vinyl Siding' },
+                { key: 'wrap-porch', icon: 'fas fa-door-open', name: 'Wrap-around Porch' },
+                { key: 'brick-exterior', icon: 'fas fa-layer-group', name: 'Brick Exterior' }
+            ];
+            
+            container.innerHTML = '';
+            fallbackPrompts.forEach(prompt => {
+                const pill = document.createElement('button');
+                pill.className = 'upgrade-pill';
+                pill.setAttribute('data-upgrade', prompt.key);
+                pill.innerHTML = `
+                    <i class="${prompt.icon}"></i>
+                    <span>${prompt.name}</span>
+                `;
+                container.appendChild(pill);
+            });
+            
+            console.log('⚠️ Using fallback upgrade pills');
+        }
         
         // REST API configuration - Using CORS proxy to bypass browser restrictions
         const CORS_PROXY = 'https://corsproxy.io/?';
@@ -1855,6 +1920,9 @@
         // Load homes when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, testing APIs...');
+            
+            // Load prompts configuration
+            loadPrompts();
             
             // Add Enter key event listener for search input
             const locationInput = document.getElementById('locationSearchHome');

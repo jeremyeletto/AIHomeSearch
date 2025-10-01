@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -184,40 +186,82 @@ app.post('/api/generate-upgrade-image', async (req, res) => {
   }
 });
 
-// Define upgrade prompts for both models
-const upgradeDefinitions = {
-  'stone-walkway': {
-    request: 'Add Stone Walkway',
-    definition: 'Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged.'
-  },
-  'black-windows': {
-    request: 'Add Modern Black Windows',
-    definition: 'Update window frames to black. Keep exact house shape, roof angles, window positions unchanged.'
-  },
-  'white-siding': {
-    request: 'Add White Vinyl Siding',
-    definition: 'Replace siding with white vinyl. Keep exact house structure, roof, window positions unchanged.'
-  },
-  'wrap-porch': {
-    request: 'Add Wrap-around Porch',
-    definition: 'Add wrap-around porch with columns. Keep exact house structure, roof, window positions unchanged.'
-  },
-  'brick-exterior': {
-    request: 'Add Brick Exterior',
-    definition: 'Replace siding with brick facade. Keep exact house structure, roof, window positions unchanged.'
+// Load prompts configuration from JSON file
+let promptsConfig = null;
+
+function loadPromptsConfig() {
+  try {
+    const configPath = path.join(__dirname, 'prompts-config.json');
+    const configData = fs.readFileSync(configPath, 'utf8');
+    promptsConfig = JSON.parse(configData);
+    console.log(`✅ Loaded ${promptsConfig.metadata.totalPrompts} prompts from configuration`);
+    return promptsConfig;
+  } catch (error) {
+    console.error('❌ Error loading prompts configuration:', error);
+    // Fallback to basic prompts
+    return {
+      prompts: {
+        'stone-walkway': {
+          id: 'STONE_WALKWAY_001',
+          name: 'Add Stone Walkway',
+          request: 'Add Stone Walkway',
+          definition: 'Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged.',
+          prompt: 'Modern exterior renovation: Add Stone Walkway. Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged. Bright daylight, natural blue sky.',
+          negativePrompt: 'Do NOT change the building\'s fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint.',
+          valueIncrease: 0.08
+        }
+      }
+    };
   }
-};
+}
+
+// Initialize prompts configuration
+loadPromptsConfig();
+
+// Helper function to get upgrade info by ID or key
+function getUpgradeInfo(upgradeType) {
+  if (!promptsConfig || !promptsConfig.prompts) {
+    return null;
+  }
+  
+  // Try to find by key first (for backward compatibility)
+  if (promptsConfig.prompts[upgradeType]) {
+    return promptsConfig.prompts[upgradeType];
+  }
+  
+  // Try to find by ID
+  for (const [key, prompt] of Object.entries(promptsConfig.prompts)) {
+    if (prompt.id === upgradeType) {
+      return prompt;
+    }
+  }
+  
+  return null;
+}
 
 // Gemini 2.5 Flash Image (Nano Banana) image generation
 async function generateWithGemini(req, res, base64Image, upgradeType) {
   try {
     console.log('Using Gemini 2.5 Flash Image (Nano Banana) for image generation');
+    console.log(`Processing upgrade type: ${upgradeType}`);
 
-    // Generate dynamic prompt based on upgrade type
-    const upgradeInfo = upgradeDefinitions[upgradeType];
-    const prompt = upgradeInfo ? 
-      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
-      'Enhance this house with modern upgrades';
+    // Get upgrade info from new prompts system
+    const upgradeInfo = getUpgradeInfo(upgradeType);
+    
+    if (!upgradeInfo) {
+      console.error(`❌ No upgrade info found for: ${upgradeType}`);
+      return res.status(400).json({
+        success: false,
+        error: `Unknown upgrade type: ${upgradeType}`,
+        availablePrompts: Object.keys(promptsConfig?.prompts || {})
+      });
+    }
+
+    console.log(`✅ Using prompt ID: ${upgradeInfo.id} - ${upgradeInfo.name}`);
+    
+    // Use the pre-formatted prompt from configuration
+    const prompt = upgradeInfo.prompt || 
+      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.`;
 
     // Gemini 2.5 Flash Image request format for image-to-image generation
     const requestBody = {
@@ -300,12 +344,25 @@ async function generateWithGemini(req, res, base64Image, upgradeType) {
 async function generateWithAWS(req, res, base64Image, upgradeType) {
   try {
     console.log('Using AWS Bedrock Titan Image Generator v2 for image generation');
+    console.log(`Processing upgrade type: ${upgradeType}`);
 
-    // Generate dynamic prompt based on upgrade type
-    const upgradeInfo = upgradeDefinitions[upgradeType];
-    const prompt = upgradeInfo ? 
-      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
-      'Enhance this house with modern upgrades';
+    // Get upgrade info from new prompts system
+    const upgradeInfo = getUpgradeInfo(upgradeType);
+    
+    if (!upgradeInfo) {
+      console.error(`❌ No upgrade info found for: ${upgradeType}`);
+      return res.status(400).json({
+        success: false,
+        error: `Unknown upgrade type: ${upgradeType}`,
+        availablePrompts: Object.keys(promptsConfig?.prompts || {})
+      });
+    }
+
+    console.log(`✅ Using prompt ID: ${upgradeInfo.id} - ${upgradeInfo.name}`);
+    
+    // Use the pre-formatted prompt from configuration
+    const prompt = upgradeInfo.prompt || 
+      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.`;
 
     // Prepare the request for Titan Image Generator v2
     const requestBody = {
@@ -455,6 +512,28 @@ app.get('/api/model-info', (req, res) => {
     awsModel: BEDROCK_MODEL_ID,
     availableProviders: ['gemini', 'aws']
   });
+});
+
+// Get available prompts endpoint
+app.get('/api/prompts', (req, res) => {
+  try {
+    if (!promptsConfig) {
+      loadPromptsConfig();
+    }
+    
+    res.json({
+      success: true,
+      prompts: promptsConfig.prompts,
+      categories: promptsConfig.categories,
+      metadata: promptsConfig.metadata
+    });
+  } catch (error) {
+    console.error('Error getting prompts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load prompts configuration'
+    });
+  }
 });
 
 app.listen(port, () => {

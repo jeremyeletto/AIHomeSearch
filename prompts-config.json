@@ -1,0 +1,147 @@
+{
+  "prompts": {
+    "stone-walkway": {
+      "id": "STONE_WALKWAY_001",
+      "name": "Add Stone Walkway",
+      "icon": "fas fa-walking",
+      "category": "exterior",
+      "priority": 1,
+      "request": "Add a beautiful stone walkway leading to the entrance",
+      "definition": "Create an elegant stone walkway with natural stone pavers, proper drainage, and landscaping integration. The walkway should complement the home's architecture and provide a welcoming path to the entrance.",
+      "prompt": "Modern exterior renovation: Add a beautiful stone walkway leading to the entrance. Create an elegant stone walkway with natural stone pavers, proper drainage, and landscaping integration. The walkway should complement the home's architecture and provide a welcoming path to the entrance. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.08
+    },
+    "black-windows": {
+      "id": "BLACK_WINDOWS_002",
+      "name": "Add Modern Black Windows",
+      "icon": "fas fa-window-restore",
+      "category": "exterior",
+      "priority": 2,
+      "request": "Replace windows with modern black-framed windows",
+      "definition": "Install sleek, modern black-framed windows that provide clean lines and contemporary appeal. Maintain the same window count and approximate positioning while updating to modern styling.",
+      "prompt": "Modern exterior renovation: Replace windows with modern black-framed windows. Install sleek, modern black-framed windows that provide clean lines and contemporary appeal. Maintain the same window count and approximate positioning while updating to modern styling. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.12
+    },
+    "white-siding": {
+      "id": "WHITE_SIDING_003",
+      "name": "Add White Vinyl Siding",
+      "icon": "fas fa-home",
+      "category": "exterior",
+      "priority": 3,
+      "request": "Replace siding with clean white vinyl siding",
+      "definition": "Install fresh, clean white vinyl siding with modern trim details. This will give the home a crisp, contemporary look while maintaining its architectural integrity.",
+      "prompt": "Modern exterior renovation: Replace siding with clean white vinyl siding. Install fresh, clean white vinyl siding with modern trim details. This will give the home a crisp, contemporary look while maintaining its architectural integrity. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.15
+    },
+    "wrap-porch": {
+      "id": "WRAP_PORCH_004",
+      "name": "Add Wrap-around Porch",
+      "icon": "fas fa-door-open",
+      "category": "exterior",
+      "priority": 4,
+      "request": "Add a beautiful wrap-around porch",
+      "definition": "Design and add an elegant wrap-around porch that enhances the home's curb appeal and provides additional outdoor living space. Include proper support columns and railings.",
+      "prompt": "Modern exterior renovation: Add a beautiful wrap-around porch. Design and add an elegant wrap-around porch that enhances the home's curb appeal and provides additional outdoor living space. Include proper support columns and railings. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.20
+    },
+    "brick-exterior": {
+      "id": "BRICK_EXTERIOR_005",
+      "name": "Add Brick Exterior",
+      "icon": "fas fa-layer-group",
+      "category": "exterior",
+      "priority": 5,
+      "request": "Add classic brick exterior facade",
+      "definition": "Apply a timeless brick exterior facade that adds character and durability to the home. Use high-quality brick with proper mortar joints and architectural details.",
+      "prompt": "Modern exterior renovation: Add classic brick exterior facade. Apply a timeless brick exterior facade that adds character and durability to the home. Use high-quality brick with proper mortar joints and architectural details. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.18
+    },
+    "add-extension": {
+      "id": "ADD_EXTENSION_006",
+      "name": "Add Extension",
+      "icon": "fas fa-expand-arrows-alt",
+      "category": "structural",
+      "priority": 6,
+      "request": "Add a thoughtful extension to expand living space",
+      "definition": "Design and add a well-integrated extension that expands the home's living space. For single-story homes, extend outward. For multi-story homes, consider adding an additional floor or extending horizontally. Ensure the extension complements the existing architecture and maintains structural integrity.",
+      "prompt": "Modern exterior renovation: Add a thoughtful extension to expand living space. Design and add a well-integrated extension that expands the home's living space. For single-story homes, extend outward. For multi-story homes, consider adding an additional floor or extending horizontally. Ensure the extension complements the existing architecture and maintains structural integrity. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT compromise the structural integrity or create unrealistic additions. Avoid adding extensions that don't match the home's architectural style or that would require major structural changes. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.25
+    },
+    "modern-garage": {
+      "id": "MODERN_GARAGE_007",
+      "name": "Add Modern Garage",
+      "icon": "fas fa-car",
+      "category": "exterior",
+      "priority": 7,
+      "request": "Add or upgrade to a modern garage",
+      "definition": "Design and add a contemporary garage that complements the home's architecture. Include modern garage doors, proper lighting, and architectural details that enhance the overall property value.",
+      "prompt": "Modern exterior renovation: Add or upgrade to a modern garage. Design and add a contemporary garage that complements the home's architecture. Include modern garage doors, proper lighting, and architectural details that enhance the overall property value. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.22
+    },
+    "landscaping-upgrade": {
+      "id": "LANDSCAPING_UPGRADE_008",
+      "name": "Add Professional Landscaping",
+      "icon": "fas fa-seedling",
+      "category": "exterior",
+      "priority": 8,
+      "request": "Add professional landscaping design",
+      "definition": "Create a comprehensive landscaping plan with mature trees, shrubs, flower beds, and lawn improvements. Include hardscaping elements like pathways, retaining walls, and outdoor lighting to enhance curb appeal.",
+      "prompt": "Modern exterior renovation: Add professional landscaping design. Create a comprehensive landscaping plan with mature trees, shrubs, flower beds, and lawn improvements. Include hardscaping elements like pathways, retaining walls, and outdoor lighting to enhance curb appeal. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.10
+    },
+    "roof-upgrade": {
+      "id": "ROOF_UPGRADE_009",
+      "name": "Add Modern Roof",
+      "icon": "fas fa-home",
+      "category": "exterior",
+      "priority": 9,
+      "request": "Upgrade to modern roofing materials",
+      "definition": "Replace the existing roof with modern, high-quality roofing materials such as architectural shingles, metal roofing, or slate. Maintain the existing roof lines while improving durability and aesthetic appeal.",
+      "prompt": "Modern exterior renovation: Upgrade to modern roofing materials. Replace the existing roof with modern, high-quality roofing materials such as architectural shingles, metal roofing, or slate. Maintain the existing roof lines while improving durability and aesthetic appeal. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.15
+    },
+    "outdoor-living": {
+      "id": "OUTDOOR_LIVING_010",
+      "name": "Add Outdoor Living Space",
+      "icon": "fas fa-umbrella",
+      "category": "exterior",
+      "priority": 10,
+      "request": "Create outdoor living space with deck or patio",
+      "definition": "Design and add an outdoor living space such as a deck, patio, or covered outdoor area. Include proper materials, railings, and outdoor furniture to create an inviting space for relaxation and entertainment.",
+      "prompt": "Modern exterior renovation: Create outdoor living space with deck or patio. Design and add an outdoor living space such as a deck, patio, or covered outdoor area. Include proper materials, railings, and outdoor furniture to create an inviting space for relaxation and entertainment. Bright daylight, natural blue sky.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.12
+    }
+  },
+  "categories": {
+    "exterior": {
+      "name": "Exterior Improvements",
+      "description": "Enhancements to the home's exterior appearance and functionality",
+      "color": "#667eea"
+    },
+    "structural": {
+      "name": "Structural Additions",
+      "description": "Major structural changes and additions to the home",
+      "color": "#764ba2"
+    },
+    "landscaping": {
+      "name": "Landscaping & Outdoor",
+      "description": "Outdoor spaces, landscaping, and exterior amenities",
+      "color": "#4facfe"
+    }
+  },
+  "metadata": {
+    "version": "1.0.0",
+    "lastUpdated": "2024-01-15",
+    "totalPrompts": 10,
+    "description": "AI Home Upgrades Prompt Configuration System"
+  }
+}
