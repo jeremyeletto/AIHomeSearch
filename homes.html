@@ -595,18 +595,26 @@
         
         // Process request queue with rate limiting
         async function processRequestQueue() {
-            if (isProcessingQueue || requestQueue.length === 0) return;
+            console.log(`[RATE LIMITER] processRequestQueue called - isProcessing: ${isProcessingQueue}, queue length: ${requestQueue.length}, active: ${activeRequests}`);
+            
+            if (isProcessingQueue || requestQueue.length === 0) {
+                console.log(`[RATE LIMITER] Exiting - isProcessing: ${isProcessingQueue}, queue empty: ${requestQueue.length === 0}`);
+                return;
+            }
             
             isProcessingQueue = true;
+            console.log(`[RATE LIMITER] Starting queue processing with ${requestQueue.length} requests`);
             
             while (requestQueue.length > 0 && activeRequests < MAX_CONCURRENT_REQUESTS) {
                 const now = Date.now();
                 const timeSinceLastRequest = now - lastRequestTime;
                 
+                console.log(`[RATE LIMITER] Time since last request: ${timeSinceLastRequest}ms, min interval: ${MIN_REQUEST_INTERVAL}ms`);
+                
                 // Wait if we haven't waited long enough since the last request
                 if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
                     const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-                    console.log(`Rate limiting: waiting ${waitTime}ms before next request`);
+                    console.log(`[RATE LIMITER] Waiting ${waitTime}ms before next request`);
                     await new Promise(resolve => setTimeout(resolve, waitTime));
                 }
                 
@@ -614,26 +622,34 @@
                 activeRequests++;
                 lastRequestTime = Date.now();
                 
+                console.log(`[RATE LIMITER] Processing request ${activeRequests}/${MAX_CONCURRENT_REQUESTS}, queue remaining: ${requestQueue.length}`);
+                
                 try {
                     await request();
+                    console.log(`[RATE LIMITER] Request completed successfully`);
                 } catch (error) {
-                    console.error('Request failed:', error);
+                    console.error(`[RATE LIMITER] Request failed:`, error);
                 } finally {
                     activeRequests--;
+                    console.log(`[RATE LIMITER] Request finished, active requests: ${activeRequests}`);
                 }
             }
             
             isProcessingQueue = false;
+            console.log(`[RATE LIMITER] Queue processing finished, remaining requests: ${requestQueue.length}`);
             
             // Continue processing if there are more requests
             if (requestQueue.length > 0) {
+                console.log(`[RATE LIMITER] Scheduling next batch in 1000ms`);
                 setTimeout(processRequestQueue, 1000);
             }
         }
         
         // Add request to queue
         function queueRequest(requestFunction) {
+            console.log(`[QUEUE] Adding request to queue, current length: ${requestQueue.length}`);
             requestQueue.push(requestFunction);
+            console.log(`[QUEUE] Queue length after adding: ${requestQueue.length}`);
             processRequestQueue();
         }
         
@@ -866,9 +882,11 @@
                         
                         // Phase 2: Lazy load remaining images for all properties
                         console.log('Phase 2: Lazy loading remaining high-quality images...');
+                        console.log(`[INIT] Queuing ${homes.length} photo requests`);
                         homes.forEach((home, index) => {
                             const property = recentProperties[index];
                             if (property) {
+                                console.log(`[INIT] Queuing photo request for property ${property.property_id || property.id}`);
                                 // Queue the photo requests to avoid rate limits
                                 queueRequest(() => fetchRemainingHighQualityPhotos(property, home, index));
                             }
@@ -981,6 +999,8 @@
             const maxRetries = 2; // Reduced retries to avoid long delays
             const baseDelay = 5000; // 5 seconds base delay
             
+            console.log(`[PHOTO FETCH] Starting fetch for property ${property.property_id || property.id}, attempt ${retryCount + 1}`);
+            
             try {
                 const propertyId = property.property_id || property.id;
                 const propertyUrl = property.url || property.property_url || property.rdc_web_url;
@@ -991,11 +1011,11 @@
                 } else if (propertyId) {
                     photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
                 } else {
-                    console.log('No property ID or URL available for photos');
+                    console.log('[PHOTO FETCH] No property ID or URL available for photos');
                     return;
                 }
                 
-                console.log(`Fetching photos for property ${propertyId} (attempt ${retryCount + 1})`);
+                console.log(`[PHOTO FETCH] Making request to: ${photosUrl}`);
                 
                 const response = await fetch(photosUrl, {
                     method: 'GET',
@@ -1005,30 +1025,34 @@
                     }
                 });
                 
+                console.log(`[PHOTO FETCH] Response status: ${response.status}`);
+                
                 if (!response.ok) {
                     if (response.status === 429) {
                         // Rate limit exceeded
                         const retryAfter = response.headers.get('Retry-After');
                         const delay = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay * Math.pow(2, retryCount);
                         
+                        console.log(`[PHOTO FETCH] Rate limit hit! Retry-After: ${retryAfter}, calculated delay: ${delay}ms`);
+                        
                         if (retryCount < maxRetries) {
-                            console.log(`Rate limit hit for property ${propertyId}. Retrying in ${delay}ms...`);
+                            console.log(`[PHOTO FETCH] Retrying in ${delay}ms...`);
                             setTimeout(() => {
                                 fetchRemainingHighQualityPhotos(property, home, index, retryCount + 1);
                             }, delay);
                             return;
                         } else {
-                            console.log(`Max retries exceeded for property ${propertyId}. Skipping.`);
+                            console.log(`[PHOTO FETCH] Max retries exceeded, giving up`);
                             return;
                         }
                     } else {
-                        console.log(`Photos API request failed for property ${propertyId}: ${response.status}`);
+                        console.log(`[PHOTO FETCH] Request failed with status: ${response.status}`);
                         return;
                     }
                 }
                 
                 const photosData = await response.json();
-                console.log(`Photos API response for property ${propertyId}:`, photosData);
+                console.log(`[PHOTO FETCH] Success! Got ${photosData.length} photos`);
                 
                 if (Array.isArray(photosData) && photosData.length > 0) {
                     // Filter for high-quality images
@@ -1037,7 +1061,7 @@
                         .map(photo => photo.href);
                     
                     if (highQualityPhotos.length > 0) {
-                        console.log(`Found ${highQualityPhotos.length} high-quality photos for property ${propertyId}`);
+                        console.log(`[PHOTO FETCH] Found ${highQualityPhotos.length} high-quality photos`);
                         
                         // Update the home object with all high-quality images
                         home.images = highQualityPhotos;
@@ -1050,12 +1074,12 @@
                     }
                 }
             } catch (error) {
-                console.error(`Error fetching photos for property ${property.property_id || property.id}:`, error);
+                console.error(`[PHOTO FETCH] Error:`, error);
                 
                 // Retry on network errors
                 if (retryCount < maxRetries) {
                     const delay = baseDelay * Math.pow(2, retryCount);
-                    console.log(`Retrying in ${delay}ms...`);
+                    console.log(`[PHOTO FETCH] Network error, retrying in ${delay}ms...`);
                     setTimeout(() => {
                         fetchRemainingHighQualityPhotos(property, home, index, retryCount + 1);
                     }, delay);
