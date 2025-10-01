@@ -853,26 +853,38 @@
                     displayHomes(homes);
                     updatePaginationControls();
                     
-                    // Phase 1: Fetch first image for all properties simultaneously
+                    // Phase 1: Fetch first image for all properties using queue system
                     console.log('Phase 1: Fetching first high-quality image for all properties...');
-                    const firstImagePromises = homes.map(async (home, index) => {
+                    console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests`);
+                    
+                    // Use queue system for Phase 1 as well to avoid rate limits
+                    const firstImagePromises = homes.map((home, index) => {
                         const property = recentProperties[index];
                         if (property) {
-                            console.log(`Fetching first image for property ${index + 1}...`);
-                            const firstImage = await fetchFirstHighQualityPhoto(property);
-                            if (firstImage) {
-                                console.log(`Updating property ${index + 1} with first high-quality image`);
-                                // Update the home object with the first high-quality image
-                                home.images = [firstImage, ...home.images.slice(1)];
-                                // Update the displayed card
-                                updateHomeCardFirstImage(home, index);
-                                return { index, success: true, imageCount: 1 };
-                            } else {
-                                console.log(`No first high-quality image found for property ${index + 1}`);
-                                return { index, success: false, imageCount: 0 };
-                            }
+                            console.log(`[INIT] Phase 1: Queuing first image request for property ${property.property_id || property.id}`);
+                            return new Promise((resolve) => {
+                                queueRequest(async () => {
+                                    try {
+                                        const firstImage = await fetchFirstHighQualityPhoto(property);
+                                        if (firstImage) {
+                                            console.log(`[PHASE1] Updating property ${index + 1} with first high-quality image`);
+                                            // Update the home object with the first high-quality image
+                                            home.images = [firstImage, ...home.images.slice(1)];
+                                            // Update the displayed card
+                                            updateHomeCardFirstImage(home, index);
+                                            resolve({ index, success: true, imageCount: 1 });
+                                        } else {
+                                            console.log(`[PHASE1] No first high-quality image found for property ${index + 1}`);
+                                            resolve({ index, success: false, imageCount: 0 });
+                                        }
+                                    } catch (error) {
+                                        console.error(`[PHASE1] Error fetching first image for property ${index + 1}:`, error);
+                                        resolve({ index, success: false, imageCount: 0 });
+                                    }
+                                });
+                            });
                         }
-                        return { index, success: false, imageCount: 0 };
+                        return Promise.resolve({ index, success: false, imageCount: 0 });
                     });
                     
                     Promise.all(firstImagePromises).then((results) => {
@@ -943,6 +955,8 @@
 
         // Fetch first high-quality photo from dedicated endpoint
         async function fetchFirstHighQualityPhoto(property) {
+            console.log(`[FIRST PHOTO] Starting fetch for property ${property.property_id || property.id}`);
+            
             try {
                 const propertyId = property.property_id || property.id;
                 const propertyUrl = property.url || property.property_url || property.rdc_web_url;
@@ -953,11 +967,11 @@
                 } else if (propertyId) {
                     photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
                 } else {
-                    console.log('No property ID or URL available for photos');
+                    console.log('[FIRST PHOTO] No property ID or URL available for photos');
                     return null;
                 }
                 
-                console.log(`Fetching first high-quality photo from: ${photosUrl}`);
+                console.log(`[FIRST PHOTO] Making request to: ${photosUrl}`);
                 
                 const response = await fetch(photosUrl, {
                     method: 'GET',
@@ -967,13 +981,15 @@
                     }
                 });
                 
+                console.log(`[FIRST PHOTO] Response status: ${response.status}`);
+                
                 if (!response.ok) {
-                    console.log(`Photos API request failed: ${response.status}`);
+                    console.log(`[FIRST PHOTO] Request failed with status: ${response.status}`);
                     return null;
                 }
                 
                 const photosData = await response.json();
-                console.log(`Photos API response for property ${propertyId}:`, photosData);
+                console.log(`[FIRST PHOTO] Success! Got ${photosData.length} photos`);
                 
                 if (Array.isArray(photosData) && photosData.length > 0) {
                     // Find the first high-quality image
@@ -982,14 +998,14 @@
                     ) || photosData[0];
                     
                     if (firstPhoto && firstPhoto.href) {
-                        console.log(`Found first high-quality photo: ${firstPhoto.href}`);
+                        console.log(`[FIRST PHOTO] Found first high-quality photo: ${firstPhoto.href}`);
                         return firstPhoto.href;
                     }
                 }
                 
                 return null;
             } catch (error) {
-                console.error('Error fetching first high-quality photo:', error);
+                console.error('[FIRST PHOTO] Error:', error);
                 return null;
             }
         }
