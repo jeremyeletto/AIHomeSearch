@@ -635,6 +635,112 @@ async function generateCustomWithGemini(base64Image, customPrompt, negativePromp
   }
 }
 
+// Gemini generation function for custom upgrades (returns data instead of sending response)
+async function generateWithGeminiForCustom(base64Image, upgradeType) {
+  try {
+    console.log('Using Gemini 2.5 Flash Image (Nano Banana) for custom upgrade generation');
+    console.log(`Processing upgrade type: ${upgradeType}`);
+
+    // Get upgrade info from new prompts system
+    const upgradeInfo = getUpgradeInfo(upgradeType);
+    
+    if (!upgradeInfo) {
+      console.error(`❌ No upgrade info found for: ${upgradeType}`);
+      return {
+        success: false,
+        error: `Unknown upgrade type: ${upgradeType}`
+      };
+    }
+
+    console.log(`✅ Using prompt ID: ${upgradeInfo.id} - ${upgradeInfo.name}`);
+    
+    // Use the pre-formatted prompt from configuration
+    const prompt = upgradeInfo.prompt || 
+      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.`;
+
+    // Gemini 2.5 Flash Image request format for image-to-image generation
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Image
+              }
+            },
+            {
+              text: `Transform this house image: ${prompt}. Maintain the exact same architectural structure, roof lines, window positions, and overall building footprint. Only modify the specified elements while preserving all structural details. Professional photography style, bright daylight, natural blue sky.`
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 64,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      }
+    };
+
+    console.log('Sending request to Gemini 2.5 Flash Image (Nano Banana)...');
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const responseData = await response.json();
+    console.log('Gemini response received');
+
+    if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content) {
+      const content = responseData.candidates[0].content;
+      
+      // Look for image data in the response
+      if (content.parts && content.parts.length > 0) {
+        for (const part of content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            const generatedImageUrl = `data:image/png;base64,${part.inlineData.data}`;
+            
+            console.log('Image generated successfully with Gemini Nano Banana');
+            return { 
+              success: true, 
+              imageUrl: generatedImageUrl,
+              imageData: part.inlineData.data,
+              upgradeType: upgradeType,
+              model: 'gemini-2.5-flash-image-preview'
+            };
+          }
+        }
+      }
+    }
+
+    // If no image data, return the text response for debugging
+    console.log('No image data found, returning text response:', JSON.stringify(responseData, null, 2));
+    return {
+      success: false,
+      error: 'No image data in Gemini response'
+    };
+
+  } catch (error) {
+    console.error('Gemini Error:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
 // Custom AWS generation function
 async function generateCustomWithAWS(base64Image, customPrompt, negativePrompt) {
   try {
@@ -752,8 +858,8 @@ Transform this home according to the custom request: ${customText}`;
     }
     promptsConfig.prompts[tempUpgradeType] = tempUpgradeInfo;
     
-    // Use the existing generateWithGemini function
-    result = await generateWithGemini(req, res, base64Image, tempUpgradeType);
+    // Use the existing generateWithGemini function but don't pass res to avoid double response
+    result = await generateWithGeminiForCustom(base64Image, tempUpgradeType);
     
     // Clean up temporary prompt
     delete promptsConfig.prompts[tempUpgradeType];
