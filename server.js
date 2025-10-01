@@ -589,12 +589,15 @@ async function generateCustomWithGemini(base64Image, customPrompt, negativePromp
 
     const data = await response.json();
     console.log('Gemini API Response received');
+    console.log('Full Gemini response structure:', JSON.stringify(data, null, 2));
 
     if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
       const parts = data.candidates[0].content.parts;
+      console.log('Found parts in response:', parts.length);
       
       // Look for image data in the response
       for (const part of parts) {
+        console.log('Checking part:', JSON.stringify(part, null, 2));
         if (part.inline_data && part.inline_data.data) {
           const imageData = part.inline_data.data;
           const imageUrl = `data:image/jpeg;base64,${imageData}`;
@@ -609,6 +612,15 @@ async function generateCustomWithGemini(base64Image, customPrompt, negativePromp
     }
 
     console.error('❌ No image data found in Gemini response');
+    console.error('Response structure:', {
+      hasCandidates: !!data.candidates,
+      candidatesLength: data.candidates?.length,
+      firstCandidate: data.candidates?.[0],
+      hasContent: !!data.candidates?.[0]?.content,
+      hasParts: !!data.candidates?.[0]?.content?.parts,
+      partsLength: data.candidates?.[0]?.content?.parts?.length
+    });
+    
     return {
       success: false,
       error: 'No image data found in Gemini response'
@@ -721,11 +733,30 @@ Transform this home according to the custom request: ${customText}`;
 
     let result;
     
-    if (MODEL_PROVIDER === 'aws') {
-      result = await generateCustomWithAWS(base64Image, customPrompt, negativePrompt);
-    } else {
-      result = await generateCustomWithGemini(base64Image, customPrompt, negativePrompt);
+    // Use the same approach as single prompts - create a temporary upgrade type
+    const tempUpgradeType = 'custom-upgrade';
+    
+    // Create a temporary upgrade info object for the custom request
+    const tempUpgradeInfo = {
+      id: 'CUSTOM_UPGRADE_001',
+      name: 'Custom Upgrade',
+      request: customText,
+      prompt: customPrompt,
+      negativePrompt: negativePrompt,
+      valueIncrease: 0.15
+    };
+    
+    // Temporarily add to prompts config
+    if (!promptsConfig.prompts) {
+      promptsConfig.prompts = {};
     }
+    promptsConfig.prompts[tempUpgradeType] = tempUpgradeInfo;
+    
+    // Use the existing generateWithGemini function
+    result = await generateWithGemini(req, res, base64Image, tempUpgradeType);
+    
+    // Clean up temporary prompt
+    delete promptsConfig.prompts[tempUpgradeType];
     
     if (result.success) {
       console.log('✅ Custom upgrade generated successfully');
