@@ -11,11 +11,14 @@ const port = 3001;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Your Gemini API configuration
+// Model Configuration - Easy switching between providers
+const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'aws'
+
+// Gemini API configuration
 const GEMINI_API_KEY = 'AIzaSyBmIYwYoxphBKEmra76G_0lqj_hdDADrVM';
 const GEMINI_PROJECT = '549560236821';
-const GEMINI_MODEL = 'gemini-1.5-pro';
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/projects/${GEMINI_PROJECT}/models/${GEMINI_MODEL}:generateContent`;
+const GEMINI_MODEL = 'gemini-1.5-flash'; // Gemini 1.5 Flash (Nano Banana equivalent)
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // AWS Bedrock configuration
 const BEDROCK_REGION = 'us-east-1'; // Stable Image models available in us-east-1
@@ -153,7 +156,7 @@ app.get('/api/test-gemini', async (req, res) => {
   }
 });
 
-// AWS Bedrock image generation endpoint
+// Image generation endpoint with model switching
 app.post('/api/generate-upgrade-image', async (req, res) => {
   try {
     const { base64Image, upgradeType } = req.body;
@@ -162,41 +165,144 @@ app.post('/api/generate-upgrade-image', async (req, res) => {
       return res.status(400).json({ error: 'Missing base64Image or upgradeType' });
     }
 
-    console.log('Generating upgrade image with Bedrock for type:', upgradeType);
+    console.log(`Generating upgrade image with ${MODEL_PROVIDER.toUpperCase()} for type:`, upgradeType);
     console.log('Base64 image length:', base64Image.length);
     console.log('Base64 image preview:', base64Image.substring(0, 100) + '...');
 
-    // Define upgrade prompts optimized for Titan v2 with enhanced structure preservation
-    // Optimized for Titan v2 512 character limit with focus on structure preservation
-    const upgradeDefinitions = {
-      'stone-walkway': {
-        request: 'Add Stone Walkway',
-        definition: 'Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged.'
-      },
-      'black-windows': {
-        request: 'Add Modern Black Windows',
-        definition: 'Update window frames to black. Keep exact house shape, roof angles, window positions unchanged.'
-      },
-      'white-siding': {
-        request: 'Add White Vinyl Siding',
-        definition: 'Replace siding with white vinyl. Keep exact house structure, roof, window positions unchanged.'
-      },
-      'wrap-porch': {
-        request: 'Add Wrap-around Porch',
-        definition: 'Add wrap-around porch with columns. Keep exact house structure, roof, window positions unchanged.'
-      },
-      'brick-exterior': {
-        request: 'Add Brick Exterior',
-        definition: 'Replace siding with brick facade. Keep exact house structure, roof, window positions unchanged.'
-      }
-    };
+    // Route to appropriate model based on configuration
+    if (MODEL_PROVIDER === 'gemini') {
+      return await generateWithGemini(req, res, base64Image, upgradeType);
+    } else {
+      return await generateWithAWS(req, res, base64Image, upgradeType);
+    }
+  } catch (error) {
+    console.error('Image generation error:', error);
+    return res.status(500).json({ 
+      error: 'Image generation failed', 
+      details: error.message 
+    });
+  }
+});
 
-    // Generate dynamic prompt based on upgrade type (optimized for 512 char limit)
+// Define upgrade prompts for both models
+const upgradeDefinitions = {
+  'stone-walkway': {
+    request: 'Add Stone Walkway',
+    definition: 'Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged.'
+  },
+  'black-windows': {
+    request: 'Add Modern Black Windows',
+    definition: 'Update window frames to black. Keep exact house shape, roof angles, window positions unchanged.'
+  },
+  'white-siding': {
+    request: 'Add White Vinyl Siding',
+    definition: 'Replace siding with white vinyl. Keep exact house structure, roof, window positions unchanged.'
+  },
+  'wrap-porch': {
+    request: 'Add Wrap-around Porch',
+    definition: 'Add wrap-around porch with columns. Keep exact house structure, roof, window positions unchanged.'
+  },
+  'brick-exterior': {
+    request: 'Add Brick Exterior',
+    definition: 'Replace siding with brick facade. Keep exact house structure, roof, window positions unchanged.'
+  }
+};
+
+// Gemini 2.5 Flash (Nano Banana) image generation
+async function generateWithGemini(req, res, base64Image, upgradeType) {
+  try {
+    console.log('Using Gemini 2.5 Flash (Nano Banana) for image generation');
+
+    // Generate dynamic prompt based on upgrade type
     const upgradeInfo = upgradeDefinitions[upgradeType];
     const prompt = upgradeInfo ? 
       `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
       'Enhance this house with modern upgrades';
 
+    // Gemini 2.5 Flash request format
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Image
+              }
+            },
+            {
+              text: `Transform this house image: ${prompt}. Maintain the exact same architectural structure, roof lines, window positions, and overall building footprint. Only modify the specified elements while preserving all structural details.`
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 8192,
+      }
+    };
+
+    console.log('Sending request to Gemini 2.5 Flash...');
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': GEMINI_API_KEY
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+    }
+
+    const responseData = await response.json();
+    console.log('Gemini response received');
+
+    if (responseData.candidates && responseData.candidates[0] && responseData.candidates[0].content) {
+      const content = responseData.candidates[0].content;
+      
+      // Look for image data in the response
+      if (content.parts && content.parts.length > 0) {
+        for (const part of content.parts) {
+          if (part.inlineData && part.inlineData.data) {
+            const generatedImageUrl = `data:image/png;base64,${part.inlineData.data}`;
+            
+            console.log('Image generated successfully with Gemini');
+            return res.json({ 
+              success: true, 
+              imageUrl: generatedImageUrl,
+              imageData: part.inlineData.data,
+              upgradeType: upgradeType,
+              model: 'gemini-2.5-flash'
+            });
+          }
+        }
+      }
+    }
+
+    throw new Error('No image data in Gemini response');
+
+  } catch (error) {
+    console.error('Gemini Error:', error);
+    throw error;
+  }
+}
+
+// AWS Bedrock image generation
+async function generateWithAWS(req, res, base64Image, upgradeType) {
+  try {
+    console.log('Using AWS Bedrock Titan Image Generator v2 for image generation');
+
+    // Generate dynamic prompt based on upgrade type
+    const upgradeInfo = upgradeDefinitions[upgradeType];
+    const prompt = upgradeInfo ? 
+      `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
+      'Enhance this house with modern upgrades';
 
     // Prepare the request for Titan Image Generator v2
     const requestBody = {
@@ -226,62 +332,90 @@ app.post('/api/generate-upgrade-image', async (req, res) => {
       const generatedImageData = responseBody.images[0];
       const generatedImageUrl = `data:image/png;base64,${generatedImageData}`;
       
-      console.log('Image generated successfully');
+      console.log('Image generated successfully with AWS');
       return res.json({ 
         success: true, 
         imageUrl: generatedImageUrl,
         imageData: generatedImageData,
-        upgradeType: upgradeType
+        upgradeType: upgradeType,
+        model: 'aws-titan-v2'
       });
     } else {
       throw new Error('No image data in Bedrock response');
     }
 
   } catch (error) {
-    console.error('Bedrock Error:', error);
-    return res.status(500).json({ 
-      error: 'Image generation failed', 
-      details: error.message 
-    });
+    console.error('AWS Bedrock Error:', error);
+    throw error;
   }
-});
+}
 
-// Test Bedrock connectivity
-app.get('/api/test-bedrock', async (req, res) => {
+// Test model connectivity
+app.get('/api/test-model', async (req, res) => {
   try {
-    console.log('Testing Bedrock connectivity...');
+    console.log(`Testing ${MODEL_PROVIDER.toUpperCase()} connectivity...`);
     
-    // Simple test request for Titan Image Generator v2
-    const testRequestBody = {
-      taskType: "TEXT_IMAGE",
-      textToImageParams: {
-        text: "A simple test house",
-        negativeText: "blurry, low quality"
+    if (MODEL_PROVIDER === 'gemini') {
+      // Test Gemini API
+      const testResponse = await fetch(GEMINI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': GEMINI_API_KEY
+        },
+        body: JSON.stringify({
+          contents: [{
+            role: "user",
+            parts: [{ text: "Hello, this is a test message." }]
+          }]
+        })
+      });
+
+      if (testResponse.ok) {
+        res.json({ 
+          success: true, 
+          message: 'Gemini 2.5 Flash API is accessible',
+          model: GEMINI_MODEL,
+          provider: 'gemini'
+        });
+      } else {
+        throw new Error(`Gemini API error: ${testResponse.status}`);
       }
-    };
+    } else {
+      // Test AWS Bedrock
+      const testRequestBody = {
+        taskType: "TEXT_IMAGE",
+        textToImageParams: {
+          text: "A simple test house",
+          negativeText: "blurry, low quality"
+        }
+      };
 
-    const command = new InvokeModelCommand({
-      modelId: BEDROCK_MODEL_ID,
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify(testRequestBody)
-    });
+      const command = new InvokeModelCommand({
+        modelId: BEDROCK_MODEL_ID,
+        contentType: 'application/json',
+        accept: 'application/json',
+        body: JSON.stringify(testRequestBody)
+      });
 
-    const response = await bedrockClient.send(command);
-    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+      const response = await bedrockClient.send(command);
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-    res.json({ 
-      success: true, 
-      message: 'Bedrock API is accessible',
-      modelId: BEDROCK_MODEL_ID,
-      region: BEDROCK_REGION
-    });
+      res.json({ 
+        success: true, 
+        message: 'AWS Bedrock API is accessible',
+        modelId: BEDROCK_MODEL_ID,
+        region: BEDROCK_REGION,
+        provider: 'aws'
+      });
+    }
   } catch (error) {
-    console.error('Bedrock test failed:', error);
+    console.error(`${MODEL_PROVIDER.toUpperCase()} test failed:`, error);
     res.status(500).json({ 
       success: false, 
       error: error.message,
-      message: 'Check AWS credentials and Bedrock access'
+      message: `Check ${MODEL_PROVIDER.toUpperCase()} credentials and access`,
+      provider: MODEL_PROVIDER
     });
   }
 });
@@ -289,10 +423,43 @@ app.get('/api/test-bedrock', async (req, res) => {
 // Serve static files
 app.use(express.static('.'));
 
+// Model switching endpoint
+app.post('/api/switch-model', (req, res) => {
+  const { provider } = req.body;
+  
+  if (provider === 'gemini' || provider === 'aws') {
+    // Update environment variable for current session
+    process.env.MODEL_PROVIDER = provider;
+    
+    res.json({
+      success: true,
+      message: `Switched to ${provider.toUpperCase()} model`,
+      currentProvider: provider
+    });
+  } else {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid provider. Use "gemini" or "aws"'
+    });
+  }
+});
+
+// Get current model info
+app.get('/api/model-info', (req, res) => {
+  res.json({
+    currentProvider: MODEL_PROVIDER,
+    geminiModel: GEMINI_MODEL,
+    awsModel: BEDROCK_MODEL_ID,
+    availableProviders: ['gemini', 'aws']
+  });
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📁 Serving files from: ${process.cwd()}`);
   console.log(`🔗 Access your app at: http://localhost:${port}/homes.html`);
+  console.log(`🤖 Current model: ${MODEL_PROVIDER.toUpperCase()} (${MODEL_PROVIDER === 'gemini' ? GEMINI_MODEL : BEDROCK_MODEL_ID})`);
+  console.log(`🔄 Switch models: POST /api/switch-model with {"provider": "gemini"|"aws"}`);
 });
 
 module.exports = app;

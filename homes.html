@@ -299,6 +299,19 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" onclick="showAboutPage()">About</a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <span class="badge bg-success" id="model-badge">AWS</span> Model
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="switchModel('aws')">
+                                <i class="fas fa-cloud"></i> AWS Bedrock
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="switchModel('gemini')">
+                                <i class="fas fa-robot"></i> Gemini 2.5 Flash
+                            </a></li>
+                        </ul>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -469,6 +482,58 @@
         // Configuration
         const API_BASE_URL = window.location.hostname === 'localhost' ? '' : 'https://ai-home-upgrades-backend.onrender.com';
         // Last updated: 2025-09-30
+        
+        // Model switching functionality
+        let currentModel = 'aws'; // Default to AWS
+        
+        // Load current model info on page load
+        async function loadModelInfo() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/model-info`);
+                const data = await response.json();
+                currentModel = data.currentProvider;
+                updateModelDisplay();
+            } catch (error) {
+                console.error('Failed to load model info:', error);
+            }
+        }
+        
+        // Switch between models
+        async function switchModel(provider) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/switch-model`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ provider })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentModel = provider;
+                    updateModelDisplay();
+                    showNotification(`Switched to ${provider.toUpperCase()} model`, 'success');
+                } else {
+                    showNotification(`Failed to switch model: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Failed to switch model:', error);
+                showNotification('Failed to switch model', 'error');
+            }
+        }
+        
+        // Update model display in UI
+        function updateModelDisplay() {
+            const modelBadge = document.getElementById('model-badge');
+            if (modelBadge) {
+                modelBadge.textContent = currentModel.toUpperCase();
+                modelBadge.className = `badge ${currentModel === 'gemini' ? 'bg-primary' : 'bg-success'}`;
+            }
+        }
+        
+        // Initialize model info on page load
+        document.addEventListener('DOMContentLoaded', loadModelInfo);
         
         // Page navigation functions
         function showHomesPage() {

@@ -95,14 +95,14 @@ const BEDROCK_REGION = 'us-east-1'; // Change to your preferred region
             "Resource": [
                 "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v2:0",
                 "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-image-generator-v1",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-control-structure-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-inpaint-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-search-replace-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-erase-object-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-remove-background-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-search-recolor-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-image-style-guide-v1:0",
-                "arn:aws:bedrock:us-east-1::foundation-model/us.stability.stable-style-transfer-v1:0"
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-control-structure-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-inpaint-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-search-replace-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-erase-object-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-remove-background-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-search-recolor-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-image-style-guide-v1:0",
+                "arn:aws:bedrock:us-east-1:221723377368:inference-profile/us.stability.stable-style-transfer-v1:0"
             ]
         }
     ]
