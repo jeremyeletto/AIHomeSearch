@@ -2163,9 +2163,11 @@
                 
                 if (!generatedImageUrl) {
                     console.log('❌ Image generation failed - no URL returned');
+                    // Hide loading state on failure
+                    showGenerationLoading(false);
                     // Error is already displayed by generateUpgradeImage function
                     // Reset UI
-                    document.getElementById('comparisonToggle').style.display = 'none';
+                    document.getElementById('mobileToggleGroup').style.display = 'none';
                     document.getElementById('saveUpgrade').disabled = true;
                     
                     // Enable pills again
@@ -2193,8 +2195,17 @@
                 upgradedImage.style.display = 'block';
                 upgradedImage.src = generatedImageUrl;
                 
+                // Set a timeout to hide loading state if image doesn't load within 30 seconds
+                const loadingTimeout = setTimeout(() => {
+                    console.log('⏰ Loading timeout reached, hiding loading state');
+                    showGenerationLoading(false);
+                }, 30000);
+                
                 upgradedImage.onload = () => {
                     console.log('✅ Generated image loaded successfully from AWS Bedrock');
+                    
+                    // Clear the timeout since image loaded successfully
+                    clearTimeout(loadingTimeout);
                     
                     // Hide loading state
                     showGenerationLoading(false);
@@ -2217,6 +2228,10 @@
                 };
                 upgradedImage.onerror = () => {
                     console.error('❌ Generated image failed to load');
+                    
+                    // Clear the timeout since we're handling the error
+                    clearTimeout(loadingTimeout);
+                    
                     showGenerationError('Generated image failed to load');
                 };
                 
@@ -2230,6 +2245,9 @@
             } catch (error) {
                 console.error('❌ Error handling upgrade:', error);
                 console.error('Error stack:', error.stack);
+                
+                // Hide loading state on error
+                showGenerationLoading(false);
                 
                 // Reset UI on error
                 document.getElementById('mobileToggleGroup').style.display = 'none';
@@ -2284,8 +2302,10 @@
                 
                 if (!generatedImageUrl) {
                     console.log('❌ Custom upgrade generation failed - no URL returned');
+                    // Hide loading state on failure
+                    showGenerationLoading(false);
                     // Reset UI
-                    document.getElementById('comparisonToggle').style.display = 'none';
+                    document.getElementById('mobileToggleGroup').style.display = 'none';
                     document.getElementById('saveUpgrade').disabled = true;
                     
                     // Enable inputs again
@@ -2315,8 +2335,17 @@
                 upgradedImage.style.display = 'block';
                 upgradedImage.src = generatedImageUrl;
                 
+                // Set a timeout to hide loading state if image doesn't load within 30 seconds
+                const customLoadingTimeout = setTimeout(() => {
+                    console.log('⏰ Custom loading timeout reached, hiding loading state');
+                    showGenerationLoading(false);
+                }, 30000);
+                
                 upgradedImage.onload = () => {
                     console.log('✅ Custom upgrade image loaded successfully');
+                    
+                    // Clear the timeout since image loaded successfully
+                    clearTimeout(customLoadingTimeout);
                     
                     // Hide loading state
                     showGenerationLoading(false);
@@ -2339,6 +2368,10 @@
                 };
                 upgradedImage.onerror = () => {
                     console.error('❌ Custom upgrade image failed to load');
+                    
+                    // Clear the timeout since we're handling the error
+                    clearTimeout(customLoadingTimeout);
+                    
                     showGenerationError('Custom upgrade image failed to load');
                 };
                 
@@ -2354,6 +2387,9 @@
             } catch (error) {
                 console.error('❌ Error handling custom upgrade:', error);
                 console.error('Error stack:', error.stack);
+                
+                // Hide loading state on error
+                showGenerationLoading(false);
                 
                 // Reset UI on error
                 document.getElementById('mobileToggleGroup').style.display = 'none';
