@@ -200,6 +200,7 @@
             overflow-y: auto;
             margin-top: 5px;
             display: none;
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .typeahead-item {
@@ -553,9 +554,16 @@
 
         // Type-ahead functionality
         function showTypeahead(query) {
+            console.log('[TYPEAHEAD] showTypeahead called with query:', query);
             const dropdown = document.getElementById('typeaheadDropdown');
             
+            if (!dropdown) {
+                console.log('[TYPEAHEAD] Dropdown element not found!');
+                return;
+            }
+            
             if (query.length < 2) {
+                console.log('[TYPEAHEAD] Query too short, hiding dropdown');
                 dropdown.style.display = 'none';
                 return;
             }
@@ -565,7 +573,11 @@
                 location.toLowerCase().includes(query.toLowerCase())
             ).slice(0, 8); // Limit to 8 results
 
+            console.log('[TYPEAHEAD] Found', typeaheadResults.length, 'results for query:', query);
+            console.log('[TYPEAHEAD] Results:', typeaheadResults);
+
             if (typeaheadResults.length === 0) {
+                console.log('[TYPEAHEAD] No results, hiding dropdown');
                 dropdown.style.display = 'none';
                 return;
             }
@@ -578,6 +590,7 @@
                 </div>
             `).join('');
 
+            console.log('[TYPEAHEAD] Showing dropdown with', typeaheadResults.length, 'items');
             dropdown.style.display = 'block';
             currentTypeaheadIndex = -1;
         }
@@ -644,12 +657,19 @@
         
         // Initialize event listeners
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('[INIT] DOM loaded, initializing type-ahead');
             const locationInput = document.getElementById('locationSearch');
             const dropdown = document.getElementById('typeaheadDropdown');
             
+            console.log('[INIT] Location input found:', !!locationInput);
+            console.log('[INIT] Dropdown found:', !!dropdown);
+            
             if (locationInput) {
+                console.log('[INIT] Adding event listeners to input');
+                
                 // Input event for type-ahead
                 locationInput.addEventListener('input', function(e) {
+                    console.log('[INPUT] Input event triggered, value:', e.target.value);
                     showTypeahead(e.target.value);
                 });
 
@@ -673,10 +693,19 @@
 
                 // Focus management
                 locationInput.addEventListener('focus', function() {
+                    console.log('[FOCUS] Input focused, current value:', locationInput.value);
                     if (locationInput.value.length >= 2) {
                         showTypeahead(locationInput.value);
                     }
                 });
+                
+                // Test the type-ahead with a simple query
+                console.log('[INIT] Testing type-ahead with "New"');
+                setTimeout(() => {
+                    showTypeahead('New');
+                }, 1000);
+            } else {
+                console.log('[INIT] Location input not found!');
             }
         });
     </script>
