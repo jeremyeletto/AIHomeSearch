@@ -17,7 +17,7 @@ const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'a
 // Gemini API configuration
 const GEMINI_API_KEY = 'AIzaSyBmIYwYoxphBKEmra76G_0lqj_hdDADrVM';
 const GEMINI_PROJECT = '549560236821';
-const GEMINI_MODEL = 'gemini-1.5-flash'; // Gemini 1.5 Flash (Nano Banana equivalent)
+const GEMINI_MODEL = 'gemini-2.5-flash-image-preview'; // Nano Banana - Gemini 2.5 Flash Image Generation
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // AWS Bedrock configuration
@@ -208,10 +208,10 @@ const upgradeDefinitions = {
   }
 };
 
-// Gemini 2.5 Flash (Nano Banana) image generation
+// Gemini 2.5 Flash Image (Nano Banana) image generation
 async function generateWithGemini(req, res, base64Image, upgradeType) {
   try {
-    console.log('Using Gemini 2.5 Flash (Nano Banana) for image generation');
+    console.log('Using Gemini 2.5 Flash Image (Nano Banana) for image generation');
 
     // Generate dynamic prompt based on upgrade type
     const upgradeInfo = upgradeDefinitions[upgradeType];
@@ -219,33 +219,27 @@ async function generateWithGemini(req, res, base64Image, upgradeType) {
       `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
       'Enhance this house with modern upgrades';
 
-    // Gemini 2.5 Flash request format
+    // Gemini 2.5 Flash Image request format for text-to-image generation
     const requestBody = {
       contents: [
         {
           role: "user",
           parts: [
             {
-              inlineData: {
-                mimeType: "image/png",
-                data: base64Image
-              }
-            },
-            {
-              text: `Transform this house image: ${prompt}. Maintain the exact same architectural structure, roof lines, window positions, and overall building footprint. Only modify the specified elements while preserving all structural details.`
+              text: `Generate a high-quality architectural image: ${prompt}. Create a realistic house exterior with modern upgrades while maintaining architectural integrity. Professional photography style, bright daylight, natural blue sky.`
             }
           ]
         }
       ],
       generationConfig: {
         temperature: 0.7,
-        topK: 40,
+        topK: 64,
         topP: 0.95,
         maxOutputTokens: 8192,
       }
     };
 
-    console.log('Sending request to Gemini 2.5 Flash...');
+    console.log('Sending request to Gemini 2.5 Flash Image (Nano Banana)...');
 
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
@@ -257,7 +251,8 @@ async function generateWithGemini(req, res, base64Image, upgradeType) {
     });
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      throw new Error(`Gemini API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const responseData = await response.json();
@@ -272,19 +267,21 @@ async function generateWithGemini(req, res, base64Image, upgradeType) {
           if (part.inlineData && part.inlineData.data) {
             const generatedImageUrl = `data:image/png;base64,${part.inlineData.data}`;
             
-            console.log('Image generated successfully with Gemini');
+            console.log('Image generated successfully with Gemini Nano Banana');
             return res.json({ 
               success: true, 
               imageUrl: generatedImageUrl,
               imageData: part.inlineData.data,
               upgradeType: upgradeType,
-              model: 'gemini-2.5-flash'
+              model: 'gemini-2.5-flash-image-preview'
             });
           }
         }
       }
     }
 
+    // If no image data, return the text response for debugging
+    console.log('No image data found, returning text response:', JSON.stringify(responseData, null, 2));
     throw new Error('No image data in Gemini response');
 
   } catch (error) {
@@ -374,7 +371,7 @@ app.get('/api/test-model', async (req, res) => {
       if (testResponse.ok) {
         res.json({ 
           success: true, 
-          message: 'Gemini 2.5 Flash API is accessible',
+          message: 'Gemini 2.5 Flash Image (Nano Banana) API is accessible',
           model: GEMINI_MODEL,
           provider: 'gemini'
         });
