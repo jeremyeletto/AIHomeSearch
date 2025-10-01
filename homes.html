@@ -261,6 +261,64 @@
             font-size: 1rem;
         }
 
+        .upgrade-pill.selected {
+            background: var(--success-gradient);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        /* Selected Prompts Display */
+        .selected-prompts {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .selected-prompt-tag {
+            background: var(--success-gradient);
+            color: white;
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        .selected-prompt-tag .remove-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: background-color 0.2s;
+        }
+
+        .selected-prompt-tag .remove-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Loading Animation for Upgrade Modal */
         .upgrade-loading {
             display: flex;
@@ -582,6 +640,22 @@
                             </div>
                         </div>
                         
+                        <!-- Selected Prompts Display -->
+                        <div class="mt-4" id="selectedPromptsSection" style="display: none;">
+                            <h6 class="mb-3">Selected Upgrades:</h6>
+                            <div class="selected-prompts" id="selectedPromptsContainer">
+                                <!-- Selected prompts will be displayed here -->
+                            </div>
+                            <div class="mt-2">
+                                <button class="btn btn-success btn-sm" id="generateCombinedBtn" onclick="handleCombinedUpgrade()">
+                                    <i class="fas fa-magic me-1"></i>Generate Combined Upgrade
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm ms-2" onclick="clearSelectedPrompts()">
+                                    <i class="fas fa-times me-1"></i>Clear All
+                                </button>
+                            </div>
+                        </div>
+                        
                         <!-- Free-form Text Input -->
                         <div class="mt-4">
                             <h6 class="mb-3">Or Describe Your Custom Upgrade:</h6>
@@ -621,7 +695,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         // Configuration
-        const API_BASE_URL = window.location.hostname === 'localhost' ? '' : 'https://ai-home-upgrades-backend.onrender.com';
+        const API_BASE_URL = window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://ai-home-upgrades-backend.onrender.com';
         // Last updated: 2025-09-30
         
         // Model switching functionality (Debug only)
@@ -865,6 +939,9 @@
         // Prompts configuration cache
         let promptsConfig = null;
         
+        // Selected prompts for combination
+        let selectedPrompts = new Set();
+        
         // Load prompts from API
         async function loadPrompts() {
             try {
@@ -951,6 +1028,10 @@
                         <i class="${prompt.icon}"></i>
                         <span>${prompt.name}</span>
                     `;
+                    pill.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        togglePromptSelection(key, prompt, pill);
+                    });
                     container.appendChild(pill);
                 });
             });
@@ -2254,6 +2335,203 @@
             }
         }
 
+        // Toggle prompt selection for combination
+        function togglePromptSelection(key, prompt, pillElement) {
+            if (selectedPrompts.has(key)) {
+                // Remove from selection
+                selectedPrompts.delete(key);
+                pillElement.classList.remove('selected');
+            } else {
+                // Add to selection
+                selectedPrompts.add(key);
+                pillElement.classList.add('selected');
+            }
+            
+            updateSelectedPromptsDisplay();
+        }
+
+        // Update the selected prompts display
+        function updateSelectedPromptsDisplay() {
+            const container = document.getElementById('selectedPromptsContainer');
+            const section = document.getElementById('selectedPromptsSection');
+            
+            if (!container || !section) return;
+            
+            if (selectedPrompts.size === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            container.innerHTML = '';
+            
+            selectedPrompts.forEach(key => {
+                const prompt = promptsConfig.prompts[key];
+                if (prompt) {
+                    const tag = document.createElement('div');
+                    tag.className = 'selected-prompt-tag';
+                    tag.innerHTML = `
+                        <i class="${prompt.icon}"></i>
+                        <span>${prompt.name}</span>
+                        <button class="remove-btn" onclick="removeSelectedPrompt('${key}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(tag);
+                }
+            });
+        }
+
+        // Remove a selected prompt
+        function removeSelectedPrompt(key) {
+            selectedPrompts.delete(key);
+            
+            // Update pill appearance
+            const pill = document.querySelector(`[data-upgrade="${key}"]`);
+            if (pill) {
+                pill.classList.remove('selected');
+            }
+            
+            updateSelectedPromptsDisplay();
+        }
+
+        // Clear all selected prompts
+        function clearSelectedPrompts() {
+            selectedPrompts.clear();
+            
+            // Update all pill appearances
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.classList.remove('selected');
+            });
+            
+            updateSelectedPromptsDisplay();
+        }
+
+        // Handle combined upgrade generation
+        async function handleCombinedUpgrade() {
+            if (selectedPrompts.size === 0) {
+                alert('Please select at least one upgrade to combine.');
+                return;
+            }
+            
+            const originalImageSrc = document.getElementById('originalImage').src;
+            const currentValue = parseInt(document.getElementById('currentValue').textContent.replace(/\D/g, ''));
+            
+            // Create combined prompt text
+            const combinedRequests = Array.from(selectedPrompts).map(key => {
+                const prompt = promptsConfig.prompts[key];
+                return prompt ? prompt.request : '';
+            }).filter(Boolean);
+            
+            const combinedText = combinedRequests.join(' and ');
+            
+            console.log('=== COMBINED UPGRADE REQUESTED ===');
+            console.log('Selected prompts:', Array.from(selectedPrompts));
+            console.log('Combined text:', combinedText);
+            console.log('Original image src:', originalImageSrc);
+            console.log('Current value:', currentValue);
+            
+            // Disable all pills during generation
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.disabled = true;
+            });
+            
+            // Disable custom input and button during generation
+            const customInput = document.getElementById('customUpgradeInput');
+            const customBtn = document.getElementById('customUpgradeBtn');
+            if (customInput) customInput.disabled = true;
+            if (customBtn) customBtn.disabled = true;
+            
+            try {
+                console.log('Starting combined upgrade generation...');
+                
+                // Generate the combined upgrade image
+                const generatedImageUrl = await generateCustomUpgradeImage(originalImageSrc, combinedText);
+                
+                if (!generatedImageUrl) {
+                    console.log('❌ Combined upgrade generation failed - no URL returned');
+                    // Reset UI
+                    document.getElementById('comparisonToggle').style.display = 'none';
+                    document.getElementById('saveUpgrade').disabled = true;
+                    
+                    // Enable inputs again
+                    document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                        pill.disabled = false;
+                    });
+                    if (customInput) customInput.disabled = false;
+                    if (customBtn) customBtn.disabled = false;
+                    return;
+                }
+                
+                console.log('✅ Combined upgrade successful, updating UI...');
+                
+                // Display the generated image
+                const upgradedImage = document.getElementById('upgradedImage');
+                const upgradeDescriptionDiv = document.getElementById('upgradeDescription');
+                
+                // Hide text description and show image
+                if (upgradeDescriptionDiv) {
+                    upgradeDescriptionDiv.style.display = 'none';
+                }
+                
+                // Show the generated image
+                upgradedImage.style.display = 'block';
+                upgradedImage.src = generatedImageUrl;
+                
+                upgradedImage.onload = () => {
+                    console.log('✅ Combined upgrade image loaded successfully');
+                };
+                upgradedImage.onerror = () => {
+                    console.error('❌ Combined upgrade image failed to load');
+                    showGenerationError('Combined upgrade image failed to load');
+                };
+                
+                // Hide loading state
+                showGenerationLoading(false);
+                
+                // Calculate new value (15% increase)
+                const upgradedValue = Math.round(currentValue * 1.15);
+                const valueIncrease = upgradedValue - currentValue;
+                
+                document.getElementById('upgradedValue').textContent = `$${upgradedValue.toLocaleString()}`;
+                document.getElementById('valueIncrease').innerHTML = `
+                    <i class="fas fa-arrow-up"></i> +$${valueIncrease.toLocaleString()} (15% increase)
+                `;
+                
+                // Enable comparison toggle and save button
+                document.getElementById('comparisonToggle').style.display = 'inline-block';
+                document.getElementById('saveUpgrade').disabled = false;
+                
+                // Enable inputs again
+                document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                    pill.disabled = false;
+                });
+                if (customInput) customInput.disabled = false;
+                if (customBtn) customBtn.disabled = false;
+                
+                console.log('🎉 Combined upgrade generation completed successfully');
+                
+            } catch (error) {
+                console.error('❌ Error handling combined upgrade:', error);
+                console.error('Error stack:', error.stack);
+                
+                // Reset UI on error
+                document.getElementById('comparisonToggle').style.display = 'none';
+                document.getElementById('saveUpgrade').disabled = true;
+                
+                // Enable inputs again
+                document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                    pill.disabled = false;
+                });
+                if (customInput) customInput.disabled = false;
+                if (customBtn) customBtn.disabled = false;
+                
+                // Show error message with more details
+                const errorMessage = `${error.message || error.toString()} (Check console for full details)`;
+                showGenerationError(errorMessage);
+            }
+        }
+
         // Load homes when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, testing APIs...');
@@ -2339,9 +2617,13 @@
             
             // Reset upgrade pills
             document.querySelectorAll('.upgrade-pill').forEach(pill => {
-                pill.classList.remove('active');
+                pill.classList.remove('active', 'selected');
                 pill.disabled = false;
             });
+            
+            // Clear selected prompts
+            selectedPrompts.clear();
+            updateSelectedPromptsDisplay();
             
             // Reset custom input
             const customInput = document.getElementById('customUpgradeInput');
@@ -2364,13 +2646,7 @@
             console.log('Modal opened with images:', images);
         });
 
-        // Add global click handler for upgrade pills (works after DOM loads)
-        document.addEventListener('click', function(event) {
-            if (event.target.closest('.upgrade-pill')) {
-                event.preventDefault();
-                handleUpgradePillClick(event.target.closest('.upgrade-pill'));
-            }
-        });
+        // Note: Upgrade pill clicks are now handled by individual event listeners in renderUpgradePills()
     </script>
 </body>
 </html>
