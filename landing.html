@@ -226,6 +226,15 @@
             color: #667eea;
         }
 
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         .search-icon {
             background: var(--primary-gradient);
             color: white;
@@ -513,22 +522,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Popular locations database for type-ahead
-        const popularLocations = [
-            'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ',
-            'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
-            'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC',
-            'San Francisco, CA', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC',
-            'Boston, MA', 'El Paso, TX', 'Nashville, TN', 'Detroit, MI', 'Oklahoma City, OK',
-            'Portland, OR', 'Las Vegas, NV', 'Memphis, TN', 'Louisville, KY', 'Baltimore, MD',
-            'Milwaukee, WI', 'Albuquerque, NM', 'Tucson, AZ', 'Fresno, CA', 'Sacramento, CA',
-            'Mesa, AZ', 'Kansas City, MO', 'Atlanta, GA', 'Long Beach, CA', 'Colorado Springs, CO',
-            'Raleigh, NC', 'Miami, FL', 'Virginia Beach, VA', 'Omaha, NE', 'Oakland, CA',
-            'Minneapolis, MN', 'Tulsa, OK', 'Arlington, TX', 'Tampa, FL', 'New Orleans, LA'
-        ];
-
+        // Type-ahead configuration
         let currentTypeaheadIndex = -1;
         let typeaheadResults = [];
+        let searchTimeout = null;
+        const API_BASE_URL = 'https://nominatim.openstreetmap.org';
 
         // Search function for location-based home search
         function searchHomes() {
@@ -552,8 +550,55 @@
             window.location.href = `homes.html?location=${encodedLocation}`;
         }
 
-        // Type-ahead functionality
-        function showTypeahead(query) {
+        // Fetch cities from OpenStreetMap Nominatim API
+        async function fetchCitiesFromAPI(query) {
+            try {
+                console.log('[API] Fetching cities for query:', query);
+                
+                const response = await fetch(
+                    `${API_BASE_URL}/search?` + new URLSearchParams({
+                        q: query,
+                        format: 'json',
+                        limit: 8,
+                        countrycodes: 'us', // Limit to US cities
+                        featuretype: 'city,town,village',
+                        addressdetails: 1
+                    })
+                );
+
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('[API] Received', data.length, 'results from API');
+                
+                return data.map(item => {
+                    const address = item.address || {};
+                    const city = address.city || address.town || address.village || '';
+                    const state = address.state || '';
+                    const country = address.country || '';
+                    
+                    // Format as "City, State" or "City, Country" if no state
+                    if (state) {
+                        return `${city}, ${state}`;
+                    } else if (country && country !== 'United States') {
+                        return `${city}, ${country}`;
+                    } else {
+                        return city;
+                    }
+                }).filter((location, index, self) => 
+                    location && location.trim() !== '' && self.indexOf(location) === index
+                );
+
+            } catch (error) {
+                console.error('[API] Error fetching cities:', error);
+                return [];
+            }
+        }
+
+        // Type-ahead functionality with API
+        async function showTypeahead(query) {
             console.log('[TYPEAHEAD] showTypeahead called with query:', query);
             const dropdown = document.getElementById('typeaheadDropdown');
             
@@ -568,31 +613,44 @@
                 return;
             }
 
-            // Filter locations based on query
-            typeaheadResults = popularLocations.filter(location => 
-                location.toLowerCase().includes(query.toLowerCase())
-            ).slice(0, 8); // Limit to 8 results
-
-            console.log('[TYPEAHEAD] Found', typeaheadResults.length, 'results for query:', query);
-            console.log('[TYPEAHEAD] Results:', typeaheadResults);
-
-            if (typeaheadResults.length === 0) {
-                console.log('[TYPEAHEAD] No results, hiding dropdown');
-                dropdown.style.display = 'none';
-                return;
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
             }
 
-            // Build dropdown HTML
-            dropdown.innerHTML = typeaheadResults.map((location, index) => `
-                <div class="typeahead-item" data-index="${index}" onclick="selectLocation('${location}')">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>${location}</span>
-                </div>
-            `).join('');
-
-            console.log('[TYPEAHEAD] Showing dropdown with', typeaheadResults.length, 'items');
+            // Show loading state
+            dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-spinner fa-spin"></i> <span>Searching...</span></div>';
             dropdown.style.display = 'block';
-            currentTypeaheadIndex = -1;
+
+            // Debounce API calls
+            searchTimeout = setTimeout(async () => {
+                try {
+                    typeaheadResults = await fetchCitiesFromAPI(query);
+                    
+                    console.log('[TYPEAHEAD] Found', typeaheadResults.length, 'results for query:', query);
+                    console.log('[TYPEAHEAD] Results:', typeaheadResults);
+
+                    if (typeaheadResults.length === 0) {
+                        console.log('[TYPEAHEAD] No results, showing no results message');
+                        dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-search"></i> <span>No cities found</span></div>';
+                        return;
+                    }
+
+                    // Build dropdown HTML
+                    dropdown.innerHTML = typeaheadResults.map((location, index) => `
+                        <div class="typeahead-item" data-index="${index}" onclick="selectLocation('${location}')">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${location}</span>
+                        </div>
+                    `).join('');
+
+                    console.log('[TYPEAHEAD] Showing dropdown with', typeaheadResults.length, 'items');
+                    currentTypeaheadIndex = -1;
+                } catch (error) {
+                    console.error('[TYPEAHEAD] Error:', error);
+                    dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-exclamation-triangle"></i> <span>Error loading cities</span></div>';
+                }
+            }, 300); // 300ms debounce
         }
 
         // Select location from type-ahead
@@ -699,11 +757,7 @@
                     }
                 });
                 
-                // Test the type-ahead with a simple query
-                console.log('[INIT] Testing type-ahead with "New"');
-                setTimeout(() => {
-                    showTypeahead('New');
-                }, 1000);
+                console.log('[INIT] Type-ahead initialized with API integration');
             } else {
                 console.log('[INIT] Location input not found!');
             }
