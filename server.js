@@ -551,7 +551,7 @@ app.post('/api/generate-custom-upgrade', async (req, res) => {
     console.log('Custom upgrade request received:', {
       customText: customText,
       imageSize: base64Image.length,
-      provider: currentProvider
+      provider: MODEL_PROVIDER
     });
     
     // Create custom prompt with professional designer context
@@ -574,7 +574,7 @@ Transform this home according to the custom request: ${customText}`;
 
     let result;
     
-    if (currentProvider === 'aws') {
+    if (MODEL_PROVIDER === 'aws') {
       result = await generateWithAWS(base64Image, customPrompt, negativePrompt);
     } else {
       result = await generateWithGemini(base64Image, customPrompt, negativePrompt);
@@ -585,7 +585,7 @@ Transform this home according to the custom request: ${customText}`;
       res.json({
         success: true,
         imageUrl: result.imageUrl,
-        provider: currentProvider,
+        provider: MODEL_PROVIDER,
         customText: customText
       });
     } else {
