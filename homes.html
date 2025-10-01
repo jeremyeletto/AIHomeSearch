@@ -593,7 +593,73 @@
         let lastRequestTime = 0;
         const MIN_REQUEST_INTERVAL = 3000; // Minimum 3 seconds between requests
         
-        // Process request queue with rate limiting
+        // Phase 1 (First Images) - Allow concurrent requests for priority loading
+        let phase1Queue = [];
+        let isProcessingPhase1 = false;
+        const MAX_PHASE1_CONCURRENT = 3; // Allow 3 concurrent requests for first images
+        let activePhase1Requests = 0;
+        let lastPhase1RequestTime = 0;
+        const MIN_PHASE1_INTERVAL = 1000; // 1 second between Phase 1 requests
+        
+        // Process Phase 1 queue with faster concurrent processing
+        async function processPhase1Queue() {
+            console.log(`[PHASE1 QUEUE] processPhase1Queue called - isProcessing: ${isProcessingPhase1}, queue length: ${phase1Queue.length}, active: ${activePhase1Requests}`);
+            
+            if (isProcessingPhase1 || phase1Queue.length === 0) {
+                console.log(`[PHASE1 QUEUE] Exiting - isProcessing: ${isProcessingPhase1}, queue empty: ${phase1Queue.length === 0}`);
+                return;
+            }
+            
+            isProcessingPhase1 = true;
+            console.log(`[PHASE1 QUEUE] Starting Phase 1 processing with ${phase1Queue.length} requests`);
+            
+            while (phase1Queue.length > 0 && activePhase1Requests < MAX_PHASE1_CONCURRENT) {
+                const now = Date.now();
+                const timeSinceLastRequest = now - lastPhase1RequestTime;
+                
+                console.log(`[PHASE1 QUEUE] Time since last request: ${timeSinceLastRequest}ms, min interval: ${MIN_PHASE1_INTERVAL}ms`);
+                
+                // Wait if we haven't waited long enough since the last request
+                if (timeSinceLastRequest < MIN_PHASE1_INTERVAL) {
+                    const waitTime = MIN_PHASE1_INTERVAL - timeSinceLastRequest;
+                    console.log(`[PHASE1 QUEUE] Waiting ${waitTime}ms before next request`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+                
+                const request = phase1Queue.shift();
+                activePhase1Requests++;
+                lastPhase1RequestTime = Date.now();
+                
+                console.log(`[PHASE1 QUEUE] Processing request ${activePhase1Requests}/${MAX_PHASE1_CONCURRENT}, queue remaining: ${phase1Queue.length}`);
+                
+                try {
+                    await request();
+                    console.log(`[PHASE1 QUEUE] Request completed successfully`);
+                } catch (error) {
+                    console.error(`[PHASE1 QUEUE] Request failed:`, error);
+                } finally {
+                    activePhase1Requests--;
+                    console.log(`[PHASE1 QUEUE] Request finished, active requests: ${activePhase1Requests}`);
+                }
+            }
+            
+            isProcessingPhase1 = false;
+            console.log(`[PHASE1 QUEUE] Phase 1 processing finished, remaining requests: ${phase1Queue.length}`);
+            
+            // Continue processing if there are more requests
+            if (phase1Queue.length > 0) {
+                console.log(`[PHASE1 QUEUE] Scheduling next batch in 500ms`);
+                setTimeout(processPhase1Queue, 500);
+            }
+        }
+        
+        // Add request to Phase 1 queue
+        function queuePhase1Request(requestFunction) {
+            console.log(`[PHASE1 QUEUE] Adding request to Phase 1 queue, current length: ${phase1Queue.length}`);
+            phase1Queue.push(requestFunction);
+            console.log(`[PHASE1 QUEUE] Phase 1 queue length after adding: ${phase1Queue.length}`);
+            processPhase1Queue();
+        }
         async function processRequestQueue() {
             console.log(`[RATE LIMITER] processRequestQueue called - isProcessing: ${isProcessingQueue}, queue length: ${requestQueue.length}, active: ${activeRequests}`);
             
@@ -853,17 +919,17 @@
                     displayHomes(homes);
                     updatePaginationControls();
                     
-                    // Phase 1: Fetch first image for all properties using queue system (v2.0 - Fixed)
-                    console.log('Phase 1: Fetching first high-quality image for all properties... (v2.0 - Using Queue System)');
-                    console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests`);
+                    // Phase 1: Fetch first image for all properties using FAST concurrent queue system (v3.0 - Priority Loading)
+                    console.log('Phase 1: Fetching first high-quality image for all properties... (v3.0 - Fast Concurrent Loading)');
+                    console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests with 3 concurrent connections`);
                     
-                    // Use queue system for Phase 1 as well to avoid rate limits
+                    // Use FAST Phase 1 queue system for priority loading (3 concurrent, 1 second intervals)
                     const firstImagePromises = homes.map((home, index) => {
                         const property = recentProperties[index];
                         if (property) {
                             console.log(`[INIT] Phase 1: Queuing first image request for property ${property.property_id || property.id}`);
                             return new Promise((resolve) => {
-                                queueRequest(async () => {
+                                queuePhase1Request(async () => {
                                     try {
                                         const firstImage = await fetchFirstHighQualityPhoto(property);
                                         if (firstImage) {
