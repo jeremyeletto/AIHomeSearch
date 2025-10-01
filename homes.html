@@ -964,10 +964,15 @@
                     console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests with 3 concurrent connections`);
                     
                     // Show loading indicators for all property cards
+                    console.log('[LOADING] Starting to show loading indicators for', homes.length, 'homes');
                     homes.forEach((home, index) => {
                         const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                        console.log(`[LOADING] Home ${index + 1}: Looking for card with data-home-id="${home.id}"`);
                         if (card) {
+                            console.log(`[LOADING] Found card for home ${index + 1}, showing loading indicator`);
                             showLoadingIndicator(card);
+                        } else {
+                            console.log(`[LOADING] No card found for home ${index + 1} with id: ${home.id}`);
                         }
                     });
                     
@@ -1251,11 +1256,17 @@
         
         // Show loading indicator for a property card
         function showLoadingIndicator(card) {
-            if (!card) return;
+            if (!card) {
+                console.log('[LOADING] No card provided to showLoadingIndicator');
+                return;
+            }
+            
+            console.log('[LOADING] Showing loading indicator for card:', card);
             
             // Create loading indicator if it doesn't exist
             let loadingIndicator = card.querySelector('.loading-indicator');
             if (!loadingIndicator) {
+                console.log('[LOADING] Creating new loading indicator');
                 loadingIndicator = document.createElement('div');
                 loadingIndicator.className = 'loading-indicator';
                 loadingIndicator.innerHTML = `
@@ -1268,14 +1279,26 @@
                 `;
                 
                 // Position it over the image
-                const imgContainer = card.querySelector('.card-img-top').parentElement;
-                if (imgContainer) {
-                    imgContainer.style.position = 'relative';
-                    imgContainer.appendChild(loadingIndicator);
+                const img = card.querySelector('.card-img-top');
+                if (img) {
+                    const imgContainer = img.parentElement;
+                    console.log('[LOADING] Found image container:', imgContainer);
+                    if (imgContainer) {
+                        console.log('[LOADING] Adding loading indicator to image container');
+                        imgContainer.style.position = 'relative';
+                        imgContainer.appendChild(loadingIndicator);
+                    } else {
+                        console.log('[LOADING] No image container found, adding to card directly');
+                        card.appendChild(loadingIndicator);
+                    }
+                } else {
+                    console.log('[LOADING] No image found, adding to card directly');
+                    card.appendChild(loadingIndicator);
                 }
             }
             
             loadingIndicator.style.display = 'flex';
+            console.log('[LOADING] Loading indicator should now be visible');
         }
         
         // Hide loading indicator for a property card
