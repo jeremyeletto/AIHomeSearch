@@ -104,15 +104,20 @@
             align-items: center;
             justify-content: center;
             position: relative;
+            padding: 2rem 0;
         }
 
         .hero-content {
             text-align: center;
             z-index: 2;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
         }
 
         .hero-title {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 50%, #ffffff 100%);
@@ -120,27 +125,29 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            line-height: 1.1;
         }
 
         .hero-subtitle {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: rgba(255, 255, 255, 0.9);
-            margin-bottom: 3rem;
+            margin-bottom: 2.5rem;
             font-weight: 300;
         }
 
         /* Search Hero Container */
         .search-hero-container {
-            max-width: 700px;
+            max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .search-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            padding: 3rem 2rem;
+            border-radius: 25px;
+            padding: 2.5rem 2rem;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             position: relative;
             overflow: hidden;
@@ -164,6 +171,7 @@
 
         .search-input-container {
             margin: 2rem 0;
+            position: relative;
         }
 
         .search-input-group {
@@ -176,6 +184,45 @@
         .search-input-group:focus-within {
             transform: translateY(-2px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Type-ahead dropdown */
+        .typeahead-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .typeahead-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .typeahead-item:last-child {
+            border-bottom: none;
+        }
+
+        .typeahead-item:hover,
+        .typeahead-item.active {
+            background-color: rgba(102, 126, 234, 0.1);
+        }
+
+        .typeahead-item i {
+            margin-right: 0.5rem;
+            color: #667eea;
         }
 
         .search-icon {
@@ -280,9 +327,9 @@
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
             .hero-title {
-                font-size: 2.5rem;
+                font-size: 3rem;
             }
             
             .hero-subtitle {
@@ -291,15 +338,91 @@
             
             .search-card {
                 padding: 2rem 1.5rem;
-                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 1rem 0;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .search-card {
+                padding: 1.5rem 1rem;
+                margin: 0.5rem;
+                border-radius: 20px;
             }
             
             .search-hero-container {
                 max-width: 100%;
+                padding: 0 0.5rem;
+            }
+            
+            .search-input-group {
+                flex-direction: column;
+                border-radius: 15px;
+            }
+            
+            .search-input {
+                border-radius: 15px 15px 0 0 !important;
+                text-align: center;
+                font-size: 1rem;
+            }
+            
+            .search-btn {
+                border-radius: 0 0 15px 15px !important;
+                padding: 0.8rem 1rem;
             }
             
             .location-tags {
                 justify-content: center;
+                gap: 0.3rem;
+            }
+            
+            .location-tag {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            
+            .typeahead-dropdown {
+                border-radius: 10px;
+                margin-top: 2px;
+            }
+            
+            .typeahead-item {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .search-card {
+                padding: 1rem 0.8rem;
+            }
+            
+            .search-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .search-header p {
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -367,6 +490,8 @@
                                 <i class="fas fa-search btn-icon"></i>
                             </button>
                         </div>
+                        <!-- Type-ahead dropdown -->
+                        <div class="typeahead-dropdown" id="typeaheadDropdown"></div>
                     </div>
                     
                     <!-- Popular Locations -->
@@ -387,6 +512,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Popular locations database for type-ahead
+        const popularLocations = [
+            'New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ',
+            'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA',
+            'Austin, TX', 'Jacksonville, FL', 'Fort Worth, TX', 'Columbus, OH', 'Charlotte, NC',
+            'San Francisco, CA', 'Indianapolis, IN', 'Seattle, WA', 'Denver, CO', 'Washington, DC',
+            'Boston, MA', 'El Paso, TX', 'Nashville, TN', 'Detroit, MI', 'Oklahoma City, OK',
+            'Portland, OR', 'Las Vegas, NV', 'Memphis, TN', 'Louisville, KY', 'Baltimore, MD',
+            'Milwaukee, WI', 'Albuquerque, NM', 'Tucson, AZ', 'Fresno, CA', 'Sacramento, CA',
+            'Mesa, AZ', 'Kansas City, MO', 'Atlanta, GA', 'Long Beach, CA', 'Colorado Springs, CO',
+            'Raleigh, NC', 'Miami, FL', 'Virginia Beach, VA', 'Omaha, NE', 'Oakland, CA',
+            'Minneapolis, MN', 'Tulsa, OK', 'Arlington, TX', 'Tampa, FL', 'New Orleans, LA'
+        ];
+
+        let currentTypeaheadIndex = -1;
+        let typeaheadResults = [];
+
         // Search function for location-based home search
         function searchHomes() {
             const locationInput = document.getElementById('locationSearch');
@@ -409,6 +551,86 @@
             window.location.href = `homes.html?location=${encodedLocation}`;
         }
 
+        // Type-ahead functionality
+        function showTypeahead(query) {
+            const dropdown = document.getElementById('typeaheadDropdown');
+            
+            if (query.length < 2) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Filter locations based on query
+            typeaheadResults = popularLocations.filter(location => 
+                location.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 8); // Limit to 8 results
+
+            if (typeaheadResults.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Build dropdown HTML
+            dropdown.innerHTML = typeaheadResults.map((location, index) => `
+                <div class="typeahead-item" data-index="${index}" onclick="selectLocation('${location}')">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${location}</span>
+                </div>
+            `).join('');
+
+            dropdown.style.display = 'block';
+            currentTypeaheadIndex = -1;
+        }
+
+        // Select location from type-ahead
+        function selectLocation(location) {
+            document.getElementById('locationSearch').value = location;
+            document.getElementById('typeaheadDropdown').style.display = 'none';
+            searchHomes();
+        }
+
+        // Handle keyboard navigation in type-ahead
+        function handleTypeaheadKeydown(e) {
+            const dropdown = document.getElementById('typeaheadDropdown');
+            
+            if (dropdown.style.display === 'none' || typeaheadResults.length === 0) {
+                return;
+            }
+
+            switch (e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    currentTypeaheadIndex = Math.min(currentTypeaheadIndex + 1, typeaheadResults.length - 1);
+                    updateTypeaheadSelection();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    currentTypeaheadIndex = Math.max(currentTypeaheadIndex - 1, -1);
+                    updateTypeaheadSelection();
+                    break;
+                case 'Enter':
+                    e.preventDefault();
+                    if (currentTypeaheadIndex >= 0) {
+                        selectLocation(typeaheadResults[currentTypeaheadIndex]);
+                    } else {
+                        searchHomes();
+                    }
+                    break;
+                case 'Escape':
+                    dropdown.style.display = 'none';
+                    currentTypeaheadIndex = -1;
+                    break;
+            }
+        }
+
+        // Update visual selection in type-ahead
+        function updateTypeaheadSelection() {
+            const items = document.querySelectorAll('.typeahead-item');
+            items.forEach((item, index) => {
+                item.classList.toggle('active', index === currentTypeaheadIndex);
+            });
+        }
+
         // Page navigation functions
         function showHomesPage() {
             // Redirect to homes page
@@ -420,13 +642,39 @@
             window.location.href = 'about.html';
         }
         
-        // Allow Enter key to trigger search
+        // Initialize event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const locationInput = document.getElementById('locationSearch');
+            const dropdown = document.getElementById('typeaheadDropdown');
+            
             if (locationInput) {
+                // Input event for type-ahead
+                locationInput.addEventListener('input', function(e) {
+                    showTypeahead(e.target.value);
+                });
+
+                // Keyboard navigation
+                locationInput.addEventListener('keydown', handleTypeaheadKeydown);
+
+                // Enter key to search
                 locationInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && currentTypeaheadIndex === -1) {
                         searchHomes();
+                    }
+                });
+
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!locationInput.contains(e.target) && !dropdown.contains(e.target)) {
+                        dropdown.style.display = 'none';
+                        currentTypeaheadIndex = -1;
+                    }
+                });
+
+                // Focus management
+                locationInput.addEventListener('focus', function() {
+                    if (locationInput.value.length >= 2) {
+                        showTypeahead(locationInput.value);
                     }
                 });
             }
