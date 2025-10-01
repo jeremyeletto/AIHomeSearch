@@ -119,29 +119,101 @@
       "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Create outdoor living space with deck or patio.\n\nDESIGN BRIEF: Design and add an outdoor living space such as a deck, patio, or covered outdoor area. Include proper materials, railings, and outdoor furniture to create an inviting space for relaxation and entertainment.\n\nCRITICAL REQUIREMENTS:\n- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint\n- Only add the outdoor living space as specified\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Ensure realistic materials and construction methods\n- Integrate the outdoor space seamlessly with existing architecture\n- Include appropriate outdoor furniture and amenities\n\nTransform this home with the requested outdoor living space addition.",
       "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
       "valueIncrease": 0.12
+    },
+    "additional-floor": {
+      "id": "ADDITIONAL_FLOOR_011",
+      "name": "Add Additional Floor",
+      "icon": "fas fa-layer-group",
+      "category": "extensions",
+      "priority": 11,
+      "request": "Add an additional floor to expand living space",
+      "definition": "Design and add a second or third floor to the existing home, maintaining architectural consistency and structural integrity. Include proper support systems and ensure the addition complements the original design.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Add an additional floor to expand living space.\n\nDESIGN BRIEF: Design and add a second or third floor to the existing home, maintaining architectural consistency and structural integrity. Include proper support systems and ensure the addition complements the original design.\n\nCRITICAL REQUIREMENTS:\n- Analyze the existing home structure and determine the best approach for adding a floor\n- Maintain architectural consistency with the original design\n- Ensure realistic structural support and construction methods\n- Preserve the existing roof lines and window patterns where possible\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Integrate the additional floor seamlessly with the existing home\n\nTransform this home with the requested additional floor addition.",
+      "negativePrompt": "Do NOT compromise the structural integrity or create unrealistic additions. Avoid adding floors that don't match the home's architectural style or that would require impossible structural changes. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.35
+    },
+    "side-return-extension": {
+      "id": "SIDE_RETURN_EXTENSION_012",
+      "name": "Side Return Extension",
+      "icon": "fas fa-expand-arrows-alt",
+      "category": "extensions",
+      "priority": 12,
+      "request": "Add a side return extension to maximize space",
+      "definition": "Design and add a side return extension that extends the home's footprint to the side, creating additional living space while maintaining the home's architectural character and street presence.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Add a side return extension to maximize space.\n\nDESIGN BRIEF: Design and add a side return extension that extends the home's footprint to the side, creating additional living space while maintaining the home's architectural character and street presence.\n\nCRITICAL REQUIREMENTS:\n- Analyze the existing home structure and determine the best side for the extension\n- Maintain architectural consistency with the original design\n- Ensure realistic structural support and construction methods\n- Preserve the existing roof lines and window patterns where possible\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Integrate the side return extension seamlessly with the existing home\n\nTransform this home with the requested side return extension addition.",
+      "negativePrompt": "Do NOT compromise the structural integrity or create unrealistic additions. Avoid adding extensions that don't match the home's architectural style or that would require impossible structural changes. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.28
+    },
+    "dormer-extension": {
+      "id": "DORMER_EXTENSION_013",
+      "name": "Dormer Extension",
+      "icon": "fas fa-home",
+      "category": "extensions",
+      "priority": 13,
+      "request": "Add dormer windows to create additional space",
+      "definition": "Design and add dormer windows to the existing roof structure, creating additional headroom and natural light while maintaining the home's architectural character and roof integrity.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Add dormer windows to create additional space.\n\nDESIGN BRIEF: Design and add dormer windows to the existing roof structure, creating additional headroom and natural light while maintaining the home's architectural character and roof integrity.\n\nCRITICAL REQUIREMENTS:\n- Analyze the existing roof structure and determine the best placement for dormers\n- Maintain architectural consistency with the original design\n- Ensure realistic structural support and construction methods\n- Preserve the existing roof lines and window patterns where possible\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Integrate the dormer windows seamlessly with the existing roof structure\n\nTransform this home with the requested dormer window addition.",
+      "negativePrompt": "Do NOT compromise the structural integrity or create unrealistic additions. Avoid adding dormers that don't match the home's architectural style or that would require impossible structural changes. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.20
+    },
+    "modern-kitchen": {
+      "id": "MODERN_KITCHEN_014",
+      "name": "Modern Kitchen Remodel",
+      "icon": "fas fa-utensils",
+      "category": "interior",
+      "priority": 14,
+      "request": "Create a modern kitchen with contemporary design",
+      "definition": "Design a modern kitchen with sleek cabinetry, quartz countertops, stainless steel appliances, and contemporary lighting. Include an island, modern fixtures, and a cohesive color scheme.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Create a modern kitchen with contemporary design.\n\nDESIGN BRIEF: Design a modern kitchen with sleek cabinetry, quartz countertops, stainless steel appliances, and contemporary lighting. Include an island, modern fixtures, and a cohesive color scheme.\n\nCRITICAL REQUIREMENTS:\n- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint\n- Only modify the kitchen interior space\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Ensure realistic materials and construction methods\n- Create a cohesive modern design with contemporary elements\n- Include proper lighting and modern appliances\n\nTransform this home with the requested modern kitchen remodel.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.18
+    },
+    "farmhouse-kitchen": {
+      "id": "FARMHOUSE_KITCHEN_015",
+      "name": "Farmhouse Kitchen Style",
+      "icon": "fas fa-home",
+      "category": "interior",
+      "priority": 15,
+      "request": "Create a farmhouse-style kitchen with rustic charm",
+      "definition": "Design a farmhouse kitchen with shaker-style cabinets, butcher block countertops, farmhouse sink, and rustic elements. Include open shelving, vintage-inspired fixtures, and warm, inviting colors.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Create a farmhouse-style kitchen with rustic charm.\n\nDESIGN BRIEF: Design a farmhouse kitchen with shaker-style cabinets, butcher block countertops, farmhouse sink, and rustic elements. Include open shelving, vintage-inspired fixtures, and warm, inviting colors.\n\nCRITICAL REQUIREMENTS:\n- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint\n- Only modify the kitchen interior space\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Ensure realistic materials and construction methods\n- Create a cohesive farmhouse design with rustic elements\n- Include proper lighting and farmhouse-style appliances\n\nTransform this home with the requested farmhouse kitchen remodel.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.16
+    },
+    "luxury-kitchen": {
+      "id": "LUXURY_KITCHEN_016",
+      "name": "Luxury Kitchen Design",
+      "icon": "fas fa-crown",
+      "category": "interior",
+      "priority": 16,
+      "request": "Create a luxury kitchen with high-end finishes",
+      "definition": "Design a luxury kitchen with custom cabinetry, marble countertops, premium appliances, and sophisticated lighting. Include a large island, wine storage, and elegant finishes throughout.",
+      "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Create a luxury kitchen with high-end finishes.\n\nDESIGN BRIEF: Design a luxury kitchen with custom cabinetry, marble countertops, premium appliances, and sophisticated lighting. Include a large island, wine storage, and elegant finishes throughout.\n\nCRITICAL REQUIREMENTS:\n- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint\n- Only modify the kitchen interior space\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Ensure realistic materials and construction methods\n- Create a cohesive luxury design with high-end elements\n- Include proper lighting and premium appliances\n\nTransform this home with the requested luxury kitchen remodel.",
+      "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
+      "valueIncrease": 0.25
     }
   },
   "categories": {
     "exterior": {
-      "name": "Exterior Improvements",
+      "name": "Exterior Upgrades",
       "description": "Enhancements to the home's exterior appearance and functionality",
       "color": "#667eea"
     },
-    "structural": {
-      "name": "Structural Additions",
-      "description": "Major structural changes and additions to the home",
+    "extensions": {
+      "name": "Extensions",
+      "description": "Major structural extensions and additions to expand living space",
       "color": "#764ba2"
     },
-    "landscaping": {
-      "name": "Landscaping & Outdoor",
-      "description": "Outdoor spaces, landscaping, and exterior amenities",
-      "color": "#4facfe"
+    "interior": {
+      "name": "Interior Upgrades",
+      "description": "Interior renovations and room-specific improvements",
+      "color": "#f093fb"
     }
   },
   "metadata": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "lastUpdated": "2024-01-15",
-    "totalPrompts": 10,
-    "description": "AI Home Upgrades Prompt Configuration System"
+    "totalPrompts": 16,
+    "description": "AI Home Upgrades Prompt Configuration System with Categorized Prompts"
   }
 }

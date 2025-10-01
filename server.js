@@ -536,6 +536,75 @@ app.get('/api/prompts', (req, res) => {
   }
 });
 
+// Custom upgrade endpoint
+app.post('/api/generate-custom-upgrade', async (req, res) => {
+  try {
+    const { base64Image, customText } = req.body;
+    
+    if (!base64Image || !customText) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: base64Image and customText'
+      });
+    }
+    
+    console.log('Custom upgrade request received:', {
+      customText: customText,
+      imageSize: base64Image.length,
+      provider: currentProvider
+    });
+    
+    // Create custom prompt with professional designer context
+    const customPrompt = `You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.
+
+RENOVATION REQUEST: ${customText}
+
+DESIGN BRIEF: ${customText}
+
+CRITICAL REQUIREMENTS:
+- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint where possible
+- Only modify the elements specified in the request
+- Maintain professional photography quality with bright daylight and natural blue sky
+- Ensure realistic materials and construction methods
+- Create a cohesive design that complements the existing architecture
+
+Transform this home according to the custom request: ${customText}`;
+
+    const negativePrompt = "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint unless specifically requested. Avoid adding unrealistic additions, altering the core structure, or completely redesigning the architecture unless explicitly asked. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.";
+
+    let result;
+    
+    if (currentProvider === 'aws') {
+      result = await generateWithAWS(base64Image, customPrompt, negativePrompt);
+    } else {
+      result = await generateWithGemini(base64Image, customPrompt, negativePrompt);
+    }
+    
+    if (result.success) {
+      console.log('✅ Custom upgrade generated successfully');
+      res.json({
+        success: true,
+        imageUrl: result.imageUrl,
+        provider: currentProvider,
+        customText: customText
+      });
+    } else {
+      console.error('❌ Custom upgrade generation failed:', result.error);
+      res.status(500).json({
+        success: false,
+        error: result.error || 'Custom upgrade generation failed'
+      });
+    }
+    
+  } catch (error) {
+    console.error('Error in custom upgrade endpoint:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error during custom upgrade generation'
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📁 Serving files from: ${process.cwd()}`);
