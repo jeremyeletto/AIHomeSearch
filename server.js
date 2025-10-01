@@ -219,14 +219,20 @@ async function generateWithGemini(req, res, base64Image, upgradeType) {
       `Modern exterior renovation: ${upgradeInfo.request}. ${upgradeInfo.definition} Bright daylight, natural blue sky.` :
       'Enhance this house with modern upgrades';
 
-    // Gemini 2.5 Flash Image request format for text-to-image generation
+    // Gemini 2.5 Flash Image request format for image-to-image generation
     const requestBody = {
       contents: [
         {
           role: "user",
           parts: [
             {
-              text: `Generate a high-quality architectural image: ${prompt}. Create a realistic house exterior with modern upgrades while maintaining architectural integrity. Professional photography style, bright daylight, natural blue sky.`
+              inlineData: {
+                mimeType: "image/png",
+                data: base64Image
+              }
+            },
+            {
+              text: `Transform this house image: ${prompt}. Maintain the exact same architectural structure, roof lines, window positions, and overall building footprint. Only modify the specified elements while preserving all structural details. Professional photography style, bright daylight, natural blue sky.`
             }
           ]
         }
