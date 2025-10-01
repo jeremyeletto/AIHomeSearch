@@ -562,15 +562,6 @@
                             <div class="image-bubbles" id="mobileImageBubbles">
                                 <!-- Image navigation bubbles will be added here -->
                             </div>
-                            <!-- Mobile Loading Overlay -->
-                            <div id="mobileLoadingOverlay" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center" style="background: rgba(255, 255, 255, 0.9); border-radius: 0.375rem; display: none; z-index: 10;">
-                                <div class="spinner-border text-primary mb-2" role="status" style="width: 2rem; height: 2rem;">
-                                    <span class="visually-hidden">Generating upgrade...</span>
-                                </div>
-                                <div class="text-muted text-center" style="font-size: 0.875rem;">
-                                    <div>AI is imagining your upgrade...</div>
-                                </div>
-                            </div>
                         </div>
                         
                         <div class="bg-light p-3 rounded text-center">
@@ -1915,28 +1906,18 @@
         function showGenerationLoading(show) {
             const loadingDiv = document.getElementById('generationLoading');
             const upgradedImage = document.getElementById('upgradedImage');
-            const mobileLoadingOverlay = document.getElementById('mobileLoadingOverlay');
             
             if (show) {
                 loadingDiv.style.display = 'block';
                 upgradedImage.style.display = 'none';
-                // Show mobile loading overlay
-                if (mobileLoadingOverlay) {
-                    mobileLoadingOverlay.style.display = 'flex';
-                }
             } else {
                 loadingDiv.style.display = 'none';
-                // Hide mobile loading overlay
-                if (mobileLoadingOverlay) {
-                    mobileLoadingOverlay.style.display = 'none';
-                }
             }
         }
 
         // Show generation error with specific message
         function showGenerationError(errorMessage = 'Unknown error occurred') {
             const loadingDiv = document.getElementById('generationLoading');
-            const mobileLoadingOverlay = document.getElementById('mobileLoadingOverlay');
             
             loadingDiv.innerHTML = `
                 <div class="text-danger text-center">
@@ -1946,17 +1927,11 @@
                     <br><small class="text-muted mt-2 d-block">Check browser console for more details</small>
                 </div>
             `;
-            
-            // Hide mobile loading overlay on error
-            if (mobileLoadingOverlay) {
-                mobileLoadingOverlay.style.display = 'none';
-            }
         }
         
         // Reset loading state
         function resetGenerationLoading() {
             const loadingDiv = document.getElementById('generationLoading');
-            const mobileLoadingOverlay = document.getElementById('mobileLoadingOverlay');
             
             loadingDiv.innerHTML = `
                 <div class="spinner-border text-primary" role="status">
@@ -1964,18 +1939,6 @@
                 </div>
                 <p class="mt-2 text-muted">AI is imagining your upgrade...</p>
             `;
-            
-            // Reset mobile loading overlay
-            if (mobileLoadingOverlay) {
-                mobileLoadingOverlay.innerHTML = `
-                    <div class="spinner-border text-primary mb-2" role="status" style="width: 2rem; height: 2rem;">
-                        <span class="visually-hidden">Generating upgrade...</span>
-                    </div>
-                    <div class="text-muted text-center" style="font-size: 0.875rem;">
-                        <div>AI is imagining your upgrade...</div>
-                    </div>
-                `;
-            }
         }
 
         // Mobile view toggle functionality
