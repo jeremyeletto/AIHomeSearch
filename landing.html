@@ -330,37 +330,43 @@
             .search-input-group {
                 flex-direction: column;
                 border-radius: 15px;
+                gap: 0.5rem;
+            }
+            
+            .search-icon {
+                display: none;
             }
             
             .search-input {
-                border-radius: 15px 15px 0 0 !important;
+                border-radius: 15px !important;
                 text-align: center;
                 font-size: 1rem;
+                padding: 1rem;
+                border: 2px solid #e0e0e0;
+            }
+            
+            .search-input:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
             }
             
             .search-btn {
-                border-radius: 0 0 15px 15px !important;
-                padding: 0.8rem 1rem;
+                border-radius: 15px !important;
+                padding: 1rem 2rem;
+                font-size: 1.1rem;
+                width: 100%;
             }
             
             .location-tags {
                 justify-content: center;
-                gap: 0.3rem;
+                gap: 0.5rem;
+                flex-wrap: wrap;
             }
             
             .location-tag {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
-            
-            .typeahead-dropdown {
-                border-radius: 10px;
-                margin-top: 2px;
-            }
-            
-            .typeahead-item {
-                padding: 0.6rem 0.8rem;
                 font-size: 0.9rem;
+                padding: 0.6rem 1rem;
+                min-width: auto;
             }
         }
 
@@ -383,6 +389,21 @@
             
             .search-header p {
                 font-size: 0.9rem;
+            }
+            
+            .search-input {
+                font-size: 0.9rem;
+                padding: 0.8rem;
+            }
+            
+            .search-btn {
+                font-size: 1rem;
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .location-tag {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.8rem;
             }
         }
     </style>
