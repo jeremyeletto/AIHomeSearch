@@ -171,7 +171,6 @@
 
         .search-input-container {
             margin: 2rem 0;
-            position: relative;
         }
 
         .search-input-group {
@@ -184,55 +183,6 @@
         .search-input-group:focus-within {
             transform: translateY(-2px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        /* Type-ahead dropdown */
-        .typeahead-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-            z-index: 1000;
-            max-height: 200px;
-            overflow-y: auto;
-            margin-top: 5px;
-            display: none;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .typeahead-item {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.2s ease;
-            display: flex;
-            align-items: center;
-        }
-
-        .typeahead-item:last-child {
-            border-bottom: none;
-        }
-
-        .typeahead-item:hover,
-        .typeahead-item.active {
-            background-color: rgba(102, 126, 234, 0.1);
-        }
-
-        .typeahead-item i {
-            margin-right: 0.5rem;
-            color: #667eea;
-        }
-
-        .fa-spinner {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         .search-icon {
@@ -494,14 +444,12 @@
                             <span class="input-group-text search-icon">
                                 <i class="fas fa-map-marker-alt"></i>
                             </span>
-                            <input type="text" class="form-control search-input" id="locationSearch" placeholder="Enter location (e.g., New York, NY)" autocomplete="off">
+                            <input type="text" class="form-control search-input" id="locationSearch" placeholder="Enter location (e.g., New York, NY)">
                             <button class="btn btn-primary search-btn" type="button" onclick="searchHomes()">
                                 <span class="btn-text">Search</span>
                                 <i class="fas fa-search btn-icon"></i>
                             </button>
                         </div>
-                        <!-- Type-ahead dropdown -->
-                        <div class="typeahead-dropdown" id="typeaheadDropdown"></div>
                     </div>
                     
                     <!-- Popular Locations -->
@@ -522,12 +470,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Type-ahead configuration
-        let currentTypeaheadIndex = -1;
-        let typeaheadResults = [];
-        let searchTimeout = null;
-        const API_BASE_URL = 'https://nominatim.openstreetmap.org';
-
         // Search function for location-based home search
         function searchHomes() {
             const locationInput = document.getElementById('locationSearch');
@@ -550,158 +492,6 @@
             window.location.href = `homes.html?location=${encodedLocation}`;
         }
 
-        // Fetch cities from OpenStreetMap Nominatim API
-        async function fetchCitiesFromAPI(query) {
-            try {
-                console.log('[API] Fetching cities for query:', query);
-                
-                const response = await fetch(
-                    `${API_BASE_URL}/search?` + new URLSearchParams({
-                        q: query,
-                        format: 'json',
-                        limit: 8,
-                        countrycodes: 'us', // Limit to US cities
-                        featuretype: 'city,town,village',
-                        addressdetails: 1
-                    })
-                );
-
-                if (!response.ok) {
-                    throw new Error(`API request failed: ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log('[API] Received', data.length, 'results from API');
-                
-                return data.map(item => {
-                    const address = item.address || {};
-                    const city = address.city || address.town || address.village || '';
-                    const state = address.state || '';
-                    const country = address.country || '';
-                    
-                    // Format as "City, State" or "City, Country" if no state
-                    if (state) {
-                        return `${city}, ${state}`;
-                    } else if (country && country !== 'United States') {
-                        return `${city}, ${country}`;
-                    } else {
-                        return city;
-                    }
-                }).filter((location, index, self) => 
-                    location && location.trim() !== '' && self.indexOf(location) === index
-                );
-
-            } catch (error) {
-                console.error('[API] Error fetching cities:', error);
-                return [];
-            }
-        }
-
-        // Type-ahead functionality with API
-        async function showTypeahead(query) {
-            console.log('[TYPEAHEAD] showTypeahead called with query:', query);
-            const dropdown = document.getElementById('typeaheadDropdown');
-            
-            if (!dropdown) {
-                console.log('[TYPEAHEAD] Dropdown element not found!');
-                return;
-            }
-            
-            if (query.length < 2) {
-                console.log('[TYPEAHEAD] Query too short, hiding dropdown');
-                dropdown.style.display = 'none';
-                return;
-            }
-
-            // Clear previous timeout
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-
-            // Show loading state
-            dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-spinner fa-spin"></i> <span>Searching...</span></div>';
-            dropdown.style.display = 'block';
-
-            // Debounce API calls
-            searchTimeout = setTimeout(async () => {
-                try {
-                    typeaheadResults = await fetchCitiesFromAPI(query);
-                    
-                    console.log('[TYPEAHEAD] Found', typeaheadResults.length, 'results for query:', query);
-                    console.log('[TYPEAHEAD] Results:', typeaheadResults);
-
-                    if (typeaheadResults.length === 0) {
-                        console.log('[TYPEAHEAD] No results, showing no results message');
-                        dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-search"></i> <span>No cities found</span></div>';
-                        return;
-                    }
-
-                    // Build dropdown HTML
-                    dropdown.innerHTML = typeaheadResults.map((location, index) => `
-                        <div class="typeahead-item" data-index="${index}" onclick="selectLocation('${location}')">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${location}</span>
-                        </div>
-                    `).join('');
-
-                    console.log('[TYPEAHEAD] Showing dropdown with', typeaheadResults.length, 'items');
-                    currentTypeaheadIndex = -1;
-                } catch (error) {
-                    console.error('[TYPEAHEAD] Error:', error);
-                    dropdown.innerHTML = '<div class="typeahead-item"><i class="fas fa-exclamation-triangle"></i> <span>Error loading cities</span></div>';
-                }
-            }, 300); // 300ms debounce
-        }
-
-        // Select location from type-ahead
-        function selectLocation(location) {
-            document.getElementById('locationSearch').value = location;
-            document.getElementById('typeaheadDropdown').style.display = 'none';
-            searchHomes();
-        }
-
-        // Handle keyboard navigation in type-ahead
-        function handleTypeaheadKeydown(e) {
-            const dropdown = document.getElementById('typeaheadDropdown');
-            
-            if (dropdown.style.display === 'none' || typeaheadResults.length === 0) {
-                return;
-            }
-
-            switch (e.key) {
-                case 'ArrowDown':
-                    e.preventDefault();
-                    currentTypeaheadIndex = Math.min(currentTypeaheadIndex + 1, typeaheadResults.length - 1);
-                    updateTypeaheadSelection();
-                    break;
-                case 'ArrowUp':
-                    e.preventDefault();
-                    currentTypeaheadIndex = Math.max(currentTypeaheadIndex - 1, -1);
-                    updateTypeaheadSelection();
-                    break;
-                case 'Enter':
-                    e.preventDefault();
-                    if (currentTypeaheadIndex >= 0) {
-                        selectLocation(typeaheadResults[currentTypeaheadIndex]);
-                    } else {
-                        searchHomes();
-                    }
-                    break;
-                case 'Escape':
-                    dropdown.style.display = 'none';
-                    currentTypeaheadIndex = -1;
-                    break;
-            }
-        }
-
-        // Update visual selection in type-ahead
-        function updateTypeaheadSelection() {
-            const items = document.querySelectorAll('.typeahead-item');
-            items.forEach((item, index) => {
-                item.classList.toggle('active', index === currentTypeaheadIndex);
-            });
-        }
-
         // Page navigation functions
         function showHomesPage() {
             // Redirect to homes page
@@ -713,53 +503,15 @@
             window.location.href = 'about.html';
         }
         
-        // Initialize event listeners
+        // Allow Enter key to trigger search
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('[INIT] DOM loaded, initializing type-ahead');
             const locationInput = document.getElementById('locationSearch');
-            const dropdown = document.getElementById('typeaheadDropdown');
-            
-            console.log('[INIT] Location input found:', !!locationInput);
-            console.log('[INIT] Dropdown found:', !!dropdown);
-            
             if (locationInput) {
-                console.log('[INIT] Adding event listeners to input');
-                
-                // Input event for type-ahead
-                locationInput.addEventListener('input', function(e) {
-                    console.log('[INPUT] Input event triggered, value:', e.target.value);
-                    showTypeahead(e.target.value);
-                });
-
-                // Keyboard navigation
-                locationInput.addEventListener('keydown', handleTypeaheadKeydown);
-
-                // Enter key to search
                 locationInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter' && currentTypeaheadIndex === -1) {
+                    if (e.key === 'Enter') {
                         searchHomes();
                     }
                 });
-
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!locationInput.contains(e.target) && !dropdown.contains(e.target)) {
-                        dropdown.style.display = 'none';
-                        currentTypeaheadIndex = -1;
-                    }
-                });
-
-                // Focus management
-                locationInput.addEventListener('focus', function() {
-                    console.log('[FOCUS] Input focused, current value:', locationInput.value);
-                    if (locationInput.value.length >= 2) {
-                        showTypeahead(locationInput.value);
-                    }
-                });
-                
-                console.log('[INIT] Type-ahead initialized with API integration');
-            } else {
-                console.log('[INIT] Location input not found!');
             }
         });
     </script>
