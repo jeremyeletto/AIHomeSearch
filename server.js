@@ -18,8 +18,8 @@ const GEMINI_MODEL = 'gemini-1.5-pro';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/projects/${GEMINI_PROJECT}/models/${GEMINI_MODEL}:generateContent`;
 
 // AWS Bedrock configuration
-const BEDROCK_REGION = 'us-east-1'; // Titan models only available in us-east-1
-const BEDROCK_MODEL_ID = 'amazon.titan-image-generator-v2:0'; // Titan Image Generator v2 with enhanced structure preservation
+const BEDROCK_REGION = 'us-east-1'; // Stable Image models available in us-east-1
+const BEDROCK_MODEL_ID = 'amazon.titan-image-generator-v2:0'; // Titan Image Generator v2 - reliable and working
 
 // Initialize Bedrock client
 const bedrockClient = new BedrockRuntimeClient({ 
@@ -166,28 +166,28 @@ app.post('/api/generate-upgrade-image', async (req, res) => {
     console.log('Base64 image length:', base64Image.length);
     console.log('Base64 image preview:', base64Image.substring(0, 100) + '...');
 
-    // Define upgrade prompts with robust structure preservation and dynamic request insertion
-    // Optimized for Titan v2 512 character limit
+    // Define upgrade prompts optimized for Titan v2 with enhanced structure preservation
+    // Optimized for Titan v2 512 character limit with focus on structure preservation
     const upgradeDefinitions = {
       'stone-walkway': {
         request: 'Add Stone Walkway',
-        definition: 'Add modern stone walkway with clean pavers and professional landscaping. Preserve exact house structure.'
+        definition: 'Add natural stone walkway with pavers leading to entrance. Keep exact house structure, roof, windows unchanged.'
       },
       'black-windows': {
         request: 'Add Modern Black Windows',
-        definition: 'Install black-framed modern windows. All trim matte black. Preserve exact house structure.'
+        definition: 'Update window frames to black. Keep exact house shape, roof angles, window positions unchanged.'
       },
       'white-siding': {
         request: 'Add White Vinyl Siding',
-        definition: 'Replace siding with white vinyl. Black trim and modern windows. Preserve exact house structure.'
+        definition: 'Replace siding with white vinyl. Keep exact house structure, roof, window positions unchanged.'
       },
       'wrap-porch': {
         request: 'Add Wrap-around Porch',
-        definition: 'Add modern wrap-around porch with white columns. White siding, black trim. Preserve exact house structure.'
+        definition: 'Add wrap-around porch with columns. Keep exact house structure, roof, window positions unchanged.'
       },
       'brick-exterior': {
         request: 'Add Brick Exterior',
-        definition: 'Replace siding with modern brick facade. Black trim and modern windows. Preserve exact house structure.'
+        definition: 'Replace siding with brick facade. Keep exact house structure, roof, window positions unchanged.'
       }
     };
 
@@ -198,13 +198,13 @@ app.post('/api/generate-upgrade-image', async (req, res) => {
       'Enhance this house with modern upgrades';
 
 
-    // Prepare the request for Titan Image Generator v2 with enhanced structure preservation
+    // Prepare the request for Titan Image Generator v2
     const requestBody = {
       taskType: "IMAGE_VARIATION",
       imageVariationParams: {
         text: prompt,
         images: [base64Image],
-        negativeText: "Do NOT change building shape, roof angles, stories, window count, or structural footprint. No additions, porch changes, chimney moves, or redesigns. No art, cartoons, distortions, poor quality, missing elements, blurry images, or structural modifications."
+        negativeText: "Do NOT change building shape, roof angles, stories, window count, or structural footprint. No additions, porch changes, chimney moves, or redesigns. No art, cartoons, distortions, poor quality, missing elements, blurry images, or structural modifications. Keep exact house structure unchanged."
       }
     };
 
