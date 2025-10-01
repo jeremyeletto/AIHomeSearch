@@ -380,50 +380,13 @@
                 padding: 0 0.5rem;
             }
             
-            .search-input-group {
-                flex-direction: column;
-                border-radius: 15px;
-                gap: 0.3rem;
-                background: none !important;
-                border: none !important;
-                box-shadow: none !important;
-            }
-            
-            .search-icon {
+            /* Show mobile search, hide desktop search */
+            .desktop-search {
                 display: none !important;
             }
             
-            .search-input {
-                border-radius: 15px !important;
-                text-align: center;
-                font-size: 0.9rem;
-                padding: 0.8rem;
-                border: 2px solid #e0e0e0;
-                background-color: white !important;
-                color: #333 !important;
-                -webkit-appearance: none;
-                -moz-appearance: none;
-                appearance: none;
-            }
-            
-            .search-input:focus {
-                border-color: #667eea !important;
-                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
-                background-color: white !important;
-                color: #333 !important;
-                outline: none !important;
-            }
-            
-            .search-input::placeholder {
-                color: #999 !important;
-                opacity: 1;
-            }
-            
-            .search-btn {
-                border-radius: 15px !important;
-                padding: 0.7rem 1.5rem;
-                font-size: 0.9rem;
-                width: 100%;
+            .mobile-search {
+                display: block !important;
             }
             
             .location-tags {
@@ -460,15 +423,12 @@
                 font-size: 0.9rem;
             }
             
-            .search-input {
+            .mobile-search-input {
                 font-size: 0.8rem;
                 padding: 0.7rem;
-                background-color: white !important;
-                color: #333 !important;
-                -webkit-text-fill-color: #333 !important;
             }
             
-            .search-btn {
+            .mobile-search-btn {
                 font-size: 0.8rem;
                 padding: 0.6rem 1.2rem;
             }
@@ -476,15 +436,6 @@
             .location-tag {
                 font-size: 0.8rem;
                 padding: 0.5rem 0.8rem;
-            }
-            
-            /* Show mobile search, hide desktop search */
-            .desktop-search {
-                display: none !important;
-            }
-            
-            .mobile-search {
-                display: block !important;
             }
         }
     </style>
