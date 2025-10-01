@@ -588,8 +588,10 @@
         // Rate limiting for API requests
         let requestQueue = [];
         let isProcessingQueue = false;
-        const MAX_CONCURRENT_REQUESTS = 2; // Limit concurrent requests
+        const MAX_CONCURRENT_REQUESTS = 1; // Limit to 1 concurrent request to avoid rate limits
         let activeRequests = 0;
+        let lastRequestTime = 0;
+        const MIN_REQUEST_INTERVAL = 3000; // Minimum 3 seconds between requests
         
         // Process request queue with rate limiting
         async function processRequestQueue() {
@@ -598,8 +600,19 @@
             isProcessingQueue = true;
             
             while (requestQueue.length > 0 && activeRequests < MAX_CONCURRENT_REQUESTS) {
+                const now = Date.now();
+                const timeSinceLastRequest = now - lastRequestTime;
+                
+                // Wait if we haven't waited long enough since the last request
+                if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+                    const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+                    console.log(`Rate limiting: waiting ${waitTime}ms before next request`);
+                    await new Promise(resolve => setTimeout(resolve, waitTime));
+                }
+                
                 const request = requestQueue.shift();
                 activeRequests++;
+                lastRequestTime = Date.now();
                 
                 try {
                     await request();
@@ -608,16 +621,13 @@
                 } finally {
                     activeRequests--;
                 }
-                
-                // Small delay between requests
-                await new Promise(resolve => setTimeout(resolve, 1000));
             }
             
             isProcessingQueue = false;
             
             // Continue processing if there are more requests
             if (requestQueue.length > 0) {
-                setTimeout(processRequestQueue, 2000);
+                setTimeout(processRequestQueue, 1000);
             }
         }
         
@@ -968,8 +978,8 @@
 
         // Fetch remaining high-quality photos from dedicated endpoint with retry logic
         async function fetchRemainingHighQualityPhotos(property, home, index, retryCount = 0) {
-            const maxRetries = 3;
-            const baseDelay = 2000; // 2 seconds base delay
+            const maxRetries = 2; // Reduced retries to avoid long delays
+            const baseDelay = 5000; // 5 seconds base delay
             
             try {
                 const propertyId = property.property_id || property.id;
