@@ -146,6 +146,65 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
+        /* Search Input Group Styling */
+        .search-input-group {
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .search-input-group:focus-within {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .search-icon {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 1rem 1.2rem;
+        }
+
+        .search-input {
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            background: white;
+        }
+
+        .search-input:focus {
+            box-shadow: none;
+            border: none;
+        }
+
+        .search-btn {
+            background: var(--primary-gradient);
+            border: none;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .search-btn .btn-text {
+            margin-right: 0.5rem;
+        }
+
+        .search-btn .btn-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .search-btn:hover .btn-icon {
+            transform: scale(1.2);
+        }
+
         /* Modern Buttons */
         .btn-primary {
             background: var(--primary-gradient);
@@ -369,10 +428,14 @@
             <!-- Location Search Bar -->
             <div class="row justify-content-center mb-4">
                 <div class="col-md-6">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="locationSearchHome" placeholder="Enter location (e.g., New York, NY)">
-                        <button class="btn btn-primary" type="button" onclick="searchHomesFromHome()">
-                            <i class="fas fa-search"></i> Search
+                    <div class="input-group search-input-group">
+                        <span class="input-group-text search-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </span>
+                        <input type="text" class="form-control search-input" id="locationSearchHome" placeholder="Enter location (e.g., New York, NY)">
+                        <button class="btn btn-primary search-btn" type="button" onclick="searchHomesFromHome()">
+                            <span class="btn-text">Search</span>
+                            <i class="fas fa-search btn-icon"></i>
                         </button>
                     </div>
                 </div>
@@ -1792,6 +1855,16 @@
         // Load homes when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, testing APIs...');
+            
+            // Add Enter key event listener for search input
+            const locationInput = document.getElementById('locationSearchHome');
+            if (locationInput) {
+                locationInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchHomesFromHome();
+                    }
+                });
+            }
             
             // Test APIs first
             testAPIs().then(success => {
