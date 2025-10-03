@@ -1,134 +1,138 @@
-# Deployment Guide
+# Production Deployment Guide
 
-This guide will help you deploy the AI Home Upgrades application to GitHub Pages with a Vercel backend.
+## 🚀 Environment Setup
 
-## Prerequisites
+### Required Environment Variables
 
-- GitHub account
-- Vercel account (free)
-- AWS account with Bedrock access
-- Realtor API key
+Create these environment variables in your production deployment platform:
 
-## Step 1: Deploy Backend to Vercel
-
-### 1.1 Install Vercel CLI
 ```bash
-npm i -g vercel
+# Required - Property Data API
+RAPIDAPI_KEY=your_rapidapi_key_from_rapidapi
+
+# Optional - AWS Bedrock (for AI generation)
+AWS_ACCESS_KEY_ID=your_aws_access_key
+AWS_SECRET_ACCESS_KEY=your_aws_secret_key  
+AWS_DEFAULT_REGION=us-east-1
+
+# Optional - Server Configuration
+PORT=3001
+NODE_ENV=production
+MODEL_PROVIDER=gemini
 ```
 
-### 1.2 Deploy to Vercel
-```bash
-# In your project directory
-vercel
+### 🔐 Getting API Keys
 
-# Follow the prompts:
-# - Set up and deploy? Y
-# - Which scope? (select your account)
-# - Link to existing project? N
-# - Project name: ai-home-upgrades
-# - Directory: ./
-# - Override settings? N
+#### 1. RapidAPI Key (Required)
+1. Sign up at [RapidAPI](https://rapidapi.com)
+2. Subscribe to the **Realtor16 API**
+3. Copy your API key from the dashboard
+4. Set as `RAPIDAPI_KEY` environment variable
+
+#### 2. AWS Credentials (Optional - for Bedrock AI)
+1. Create AWS account
+2. Configure AWS CLI: `aws configure`
+3. Or set environment variables manually
+
+## 🏗️ Deployment Platforms
+
+### Option 1: Railway
+1. Connect GitHub repository to Railway
+2. Set environment variables in Railway dashboard
+3. Railway will auto-deploy on git push
+
+### Option 2: Render
+1. Connect GitHub repository to Render
+2. Configure environment variables
+3. Set build command: `npm install`
+4. Set start command: `npm start`
+
+### Option 3: Heroku
+1. Install Heroku CLI
+2. Create app: `heroku create your-app-name`
+3. Set environment variables:
+   ```bash
+   heroku config:set RAPIDAPI_KEY=your_key_here
+   heroku config:set AWS_ACCESS_KEY_ID=your_key_here
+   heroku config:set AWS_SECRET_ACCESS_KEY=your_key_here
+   ```
+4. Deploy: `git push heroku main`
+
+### Option 4: Vercel (Frontend + Serverless)
+1. Import GitHub repository
+2. Configure environment variables in Vercel dashboard
+3. Set build command: Uses package.json automatically
+
+## 🔍 Troubleshooting Production Issues
+
+### Property Loading Issues
+
+**Error**: `Property API not configured - missing RAPIDAPI_KEY`
+
+**Solution**: 
+1. Check environment variables in your deployment platform
+2. Verify RAPIDAPI_KEY is set correctly
+3. Restart the server after adding variables
+
+**Error**: `504 Gateway Timeout`
+
+**Solution**:
+1. Check if Realtor16 API is experiencing issues
+2. Verify your RapidAPI subscription is active
+3. Check rate limits in RapidAPI dashboard
+
+### AI Generation Issues
+
+**Error**: `AWS Bedrock not configured`
+
+**Solution**:
+1. Set AWS credentials environment variables
+2. Verify AWS CLI is configured properly
+3. Check Bedrock model access permissions
+
+### Environment Validation
+
+The server now validates environment variables on startup:
+
+```
+🔍 Validating environment variables...
+✅ RAPIDAPI_KEY: 5b7fbff8...
+⚠️ AWS_ACCESS_KEY_ID: Missing
+🌍 Environment: production
+🏠 Server port: 3001
 ```
 
-### 1.3 Set Environment Variables in Vercel
-Go to your Vercel dashboard → Project → Settings → Environment Variables
+## 🔒 Security Best Practices
 
-Add these variables:
-```
-AWS_ACCESS_KEY_ID = your_aws_access_key
-AWS_SECRET_ACCESS_KEY = your_aws_secret_key
-AWS_DEFAULT_REGION = us-east-1
-GEMINI_API_KEY = your_gemini_api_key
-```
+1. **Never commit API keys to git**
+2. Use environment variables for all secrets
+3. Create `.env.example` (included) for team reference
+4. Rotate API keys regularly
+5. Use deployment platform secrets management
 
-### 1.4 Get Your Vercel URL
-After deployment, you'll get a URL like: `https://ai-home-upgrades-abc123.vercel.app`
+## 📊 Monitoring
 
-## Step 2: Update Frontend Configuration
+Check server logs for:
+- Environment variable validation
+- API key configuration status  
+- Rate limiting warnings
+- Cache hit/miss rates
+- Error patterns
 
-### 2.1 Update API Base URL
-In `homes.html`, replace `your-vercel-app.vercel.app` with your actual Vercel URL:
+## 🚨 Common Issues
 
-```javascript
-const API_BASE_URL = window.location.hostname === 'localhost' ? '' : 'https://your-actual-vercel-url.vercel.app';
-```
+1. **"Properties not loading"**
+   - Check RAPIDAPI_KEY environment variable
+   - Verify RapidAPI subscription is active
 
-### 2.2 Add Realtor API Key
-In `homes.html`, find the Realtor API configuration and add your key:
+2. **"AI generation failing"**
+   - Check AWS credentials
+   - Verify Gemini API key is valid
 
-```javascript
-const REALTOR_API_KEY = 'your_actual_realtor_api_key';
-```
+3. **"Timeouts"**
+   - Normal due to Realtor16 API limits
+   - App includes retry and fallback logic
 
-## Step 3: Deploy to GitHub Pages
-
-### 3.1 Initialize Git Repository
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-```
-
-### 3.2 Create GitHub Repository
-1. Go to GitHub.com
-2. Click "New repository"
-3. Name it: `ai-home-upgrades`
-4. Make it public
-5. Don't initialize with README
-
-### 3.3 Push to GitHub
-```bash
-git remote add origin https://github.com/yourusername/ai-home-upgrades.git
-git branch -M main
-git push -u origin main
-```
-
-### 3.4 Enable GitHub Pages
-1. Go to your repository on GitHub
-2. Click "Settings" tab
-3. Scroll to "Pages" section
-4. Source: "Deploy from a branch"
-5. Branch: "main"
-6. Folder: "/ (root)"
-7. Click "Save"
-
-### 3.5 Access Your Live Site
-Your site will be available at:
-`https://yourusername.github.io/ai-home-upgrades/homes.html`
-
-## Step 4: Test Deployment
-
-1. Visit your GitHub Pages URL
-2. Test the API connectivity
-3. Try generating an upgrade image
-4. Check Vercel logs if there are issues
-
-## Troubleshooting
-
-### CORS Issues
-If you get CORS errors, make sure your Vercel deployment has the correct CORS headers in `server.js`.
-
-### Environment Variables
-Double-check that all environment variables are set correctly in Vercel.
-
-### API Limits
-- Vercel has usage limits on the free tier
-- AWS Bedrock has usage limits
-- Realtor API has rate limits
-
-### Domain Configuration
-You can add a custom domain to both Vercel and GitHub Pages if needed.
-
-## Cost Considerations
-
-- **Vercel**: Free tier includes 100GB bandwidth, 1000 serverless function invocations
-- **GitHub Pages**: Free for public repositories
-- **AWS Bedrock**: Pay per use (very affordable for testing)
-- **Realtor API**: Check their pricing
-
-## Security Notes
-
-- Never commit API keys to GitHub
-- Use environment variables for all sensitive data
-- Consider adding rate limiting for production use
-- Monitor usage and costs regularly
+4. **"Rate limited"**
+   - App handles automatically with caching
+   - Consider upgrading RapidAPI plan for higher limits

@@ -50,11 +50,54 @@ function setCachedData(type, key, data, ttl = CACHE_TTL[type]) {
 }
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 // Enable CORS for all origins
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Environment validation for production
+function validateEnvironment() {
+  console.log('🔍 Validating environment variables...');
+  
+  const requiredVars = ['RAPIDAPI_KEY'];
+  const optionalVars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
+  
+  const missing = [];
+  const warnings = [];
+  
+  requiredVars.forEach(varName => {
+    if (!process.env[varName]) {
+      missing.push(varName);
+    } else {
+      console.log(`✅ ${varName}: ${process.env[varName].substring(0, 8)}...`);
+    }
+  });
+  
+  optionalVars.forEach(varName => {
+    if (!process.env[varName]) {
+      warnings.push(varName);
+    } else {
+      console.log(`✅ ${varName}: ${process.env[varName].substring(0, 8)}...`);
+    }
+  });
+  
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing.join(', '));
+    console.error('💡 Production deployment needs these variables configured!');
+  }
+  
+  if (warnings.length > 0) {
+    console.warn('⚠️ Optional environment variables missing:', warnings.join(', '));
+    console.warn('💡 AWS features may not work without these variables');
+  }
+  
+  console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
+  console.log('🏠 Server port:', port);
+}
+
+// Validate environment on startup
+validateEnvironment();
 
 // Model Configuration - Easy switching between providers
 const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'aws' - Default to Gemini Nano Banana
@@ -1200,6 +1243,16 @@ app.get('/api/realtor/image-counts', async (req, res) => {
       return res.status(400).json({
         success: false,
         error: 'Location parameter is required'
+      });
+    }
+
+    // Check for required API key
+    if (!process.env.RAPIDAPI_KEY) {
+      console.error('❌ RAPIDAPI_KEY environment variable not configured');
+      return res.status(500).json({
+        success: false,
+        error: 'Property API not configured - missing RAPIDAPI_KEY',
+        troubleshooting: 'Check environment variables in production deployment'
       });
     }
 
