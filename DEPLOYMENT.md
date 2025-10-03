@@ -10,7 +10,10 @@ Create these environment variables in your production deployment platform:
 # Required - Property Data API
 RAPIDAPI_KEY=your_rapidapi_key_from_rapidapi
 
-# Optional - AWS Bedrock (for AI generation)
+# Required - AI Generation API Keys
+GEMINI_API_KEY=your_gemini_api_key_from_google_cloud
+
+# Optional - AWS Bedrock (alternative AI generation)
 AWS_ACCESS_KEY_ID=your_aws_access_key
 AWS_SECRET_ACCESS_KEY=your_aws_secret_key  
 AWS_DEFAULT_REGION=us-east-1
@@ -19,6 +22,8 @@ AWS_DEFAULT_REGION=us-east-1
 PORT=3001
 NODE_ENV=production
 MODEL_PROVIDER=gemini
+GEMINI_MODEL=gemini-2.5-flash-image-preview
+GEMINI_PROJECT=549560236821
 ```
 
 ### 🔐 Getting API Keys
@@ -29,7 +34,13 @@ MODEL_PROVIDER=gemini
 3. Copy your API key from the dashboard
 4. Set as `RAPIDAPI_KEY` environment variable
 
-#### 2. AWS Credentials (Optional - for Bedrock AI)
+#### 2. Gemini API Key (Required)
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the **Generative AI API** (Gemini)
+3. Create credentials → **API Key**
+4. Copy the API key and set as `GEMINI_API_KEY`
+
+#### 3. AWS Credentials (Optional - for Bedrock AI)
 1. Create AWS account
 2. Configure AWS CLI: `aws configure`
 3. Or set environment variables manually

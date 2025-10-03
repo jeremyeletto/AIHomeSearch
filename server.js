@@ -61,7 +61,7 @@ function validateEnvironment() {
   console.log('🔍 Validating environment variables...');
   
   const requiredVars = ['RAPIDAPI_KEY'];
-  const optionalVars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY'];
+  const optionalVars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'GEMINI_API_KEY'];
   
   const missing = [];
   const warnings = [];
@@ -102,11 +102,18 @@ validateEnvironment();
 // Model Configuration - Easy switching between providers
 const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'aws' - Default to Gemini Nano Banana
 
-// Gemini API configuration
-const GEMINI_API_KEY = 'AIzaSyBmIYwYoxphBKEmra76G_0lqj_hdDADrVM';
-const GEMINI_PROJECT = '549560236821';
-const GEMINI_MODEL = 'gemini-2.5-flash-image-preview'; // Nano Banana - Gemini 2.5 Flash Image Generation
+// Gemini API configuration - SECURE: Use environment variables only
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_PROJECT = process.env.GEMINI_PROJECT || '549560236821';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-image-preview';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+// Validate Gemini API key - REQUIRED for security
+if (!GEMINI_API_KEY) {
+  console.error('🚨 SECURITY ERROR: GEMINI_API_KEY environment variable is required!');
+  console.error('🚨 Action required: Set GEMINI_API_KEY environment variable with your rotated key');
+  console.error('🚨 AI generation will not work without this variable');
+}
 
 // AWS Bedrock configuration
 const BEDROCK_REGION = 'us-east-1'; // Stable Image models available in us-east-1
