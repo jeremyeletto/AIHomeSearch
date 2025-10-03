@@ -6,6 +6,49 @@ const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
+// Smart caching system
+const cache = {
+  properties: new Map(), // Cache property listings
+  images: new Map(),     // Cache high-quality images
+  metadata: new Map()    // Cache metadata like image counts
+};
+
+// Cache TTL (Time To Live) in milliseconds
+const CACHE_TTL = {
+  properties: 5 * 60 * 1000,    // 5 minutes for property listings
+  images: 30 * 60 * 1000,       // 30 minutes for images
+  metadata: 10 * 60 * 1000      // 10 minutes for metadata
+};
+
+// Helper function to check if cache entry is valid
+function isCacheValid(entry) {
+  return entry && (Date.now() - entry.timestamp) < entry.ttl;
+}
+
+// Helper function to get cached data
+function getCachedData(type, key) {
+  const entry = cache[type].get(key);
+  if (isCacheValid(entry)) {
+    console.log(`✅ Cache hit for ${type}: ${key}`);
+    return entry.data;
+  }
+  if (entry) {
+    console.log(`⏰ Cache expired for ${type}: ${key}`);
+    cache[type].delete(key);
+  }
+  return null;
+}
+
+// Helper function to set cached data
+function setCachedData(type, key, data, ttl = CACHE_TTL[type]) {
+  cache[type].set(key, {
+    data: data,
+    timestamp: Date.now(),
+    ttl: ttl
+  });
+  console.log(`💾 Cached ${type}: ${key} (TTL: ${ttl}ms)`);
+}
+
 const app = express();
 const port = 3001;
 
@@ -113,6 +156,163 @@ app.post('/api/generate-image', async (req, res) => {
     return res.status(500).json({ 
       error: 'Internal server error', 
       details: error.message 
+    });
+  }
+});
+
+// Retry failed high-quality image requests
+app.post('/api/realtor/retry-high-quality-images', async (req, res) => {
+  try {
+    const { properties } = req.body;
+    
+    if (!properties || !Array.isArray(properties)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Properties array is required' 
+      });
+    }
+
+    console.log(`🔄 Retrying high-quality images for ${properties.length} properties`);
+    
+    // Process properties sequentially with proper rate limiting (2 req/sec = 500ms between requests)
+    const DELAY_BETWEEN_REQUESTS = 600; // 600ms between individual requests (more conservative)
+    const results = [];
+    
+    for (let i = 0; i < properties.length; i++) {
+      const property = properties[i];
+      console.log(`📦 Retrying property ${i + 1}/${properties.length}: ${property.property_id || property.id}`);
+      
+      // Add delay between requests to respect 2 req/sec rate limit
+      if (i > 0) {
+        console.log(`⏳ Waiting ${DELAY_BETWEEN_REQUESTS}ms before next request...`);
+        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_REQUESTS));
+      }
+      
+      try {
+        const propertyId = property.property_id || property.id;
+        const propertyUrl = property.url || property.property_url || property.rdc_web_url;
+        
+        // Create cache key for this property
+        const cacheKey = propertyUrl ? `url_${encodeURIComponent(propertyUrl)}` : `id_${propertyId}`;
+        
+        // For retry endpoint, always make a fresh request (don't use cache)
+        console.log(`🔄 Making fresh retry request for property ${propertyId}`);
+        
+        let apiUrl;
+        if (propertyUrl) {
+          apiUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
+        } else {
+          apiUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+        }
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+            'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+          }
+        });
+
+        if (!response.ok) {
+          console.log(`⚠️ Retry failed for ${propertyId}: ${response.status}`);
+          
+          if (response.status === 429) {
+            const fallbackResult = { 
+              propertyId, 
+              images: property.preview_images || [], 
+              imageCount: property.preview_images?.length || 1,
+              error: `Still rate limited (429)`,
+              rateLimited: true,
+              needsRetry: true
+            };
+            results.push(fallbackResult);
+            continue;
+          }
+          
+          const fallbackResult = { 
+            propertyId, 
+            images: property.preview_images || [], 
+            imageCount: property.preview_images?.length || 1,
+            error: `Retry failed: ${response.status}` 
+          };
+          results.push(fallbackResult);
+          continue;
+        }
+
+        const data = await response.json();
+        
+        // Extract high-quality images from response
+        let images = [];
+        let imageCount = 1;
+        
+        if (data && Array.isArray(data)) {
+          images = data.map(photo => photo.href || photo.url).filter(Boolean);
+          imageCount = images.length;
+        } else if (data && data.photos && Array.isArray(data.photos)) {
+          images = data.photos.map(photo => photo.href || photo.url).filter(Boolean);
+          imageCount = images.length;
+        } else if (data && data.media && Array.isArray(data.media)) {
+          images = data.media
+            .filter(media => media.type === 'realtordotcom_mls_listing_image' || media.type === 'photo')
+            .map(media => media.url || media.href)
+            .filter(Boolean);
+          imageCount = images.length;
+        }
+        
+        // Fallback to preview images if no high-quality images found
+        if (images.length === 0 && property.preview_images) {
+          images = property.preview_images;
+        }
+        
+        const result = { 
+          propertyId, 
+          images: images,
+          imageCount: imageCount,
+          highQuality: images.length > 0,
+          cached: false,
+          retrySuccess: true
+        };
+        
+        // Cache the result
+        setCachedData('images', cacheKey, result);
+        
+        console.log(`✅ Retry successful: Got ${imageCount} high-quality images for property ${propertyId}`);
+        
+        results.push(result);
+        
+      } catch (error) {
+        console.error(`❌ Retry error for property ${property.property_id || property.id}:`, error);
+        const errorResult = { 
+          propertyId: property.property_id || property.id, 
+          images: property.preview_images || [],
+          imageCount: property.preview_images?.length || 1,
+          error: error.message,
+          retryFailed: true
+        };
+        
+        results.push(errorResult);
+      }
+    }
+    
+    console.log(`✅ Retry processing complete: ${results.length} properties processed`);
+
+    res.json({
+      success: true,
+      results: results,
+      metadata: {
+        totalProcessed: results.length,
+        successful: results.filter(r => !r.error && !r.rateLimited).length,
+        withHighQualityImages: results.filter(r => r.highQuality).length,
+        retrySuccesses: results.filter(r => r.retrySuccess).length,
+        stillRateLimited: results.filter(r => r.rateLimited).length
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error in retry endpoint:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Internal server error during retry' 
     });
   }
 });
@@ -885,6 +1085,494 @@ Transform this home according to the custom request: ${customText}`;
     res.status(500).json({
       success: false,
       error: 'Internal server error during custom upgrade generation'
+    });
+  }
+});
+
+// Realtor API Proxy endpoint to avoid CORS issues
+app.get('/api/realtor/search', async (req, res) => {
+  try {
+    const { location, search_radius = 0, page = 1, limit = 6, sort = 'relevant' } = req.query;
+    
+    console.log('Realtor Search Proxy - Request params:', { location, search_radius, page, limit, sort });
+    
+    if (!location) {
+      return res.status(400).json({
+        success: false,
+        error: 'Location parameter is required'
+      });
+    }
+
+    const encodedLocation = encodeURIComponent(location);
+    const apiUrl = `https://realtor16.p.rapidapi.com/search/forsale?location=${encodedLocation}&search_radius=${search_radius}&page=${page}&limit=${limit}&sort=${sort}`;
+    
+    console.log('Realtor Search Proxy - API URL:', apiUrl);
+    console.log('Realtor Search Proxy - API Key available:', !!process.env.RAPIDAPI_KEY);
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+      }
+    });
+
+    console.log('Realtor Search Proxy - Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Realtor Search Proxy - API Error:', errorText);
+      throw new Error(`Realtor API request failed: ${response.status} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Realtor Search Proxy - Data received:', data ? Object.keys(data) : 'null');
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('Error proxying Realtor API request:', error);
+    res.status(500).json({
+      success: false,
+      error: `Failed to fetch property data from Realtor API: ${error.message}`
+    });
+  }
+});
+
+// Realtor API Photos Proxy endpoint
+app.get('/api/realtor/photos', async (req, res) => {
+  try {
+    const { property_id, url } = req.query;
+    
+    if (!property_id && !url) {
+      return res.status(400).json({
+        success: false,
+        error: 'Either property_id or url parameter is required'
+      });
+    }
+
+    let apiUrl;
+    if (url) {
+      apiUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(url)}`;
+    } else {
+      apiUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${property_id}`;
+    }
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Realtor Photos API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    res.json({
+      success: true,
+      data: data
+    });
+
+  } catch (error) {
+    console.error('Error proxying Realtor Photos API request:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch photos from Realtor API'
+    });
+  }
+});
+
+// Optimized endpoint for getting properties with smart image counts and caching
+app.get('/api/realtor/image-counts', async (req, res) => {
+  try {
+    const { location, search_radius = 0, page = 1, limit = 6, sort = 'relevant' } = req.query;
+    
+    console.log('🚀 Optimized Property Loader - Request params:', { location, search_radius, page, limit, sort });
+    
+    if (!location) {
+      return res.status(400).json({
+        success: false,
+        error: 'Location parameter is required'
+      });
+    }
+
+    // Create cache key for this request
+    const cacheKey = `${location}_${search_radius}_${page}_${limit}_${sort}`;
+    
+    // Check cache first
+    const cachedData = getCachedData('properties', cacheKey);
+    if (cachedData) {
+      console.log('⚡ Returning cached property data');
+      return res.json(cachedData);
+    }
+
+    // First get the property listings
+    const encodedLocation = encodeURIComponent(location);
+    const apiUrl = `https://realtor16.p.rapidapi.com/search/forsale?location=${encodedLocation}&search_radius=${search_radius}&page=${page}&limit=${limit}&sort=${sort}`;
+    
+    console.log('📡 Fetching property listings from:', apiUrl);
+    
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Property listings API Error:', errorText);
+      throw new Error(`Property listings request failed: ${response.status} - ${errorText}`);
+    }
+
+    const listingsData = await response.json();
+    console.log('✅ Got listings:', listingsData && listingsData.properties ? listingsData.properties.length : 'no properties');
+    
+    if (!listingsData || !listingsData.properties) {
+      const emptyResponse = {
+        success: true,
+        properties: [],
+        imageCounts: []
+      };
+      setCachedData('properties', cacheKey, emptyResponse);
+      return res.json(emptyResponse);
+    }
+
+    // Smart image count extraction with preview images
+    const properties = listingsData.properties.map(property => {
+      const propertyId = property.property_id || property.id;
+      let previewImages = [];
+      let estimatedCount = 1;
+      
+      // Extract preview images and estimate count from various fields
+      if (property.photos && Array.isArray(property.photos)) {
+        previewImages = property.photos.slice(0, 3).map(photo => photo.href || photo.url);
+        estimatedCount = property.photos.length;
+      } else if (property.media && Array.isArray(property.media)) {
+        previewImages = property.media
+          .filter(media => media.type === 'photo' || media.category === 'Photo')
+          .slice(0, 3)
+          .map(media => media.url || media.href);
+        estimatedCount = property.media.length;
+      } else if (property.images && Array.isArray(property.images)) {
+        previewImages = property.images.slice(0, 3).map(img => img.href || img.url);
+        estimatedCount = property.images.length;
+      } else if (property.photo && Array.isArray(property.photo)) {
+        previewImages = property.photo.slice(0, 3).map(photo => photo.href || photo.url);
+        estimatedCount = property.photo.length;
+      } else if (property.photos_list && Array.isArray(property.photos_list)) {
+        previewImages = property.photos_list.slice(0, 3).map(photo => photo.href || photo.url);
+        estimatedCount = property.photos_list.length;
+      } else if (property.photos_count) {
+        estimatedCount = parseInt(property.photos_count) || 1;
+      } else if (property.total_photos) {
+        estimatedCount = parseInt(property.total_photos) || 1;
+      }
+      
+      // Add preview images to property object for immediate display
+      property.preview_images = previewImages.filter(img => img && img.startsWith('http'));
+      
+      return {
+        propertyId: propertyId,
+        estimatedCount: estimatedCount,
+        previewImages: property.preview_images,
+        hasHighQualityPhotos: estimatedCount > 1, // Flag for lazy loading
+        property: property
+      };
+    });
+
+    console.log('📊 Processed properties with image estimates:', properties.length);
+
+    const responseData = {
+      success: true,
+      properties: listingsData.properties,
+      imageCounts: properties,
+      metadata: {
+        totalProperties: listingsData.properties.length,
+        hasHighQualityPhotos: properties.some(p => p.hasHighQualityPhotos)
+      }
+    };
+
+    // Cache the response
+    setCachedData('properties', cacheKey, responseData);
+
+    res.json(responseData);
+
+  } catch (error) {
+    console.error('❌ Error in optimized property loader:', error);
+    res.status(500).json({
+      success: false,
+      error: `Failed to get properties: ${error.message}`
+    });
+  }
+});
+
+// Optimized endpoint for fetching high-quality images with smart batching and caching
+app.post('/api/realtor/batch-high-quality-images', async (req, res) => {
+  try {
+    const { properties } = req.body;
+    
+    if (!Array.isArray(properties) || properties.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'properties array is required'
+      });
+    }
+
+    console.log(`🚀 Batch High-Quality Images - Processing ${properties.length} properties`);
+    
+    // Process properties with intelligent batching, rate limiting, and caching
+    // Rate limit: 2 requests per second = 500ms between requests
+    const MAX_CONCURRENT = 1; // Only 1 concurrent request to respect 2 req/sec limit
+    const DELAY_BETWEEN_REQUESTS = 600; // 600ms between individual requests (more conservative)
+    
+    const results = [];
+    
+    // Process properties sequentially with proper rate limiting (2 req/sec = 500ms between requests)
+    for (let i = 0; i < properties.length; i++) {
+      const property = properties[i];
+      console.log(`📦 Processing property ${i + 1}/${properties.length}: ${property.property_id || property.id}`);
+      
+      // Add delay between requests to respect 2 req/sec rate limit
+      if (i > 0) {
+        console.log(`⏳ Waiting ${DELAY_BETWEEN_REQUESTS}ms before next request...`);
+        await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_REQUESTS));
+      }
+      
+      try {
+        const propertyId = property.property_id || property.id;
+        const propertyUrl = property.url || property.property_url || property.rdc_web_url;
+        
+        // Create cache key for this property
+        const cacheKey = propertyUrl ? `url_${encodeURIComponent(propertyUrl)}` : `id_${propertyId}`;
+        
+        // Check cache first, but skip if it's a rate-limited result that needs retry
+        const cachedImages = getCachedData('images', cacheKey);
+        if (cachedImages && !cachedImages.needsRetry) {
+          console.log(`⚡ Cache hit for property ${propertyId}`);
+          results.push({
+            propertyId,
+            images: cachedImages.images,
+            imageCount: cachedImages.imageCount,
+            highQuality: cachedImages.highQuality,
+            cached: true
+          });
+          continue; // Move to next property
+        }
+        
+        if (cachedImages && cachedImages.needsRetry) {
+          console.log(`🔄 Retrying cached rate-limited property ${propertyId}`);
+        }
+          
+          let apiUrl;
+          if (propertyUrl) {
+            apiUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
+          } else {
+            apiUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+          }
+          
+          const response = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+              'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+            }
+          });
+
+          if (!response.ok) {
+            console.log(`⚠️ Photo request failed for ${propertyId}: ${response.status}`);
+            
+            // Handle rate limiting (429) with longer retry delay
+            if (response.status === 429) {
+              console.log(`🔄 Rate limited for ${propertyId}, will retry later`);
+              const fallbackResult = { 
+                propertyId, 
+                images: property.preview_images || [], 
+                imageCount: property.preview_images?.length || 1,
+                error: `Rate limited (429) - will retry`,
+                rateLimited: true,
+                needsRetry: true
+              };
+              
+              // Cache rate limit results for shorter time to allow retries
+              setCachedData('images', cacheKey, fallbackResult, 2 * 60 * 1000); // 2 minutes
+              
+              results.push(fallbackResult);
+              continue;
+            }
+            
+            const fallbackResult = { 
+              propertyId, 
+              images: property.preview_images || [], 
+              imageCount: property.preview_images?.length || 1,
+              error: `API request failed: ${response.status}` 
+            };
+            
+            // Cache other errors for shorter time
+            setCachedData('images', cacheKey, fallbackResult, 2 * 60 * 1000); // 2 minutes
+            
+            results.push(fallbackResult);
+            continue;
+          }
+
+          const data = await response.json();
+          
+          // Extract high-quality images from response
+          let images = [];
+          let imageCount = 1;
+          
+          if (data && Array.isArray(data)) {
+            images = data.map(photo => photo.href || photo.url).filter(Boolean);
+            imageCount = images.length;
+          } else if (data && data.photos && Array.isArray(data.photos)) {
+            images = data.photos.map(photo => photo.href || photo.url).filter(Boolean);
+            imageCount = images.length;
+          } else if (data && data.media && Array.isArray(data.media)) {
+            images = data.media
+              .filter(media => media.type === 'realtordotcom_mls_listing_image' || media.type === 'photo')
+              .map(media => media.url || media.href)
+              .filter(Boolean);
+            imageCount = images.length;
+          }
+          
+          // Fallback to preview images if no high-quality images found
+          if (images.length === 0 && property.preview_images) {
+            images = property.preview_images;
+          }
+          
+          const result = { 
+            propertyId, 
+            images: images,
+            imageCount: imageCount,
+            highQuality: images.length > 0,
+            cached: false
+          };
+          
+          // Cache the result
+          setCachedData('images', cacheKey, result);
+          
+          console.log(`✅ Got ${imageCount} high-quality images for property ${propertyId}`);
+          
+          results.push(result);
+          
+      } catch (error) {
+        console.error(`❌ Error fetching images for ${property.property_id || property.id}:`, error);
+        const errorResult = { 
+          propertyId: property.property_id || property.id, 
+          images: property.preview_images || [],
+          imageCount: property.preview_images?.length || 1,
+          error: error.message 
+        };
+        
+        // Cache error result with short TTL to avoid repeated failures
+        const cacheKey = property.url ? `url_${encodeURIComponent(property.url)}` : `id_${property.property_id || property.id}`;
+        setCachedData('images', cacheKey, errorResult, 1 * 60 * 1000); // 1 minute
+        
+        results.push(errorResult);
+      }
+    }
+    
+    console.log(`✅ Batch processing complete: ${results.length} properties processed`);
+
+    res.json({
+      success: true,
+      results: results,
+      metadata: {
+        totalProcessed: results.length,
+        successful: results.filter(r => !r.error).length,
+        withHighQualityImages: results.filter(r => r.highQuality).length,
+        cachedResults: results.filter(r => r.cached).length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error in batch high-quality images:', error);
+    res.status(500).json({
+      success: false,
+      error: `Failed to fetch high-quality images: ${error.message}`
+    });
+  }
+});
+
+// Lightweight endpoint for getting just photo counts from individual properties
+app.post('/api/realtor/batch-photo-counts', async (req, res) => {
+  try {
+    const { propertyIds } = req.body;
+    
+    if (!Array.isArray(propertyIds) || propertyIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'propertyIds array is required'
+      });
+    }
+
+    console.log(`Batch Photo Counts - Fetching counts for ${propertyIds.length} properties`);
+    
+    // Make concurrent requests for photo counts (using rapidapi limits)
+    const photoCountPromises = propertyIds.map(async (propertyId, index) => {
+      try {
+        // Add small delay to respect rate limits
+        await new Promise(resolve => setTimeout(resolve, index * 100)); // 100ms between requests
+        
+        const apiUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
+        
+        const response = await fetch(apiUrl, {
+          method: 'GET',
+          headers: {
+            'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+            'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+          }
+        });
+
+        if (!response.ok) {
+          console.log(`Photo count request failed for ${propertyId}: ${response.status}`);
+          return { propertyId, photoCount: 1, error: `API request failed: ${response.status}` };
+        }
+
+        const data = await response.json();
+        
+        // Extract photo count from response
+        let photoCount = 1;
+        if (data && Array.isArray(data)) {
+          photoCount = data.length;
+        } else if (data && data.photos && Array.isArray(data.photos)) {
+          photoCount = data.photos.length;
+        } else if (data && data.media && Array.isArray(data.media)) {
+          photoCount = data.media.length;
+        }
+        
+        console.log(`Got ${photoCount} photos for property ${propertyId}`);
+        
+        return { propertyId, photoCount };
+        
+      } catch (error) {
+        console.error(`Error fetching photo count for ${propertyId}:`, error);
+        return { propertyId, photoCount: 1, error: error.message };
+      }
+    });
+
+    const results = await Promise.all(photoCountPromises);
+    
+    console.log('Batch Photo Counts response:', results);
+
+    res.json({
+      success: true,
+      photoCounts: results
+    });
+
+  } catch (error) {
+    console.error('Error in batch photo counts:', error);
+    res.status(500).json({
+      success: false,
+      error: `Failed to fetch photo counts: ${error.message}`
     });
   }
 });

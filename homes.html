@@ -65,6 +65,60 @@
             transition: transform 0.3s ease;
         }
 
+        .card-img-top {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .card-img-top.loading {
+            opacity: 0.8;
+            pointer-events: none; /* Prevent hover interactions during loading */
+        }
+        
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 0.375rem; /* Match Bootstrap card-img-top border-radius */
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .card-img-top.loading {
+            position: relative;
+        }
+        
+        .card-img-top.loading .loading-overlay {
+            opacity: 1;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+        }
+        
+        .loading-text {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        /* Prevent hover effects on cards with loading states */
+        .card:hover .card-img-top.loading {
+            transform: none;
+        }
+        
+        /* Ensure smooth transitions for non-loading cards */
+        .card:not(.loading):hover .card-img-top:not(.loading) {
+            transform: scale(1.05);
+        }
+
         .home-card:hover .card-img-top {
             transform: scale(1.05);
         }
@@ -84,35 +138,43 @@
             font-size: 0.9rem;
         }
 
-        /* Image Navigation Bubbles */
-        .image-bubbles {
+        /* Image Navigation Counter */
+        .image-counter {
             position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
             z-index: 5;
-        }
-
-        .image-bubble {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            border: 2px solid rgba(255, 255, 255, 0.8);
         }
 
-        .image-bubble.active {
-            background: rgba(255, 255, 255, 1);
-            transform: scale(1.2);
+        .image-counter:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: translateY(-2px);
         }
 
-        .image-bubble:hover {
-            background: rgba(255, 255, 255, 0.9);
-            transform: scale(1.1);
+        /* Swipe Area for Image Navigation */
+        .swipe-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            cursor: grab;
+            touch-action: pan-x;
+        }
+
+        .swipe-area:active {
+            cursor: grabbing;
         }
 
         .loading-overlay {
@@ -515,12 +577,13 @@
                     <div class="row d-none d-md-flex">
                         <div class="col-md-6">
                             <h6 class="text-primary mb-3">Current Property</h6>
-                            <div class="position-relative">
-                                <img id="originalImage" src="" alt="Original" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
-                                <div class="image-bubbles" id="originalImageBubbles">
-                                    <!-- Image navigation bubbles will be added here -->
-                                </div>
+                        <div class="position-relative">
+                            <img id="originalImage" src="" alt="Original" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
+                            <div class="swipe-area image-carousel" id="originalImageSwipe"></div>
+                            <div class="image-counter" id="originalImageCounter">
+                                <!-- Counter will be added here -->
                             </div>
+                        </div>
                             <div class="bg-light p-3 rounded text-center">
                                 <strong>Current Value: </strong><span id="currentValue">$0</span>
                             </div>
@@ -557,12 +620,13 @@
                             </div>
                         </div>
                         
-                        <div class="position-relative">
-                            <img id="mobileImage" src="" alt="Property" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
-                            <div class="image-bubbles" id="mobileImageBubbles">
-                                <!-- Image navigation bubbles will be added here -->
-                            </div>
-                        </div>
+                <div class="position-relative">
+                    <img id="mobileImage" src="" alt="Property" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
+                    <div class="swipe-area image-carousel" id="mobileImageSwipe"></div>
+                    <div class="image-counter" id="mobileImageCounter">
+                        <!-- Counter will be added here -->
+                    </div>
+                </div>
                         
                         <div class="bg-light p-3 rounded text-center">
                             <div id="mobileValueInfo">
@@ -654,6 +718,9 @@
         
         // Model switching functionality (Debug only)
         let currentModel = 'gemini'; // Default to Gemini Nano Banana
+        
+        // Global homes list for lazy loading access
+        let homesList = [];
         
         // Check for debug mode
         function checkDebugMode() {
@@ -752,140 +819,6 @@
 
         // Image cache to prevent repeated requests
         const imageCache = new Map();
-        
-        // Rate limiting for API requests
-        let requestQueue = [];
-        let isProcessingQueue = false;
-        const MAX_CONCURRENT_REQUESTS = 1; // Limit to 1 concurrent request to avoid rate limits
-        let activeRequests = 0;
-        let lastRequestTime = 0;
-        const MIN_REQUEST_INTERVAL = 3000; // Minimum 3 seconds between requests
-        
-        // Phase 1 (First Images) - Allow concurrent requests for priority loading
-        let phase1Queue = [];
-        let isProcessingPhase1 = false;
-        const MAX_PHASE1_CONCURRENT = 3; // Allow 3 concurrent requests for first images
-        let activePhase1Requests = 0;
-        let lastPhase1RequestTime = 0;
-        const MIN_PHASE1_INTERVAL = 1000; // 1 second between Phase 1 requests
-        
-        // Process Phase 1 queue with faster concurrent processing
-        async function processPhase1Queue() {
-            console.log(`[PHASE1 QUEUE] processPhase1Queue called - isProcessing: ${isProcessingPhase1}, queue length: ${phase1Queue.length}, active: ${activePhase1Requests}`);
-            
-            if (isProcessingPhase1 || phase1Queue.length === 0) {
-                console.log(`[PHASE1 QUEUE] Exiting - isProcessing: ${isProcessingPhase1}, queue empty: ${phase1Queue.length === 0}`);
-                return;
-            }
-            
-            isProcessingPhase1 = true;
-            console.log(`[PHASE1 QUEUE] Starting Phase 1 processing with ${phase1Queue.length} requests`);
-            
-            while (phase1Queue.length > 0 && activePhase1Requests < MAX_PHASE1_CONCURRENT) {
-                const now = Date.now();
-                const timeSinceLastRequest = now - lastPhase1RequestTime;
-                
-                console.log(`[PHASE1 QUEUE] Time since last request: ${timeSinceLastRequest}ms, min interval: ${MIN_PHASE1_INTERVAL}ms`);
-                
-                // Wait if we haven't waited long enough since the last request
-                if (timeSinceLastRequest < MIN_PHASE1_INTERVAL) {
-                    const waitTime = MIN_PHASE1_INTERVAL - timeSinceLastRequest;
-                    console.log(`[PHASE1 QUEUE] Waiting ${waitTime}ms before next request`);
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-                }
-                
-                const request = phase1Queue.shift();
-                activePhase1Requests++;
-                lastPhase1RequestTime = Date.now();
-                
-                console.log(`[PHASE1 QUEUE] Processing request ${activePhase1Requests}/${MAX_PHASE1_CONCURRENT}, queue remaining: ${phase1Queue.length}`);
-                
-                try {
-                    await request();
-                    console.log(`[PHASE1 QUEUE] Request completed successfully`);
-                } catch (error) {
-                    console.error(`[PHASE1 QUEUE] Request failed:`, error);
-                } finally {
-                    activePhase1Requests--;
-                    console.log(`[PHASE1 QUEUE] Request finished, active requests: ${activePhase1Requests}`);
-                }
-            }
-            
-            isProcessingPhase1 = false;
-            console.log(`[PHASE1 QUEUE] Phase 1 processing finished, remaining requests: ${phase1Queue.length}`);
-            
-            // Continue processing if there are more requests
-            if (phase1Queue.length > 0) {
-                console.log(`[PHASE1 QUEUE] Scheduling next batch in 500ms`);
-                setTimeout(processPhase1Queue, 500);
-            }
-        }
-        
-        // Add request to Phase 1 queue
-        function queuePhase1Request(requestFunction) {
-            console.log(`[PHASE1 QUEUE] Adding request to Phase 1 queue, current length: ${phase1Queue.length}`);
-            phase1Queue.push(requestFunction);
-            console.log(`[PHASE1 QUEUE] Phase 1 queue length after adding: ${phase1Queue.length}`);
-            processPhase1Queue();
-        }
-        async function processRequestQueue() {
-            console.log(`[RATE LIMITER] processRequestQueue called - isProcessing: ${isProcessingQueue}, queue length: ${requestQueue.length}, active: ${activeRequests}`);
-            
-            if (isProcessingQueue || requestQueue.length === 0) {
-                console.log(`[RATE LIMITER] Exiting - isProcessing: ${isProcessingQueue}, queue empty: ${requestQueue.length === 0}`);
-                return;
-            }
-            
-            isProcessingQueue = true;
-            console.log(`[RATE LIMITER] Starting queue processing with ${requestQueue.length} requests`);
-            
-            while (requestQueue.length > 0 && activeRequests < MAX_CONCURRENT_REQUESTS) {
-                const now = Date.now();
-                const timeSinceLastRequest = now - lastRequestTime;
-                
-                console.log(`[RATE LIMITER] Time since last request: ${timeSinceLastRequest}ms, min interval: ${MIN_REQUEST_INTERVAL}ms`);
-                
-                // Wait if we haven't waited long enough since the last request
-                if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
-                    const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
-                    console.log(`[RATE LIMITER] Waiting ${waitTime}ms before next request`);
-                    await new Promise(resolve => setTimeout(resolve, waitTime));
-                }
-                
-                const request = requestQueue.shift();
-                activeRequests++;
-                lastRequestTime = Date.now();
-                
-                console.log(`[RATE LIMITER] Processing request ${activeRequests}/${MAX_CONCURRENT_REQUESTS}, queue remaining: ${requestQueue.length}`);
-                
-                try {
-                    await request();
-                    console.log(`[RATE LIMITER] Request completed successfully`);
-                } catch (error) {
-                    console.error(`[RATE LIMITER] Request failed:`, error);
-                } finally {
-                    activeRequests--;
-                    console.log(`[RATE LIMITER] Request finished, active requests: ${activeRequests}`);
-                }
-            }
-            
-            isProcessingQueue = false;
-            console.log(`[RATE LIMITER] Queue processing finished, remaining requests: ${requestQueue.length}`);
-            
-            // Continue processing if there are more requests
-            if (requestQueue.length > 0) {
-                console.log(`[RATE LIMITER] Scheduling next batch in 1000ms`);
-                setTimeout(processRequestQueue, 1000);
-            }
-        }
-        
-        // Add request to queue
-        function queueRequest(requestFunction) {
-            console.log(`[QUEUE] Adding request to queue, current length: ${requestQueue.length}`);
-            requestQueue.push(requestFunction);
-            console.log(`[QUEUE] Queue length after adding: ${requestQueue.length}`);
-            processRequestQueue();
-        }
         
         // Generated image cache for AI upgrades
         const generatedImageCache = new Map();
@@ -1109,7 +1042,7 @@
         let currentLocation = 'New York, NY';
         let totalPages = 1;
         
-        // Real Estate API Integration using Realtor16 API
+        // Optimized Real Estate API Integration using Realtor16 API
         async function loadHomes(location = 'New York, NY', page = 1, sort = 'relevant') {
             const loadingState = document.getElementById('loadingState');
             const errorState = document.getElementById('errorState');
@@ -1125,68 +1058,57 @@
             currentLocation = location;
             
             try {
-                const apiKey = '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed';
+                console.log('🚀 Optimized Property Loading - Location:', location, 'Page:', page, 'Sort:', sort);
                 
-                if (!apiKey || apiKey === 'YOUR_API_KEY_HERE') {
-                    console.log('Please add your RapidAPI key to use real data');
+                const encodedLocation = encodeURIComponent(location);
+                // Use our optimized endpoint that gets properties + preview images in one call
+                const proxyUrl = `${API_BASE_URL}/api/realtor/image-counts?location=${encodedLocation}&search_radius=0&page=${page}&limit=6&sort=${sort}`;
+                
+                console.log('📡 Fetching properties with preview images from:', proxyUrl);
+                
+                const response = await fetch(proxyUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
+                }
+                
+                const proxyResponse = await response.json();
+                console.log('✅ Properties response received:', proxyResponse);
+                
+                if (!proxyResponse.success) {
+                    throw new Error(`Proxy API error: ${proxyResponse.error}`);
+                }
+                
+                const properties = proxyResponse.properties || [];
+                const imageCounts = proxyResponse.imageCounts || [];
+                
+                console.log(`📊 Received ${properties.length} properties with ${imageCounts.length} image counts`);
+                
+                if (properties && Array.isArray(properties) && properties.length > 0) {
+                    recentProperties = properties;
+                    
+                    // Calculate total pages based on total count  
+                    const totalCount = properties.total || properties.count || properties.length || 0;
+                    totalPages = Math.ceil(totalCount / 6);
+                    
+                    console.log(`✅ Properties found: ${recentProperties.length}, Total pages: ${totalPages}`);
+                } else {
+                    console.log('⚠️ No properties array found in response');
                     errorState.style.display = 'block';
                     loadingState.style.display = 'none';
                     return;
                 }
                 
-                console.log('Fetching real estate data from Realtor16 API for location:', location, 'page:', page, 'sort:', sort);
-                
-                const encodedLocation = encodeURIComponent(location);
-                const apiUrl = `https://realtor16.p.rapidapi.com/search/forsale?location=${encodedLocation}&search_radius=0&page=${page}&limit=6&sort=${sort}`;
-                
-                const response = await fetch(apiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'X-RapidAPI-Key': apiKey,
-                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
-                    }
-                });
-                
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API Error Response:', errorText);
-                    throw new Error(`API request failed: ${response.status} - ${errorText}`);
-                }
-                
-                const data = await response.json();
-                console.log('API Response:', data);
-                
-                let recentProperties = [];
-                
-                console.log('Data structure:', Object.keys(data));
-                console.log('Properties array:', data.properties);
-                
-                if (data.properties && data.properties.length > 0) {
-                    console.log('First property structure:', data.properties[0]);
-                    console.log('First property keys:', Object.keys(data.properties[0]));
-                }
-                
-                if (data.properties && Array.isArray(data.properties)) {
-                    console.log(`Total properties found: ${data.properties.length}`);
-                    
-                    // Use properties directly from API (already sorted and paginated)
-                    recentProperties = data.properties;
-                    
-                    // Calculate total pages based on total count
-                    const totalCount = data.total || data.count || 0;
-                    totalPages = Math.ceil(totalCount / 6);
-                    
-                    console.log(`Properties found: ${recentProperties.length}, Total pages: ${totalPages}`);
-                } else {
-                    console.log('No properties array found in response');
-                    console.log('Available keys:', Object.keys(data));
-                }
-                
-                const homes = await Promise.all(recentProperties.map(async (property, index) => {
-                    console.log('Processing property:', property);
+                // Process homes with optimized image handling
+                const homes = recentProperties.map((property, index) => {
+                    const imageData = imageCounts[index] || {};
                     
                     // Build address from location.address.line (primary field)
                     let address = '';
@@ -1223,10 +1145,11 @@
                         description = description.text || description.value || "Beautiful home with great potential for upgrades.";
                     }
                     
-                    // Get images for this property
-                    console.log(`Fetching images for property ${index + 1}/${recentProperties.length}: ${address}`);
-                    const images = getPropertyImagesFromAPI(property) || getPropertyImages(index + 1);
-                    console.log(`Property ${index + 1} images loaded: ${images ? images.length : 0} images`);
+                    // Use preview images from the optimized response
+                    const previewImages = imageData.previewImages || property.preview_images || [];
+                    const estimatedCount = imageData.estimatedCount || 1;
+                    
+                    console.log(`🏠 Property ${index + 1}: ${address} - ${previewImages.length} preview images, estimated ${estimatedCount} total`);
                     
                     return {
                         id: property.property_id || property.id || index + 1,
@@ -1236,105 +1159,115 @@
                         bathrooms: bathrooms,
                         yearBuilt: property.description?.year_built || property.year_built || property.year || property.year_constructed || 0,
                         description: description,
-                        images: images,
+                        images: previewImages, // Start with preview images
+                        imageCount: estimatedCount, // Estimated total count
+                        lazyLoaded: false, // Mark as not yet lazily loaded
+                        property_data: property, // Store original property data for lazy loading
                         sqft: property.description?.sqft || property.sqft || property.square_feet || property.living_area || property.gross_sqft || 0,
                         zestimate: property.zestimate || property.estimated_value || property.list_price || property.price || 0,
                         daysOnMarket: property.days_on_market || property.dom || 0,
-                        propertyType: property.description?.type || property.property_type || property.type || property.class || 'Residential'
+                        propertyType: property.description?.type || property.property_type || property.type || property.class || 'Residential',
+                        hasHighQualityPhotos: imageData.hasHighQualityPhotos || false
                     };
-                }));
+                });
                 
-                // Display the homes
-                if (homes.length > 0) {
-                    console.log(`Found ${homes.length} properties from API`);
-                    console.log('All properties processed, displaying homes...');
+                // Display the homes immediately with preview images
+                console.log(`✅ Displaying ${homes.length} properties with preview images`);
                     displayHomes(homes);
                     updatePaginationControls();
                     
-                    // Phase 1: Fetch first image for all properties using FAST concurrent queue system (v3.0 - Priority Loading)
-                    console.log('Phase 1: Fetching first high-quality image for all properties... (v3.0 - Fast Concurrent Loading)');
-                    console.log(`[INIT] Phase 1: Queuing ${homes.length} first image requests with 3 concurrent connections`);
+                // Phase 2: Fetch high-quality images for properties that need them (with delay to avoid rate limits)
+                const propertiesNeedingHighQuality = homes.filter(home => home.hasHighQualityPhotos);
+                
+                if (propertiesNeedingHighQuality.length > 0) {
+                    console.log(`🚀 Phase 2: Fetching high-quality images for ${propertiesNeedingHighQuality.length} properties (delayed to avoid rate limits)`);
                     
-                    // Show loading indicators for all property cards
-                    console.log('[LOADING] Starting to show loading indicators for', homes.length, 'homes');
-                    homes.forEach((home, index) => {
+                    // Show loading states immediately for properties that need high-quality images
+                    propertiesNeedingHighQuality.forEach(home => {
                         const card = document.querySelector(`[data-home-id="${home.id}"]`);
-                        console.log(`[LOADING] Home ${index + 1}: Looking for card with data-home-id="${home.id}"`);
-                        if (card) {
-                            console.log(`[LOADING] Found card for home ${index + 1}, showing loading indicator`);
-                            showLoadingIndicator(card);
-                        } else {
-                            console.log(`[LOADING] No card found for home ${index + 1} with id: ${home.id}`);
+                        if (card && !home.lazyLoaded) {
+                            showCardLoadingState(card);
                         }
                     });
                     
-                    // Use FAST Phase 1 queue system for priority loading (3 concurrent, 1 second intervals)
-                    const firstImagePromises = homes.map((home, index) => {
-                        const property = recentProperties[index];
-                        if (property) {
-                            console.log(`[INIT] Phase 1: Queuing first image request for property ${property.property_id || property.id}`);
-                            return new Promise((resolve) => {
-                                queuePhase1Request(async () => {
-                                    try {
-                                        const firstImage = await fetchFirstHighQualityPhoto(property);
-                                        if (firstImage) {
-                                            console.log(`[PHASE1] Updating property ${index + 1} with first high-quality image`);
-                                            // Update the home object with the first high-quality image
-                                            home.images = [firstImage, ...home.images.slice(1)];
+                    // Add delay before fetching high-quality images to avoid overwhelming the API
+                    setTimeout(async () => {
+                        try {
+                            const batchResponse = await fetch(`${API_BASE_URL}/api/realtor/batch-high-quality-images`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    properties: propertiesNeedingHighQuality.map(home => home.property_data)
+                                })
+                            });
+                            
+                            if (batchResponse.ok) {
+                                const batchData = await batchResponse.json();
+                                console.log('✅ Batch high-quality images response:', batchData);
+                                
+                                if (batchData.success && batchData.results) {
+                                    // Update homes with high-quality images
+                                    batchData.results.forEach((result, index) => {
+                                        const home = propertiesNeedingHighQuality.find(h => h.id == result.propertyId);
+                                        if (home && result.images && result.images.length > 0 && !result.rateLimited) {
+                                            console.log(`🖼️ Updating ${home.address} with ${result.images.length} high-quality images`);
+                                            home.images = result.images;
+                                            home.imageCount = result.imageCount;
+                                            home.lazyLoaded = true;
+                                            
                                             // Update the displayed card
-                                            updateHomeCardFirstImage(home, index);
-                                            resolve({ index, success: true, imageCount: 1 });
-                                        } else {
-                                            console.log(`[PHASE1] No first high-quality image found for property ${index + 1}`);
-                                            // Hide loading indicator even if no image found
+                                            updateHomeCardImages(home, homes.indexOf(home));
+                                        } else if (result.rateLimited) {
+                                            console.log(`⏳ Property ${home.address} was rate limited, keeping preview images`);
+                                            // Hide loading state for rate-limited properties
                                             const card = document.querySelector(`[data-home-id="${home.id}"]`);
                                             if (card) {
-                                                hideLoadingIndicator(card);
+                                                hideCardLoadingState(card);
                                             }
-                                            resolve({ index, success: false, imageCount: 0 });
                                         }
-                                    } catch (error) {
-                                        console.error(`[PHASE1] Error fetching first image for property ${index + 1}:`, error);
-                                        // Hide loading indicator on error
-                                        const card = document.querySelector(`[data-home-id="${home.id}"]`);
-                                        if (card) {
-                                            hideLoadingIndicator(card);
+                                    });
+                                    
+                                    const successful = batchData.results.filter(r => r.images && r.images.length > 0 && !r.rateLimited).length;
+                                    const rateLimited = batchData.results.filter(r => r.rateLimited).length;
+                                    const needsRetry = batchData.results.filter(r => r.needsRetry).length;
+                                    
+                                    console.log(`✅ Successfully updated ${successful} properties with high-quality images (${rateLimited} rate limited, ${needsRetry} need retry)`);
+                                    
+                                    // Mark homes as rate limited for tracking
+                                    batchData.results.forEach((result, index) => {
+                                        const home = homes.find(h => h.id == result.propertyId);
+                                        if (home && result.rateLimited) {
+                                            home.rateLimited = true;
+                                            home.needsRetry = result.needsRetry;
                                         }
-                                        resolve({ index, success: false, imageCount: 0 });
+                                    });
+                                    
+                                    // If there are properties that need retry, schedule a retry attempt
+                                    if (needsRetry > 0) {
+                                        console.log(`🔄 Scheduling retry for ${needsRetry} rate-limited properties in 15 seconds...`);
+                                        setTimeout(async () => {
+                                            const propertiesNeedingRetry = homes.filter(h => h.rateLimited && h.needsRetry);
+                                            if (propertiesNeedingRetry.length > 0) {
+                                                console.log(`🔄 Starting retry for ${propertiesNeedingRetry.length} properties`);
+                                                await retryFailedHighQualityImages(propertiesNeedingRetry);
+                                            }
+                                        }, 15000); // Retry after 15 seconds
                                     }
-                                });
-                            });
-                        }
-                        return Promise.resolve({ index, success: false, imageCount: 0 });
-                    });
-                    
-                    Promise.all(firstImagePromises).then((results) => {
-                        console.log('Phase 1 completed - First images loaded:', results);
-                        const successful = results.filter(r => r.success);
-                        console.log(`Successfully updated ${successful.length} properties with first high-quality images`);
-                        
-                        // Phase 2: Lazy load remaining images for all properties
-                        console.log('Phase 2: Lazy loading remaining high-quality images...');
-                        console.log(`[INIT] Queuing ${homes.length} photo requests`);
-                        homes.forEach((home, index) => {
-                            const property = recentProperties[index];
-                            if (property) {
-                                console.log(`[INIT] Queuing photo request for property ${property.property_id || property.id}`);
-                                // Queue the photo requests to avoid rate limits
-                                queueRequest(() => fetchRemainingHighQualityPhotos(property, home, index));
-                            }
-                        });
-                    }).catch(error => {
-                        console.error('Error fetching first high-quality images:', error);
-                    });
+                                }
                 } else {
-                    console.log('No properties found from API');
-                    errorState.style.display = 'block';
-                    loadingState.style.display = 'none';
+                                console.log('⚠️ Failed to fetch high-quality images, using preview images');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error fetching high-quality images:', error);
+                            console.log('⚠️ Continuing with preview images');
+                        }
+                    }, 3000); // Wait 3 seconds before starting high-quality image fetch to respect rate limits
+                } else {
+                    console.log('ℹ️ No properties need high-quality image fetching');
                 }
                 
             } catch (error) {
-                console.error('Error loading homes from Realtor16 API:', error);
+                console.error('❌ Error loading homes from Realtor16 API:', error);
                 errorState.style.display = 'block';
                 loadingState.style.display = 'none';
             }
@@ -1374,244 +1307,51 @@
             return images.length > 0 ? images : null;
         }
 
-        // Fetch first high-quality photo from dedicated endpoint
-        async function fetchFirstHighQualityPhoto(property) {
-            console.log(`[FIRST PHOTO] Starting fetch for property ${property.property_id || property.id}`);
+        // Get property image count without loading full image URLs
+        async function getPropertyImageCount(property) {
+            const propertyId = property.property_id || property.id;
             
             try {
-                const propertyId = property.property_id || property.id;
-                const propertyUrl = property.url || property.property_url || property.rdc_web_url;
+                // Use our server proxy to avoid CORS issues
+                const proxyUrl = `${API_BASE_URL}/api/realtor/photos?property_id=${propertyId}`;
                 
-                let photosUrl;
-                if (propertyUrl) {
-                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
-                } else if (propertyId) {
-                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
-                } else {
-                    console.log('[FIRST PHOTO] No property ID or URL available for photos');
-                    return null;
-                }
-                
-                console.log(`[FIRST PHOTO] Making request to: ${photosUrl}`);
-                
-                const response = await fetch(photosUrl, {
+                const response = await fetch(proxyUrl, {
                     method: 'GET',
                     headers: {
-                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
-                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+                        'Content-Type': 'application/json'
                     }
                 });
                 
-                console.log(`[FIRST PHOTO] Response status: ${response.status}`);
-                
-                if (!response.ok) {
-                    console.log(`[FIRST PHOTO] Request failed with status: ${response.status}`);
-                    return null;
-                }
-                
-                const photosData = await response.json();
-                console.log(`[FIRST PHOTO] Success! Got ${photosData.length} photos`);
-                
-                if (Array.isArray(photosData) && photosData.length > 0) {
-                    // Find the first high-quality image
-                    const firstPhoto = photosData.find(photo => 
-                        photo.href && photo.type === 'realtordotcom_mls_listing_image'
-                    ) || photosData[0];
+                if (response.ok) {
+                    const proxyResponse = await response.json();
+                    if (!proxyResponse.success) {
+                        console.log(`Failed to get image count for property ${propertyId}: ${proxyResponse.error}`);
+                        return 3; // Conservative fallback
+                    }
                     
-                    if (firstPhoto && firstPhoto.href) {
-                        console.log(`[FIRST PHOTO] Found first high-quality photo: ${firstPhoto.href}`);
-                        return firstPhoto.href;
+                    const data = proxyResponse.data;
+                    // Count photos or media items
+                    if (data && data.photos && Array.isArray(data.photos)) {
+                        return data.photos.length;
+                    } else if (data && data.media && Array.isArray(data.media)) {
+                        return data.media.length;
+                    } else if (data && Array.isArray(data)) {
+                        return data.length;
                     }
                 }
                 
-                return null;
+                // Fallback to estimated count based on typical property photos
+                console.log(`Could not determine image count for property ${propertyId}, using default`);
+                return 5; // Default reasonable estimate
+                
             } catch (error) {
-                console.error('[FIRST PHOTO] Error:', error);
-                return null;
+                console.log(`Error getting image count for property ${propertyId}:`, error);
+                return 3; // Conservative fallback
             }
         }
 
-        // Fetch remaining high-quality photos from dedicated endpoint with retry logic
-        async function fetchRemainingHighQualityPhotos(property, home, index, retryCount = 0) {
-            const maxRetries = 2; // Reduced retries to avoid long delays
-            const baseDelay = 5000; // 5 seconds base delay
-            
-            console.log(`[PHOTO FETCH] Starting fetch for property ${property.property_id || property.id}, attempt ${retryCount + 1}`);
-            
-            try {
-                const propertyId = property.property_id || property.id;
-                const propertyUrl = property.url || property.property_url || property.rdc_web_url;
-                
-                let photosUrl;
-                if (propertyUrl) {
-                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?url=${encodeURIComponent(propertyUrl)}`;
-                } else if (propertyId) {
-                    photosUrl = `https://realtor16.p.rapidapi.com/property/photos?property_id=${propertyId}`;
-                } else {
-                    console.log('[PHOTO FETCH] No property ID or URL available for photos');
-                    return;
-                }
-                
-                console.log(`[PHOTO FETCH] Making request to: ${photosUrl}`);
-                
-                const response = await fetch(photosUrl, {
-                    method: 'GET',
-                    headers: {
-                        'X-RapidAPI-Key': '5b7fbff876mshe90b4f947dfe6eep1cbe1cjsne21712e413ed',
-                        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
-                    }
-                });
-                
-                console.log(`[PHOTO FETCH] Response status: ${response.status}`);
-                
-                if (!response.ok) {
-                    if (response.status === 429) {
-                        // Rate limit exceeded
-                        const retryAfter = response.headers.get('Retry-After');
-                        const delay = retryAfter ? parseInt(retryAfter) * 1000 : baseDelay * Math.pow(2, retryCount);
-                        
-                        console.log(`[PHOTO FETCH] Rate limit hit! Retry-After: ${retryAfter}, calculated delay: ${delay}ms`);
-                        
-                        if (retryCount < maxRetries) {
-                            console.log(`[PHOTO FETCH] Retrying in ${delay}ms...`);
-                            setTimeout(() => {
-                                fetchRemainingHighQualityPhotos(property, home, index, retryCount + 1);
-                            }, delay);
-                            return;
-                        } else {
-                            console.log(`[PHOTO FETCH] Max retries exceeded, giving up`);
-                            return;
-                        }
-                    } else {
-                        console.log(`[PHOTO FETCH] Request failed with status: ${response.status}`);
-                        return;
-                    }
-                }
-                
-                const photosData = await response.json();
-                console.log(`[PHOTO FETCH] Success! Got ${photosData.length} photos`);
-                
-                if (Array.isArray(photosData) && photosData.length > 0) {
-                    // Filter for high-quality images
-                    const highQualityPhotos = photosData
-                        .filter(photo => photo.href && photo.type === 'realtordotcom_mls_listing_image')
-                        .map(photo => photo.href);
-                    
-                    if (highQualityPhotos.length > 0) {
-                        console.log(`[PHOTO FETCH] Found ${highQualityPhotos.length} high-quality photos`);
-                        
-                        // Update the home object with all high-quality images
-                        home.images = highQualityPhotos;
-                        
-                        // Update the displayed card
-                        updateHomeCardImages(home, index);
-                        
-                        // Cache the images
-                        imageCache.set(propertyId, highQualityPhotos);
-                    }
-                }
-            } catch (error) {
-                console.error(`[PHOTO FETCH] Error:`, error);
-                
-                // Retry on network errors
-                if (retryCount < maxRetries) {
-                    const delay = baseDelay * Math.pow(2, retryCount);
-                    console.log(`[PHOTO FETCH] Network error, retrying in ${delay}ms...`);
-                    setTimeout(() => {
-                        fetchRemainingHighQualityPhotos(property, home, index, retryCount + 1);
-                    }, delay);
-                }
-            }
-        }
 
-        // Update home card with first high-quality image
-        function updateHomeCardFirstImage(home, index) {
-            const card = document.querySelector(`[data-home-id="${home.id}"]`);
-            if (card && home.images && home.images.length > 0) {
-                const img = card.querySelector('.card-img-top');
-                if (img) {
-                    img.src = home.images[0];
-                    img.alt = home.address;
-                    
-                    // Hide loading indicator when image loads
-                    hideLoadingIndicator(card);
-                }
-                
-                // Update modal data attributes
-                const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
-                if (modalButton) {
-                    modalButton.setAttribute('data-original-image', home.images[0]);
-                    modalButton.setAttribute('data-images', JSON.stringify(home.images));
-                }
-            }
-        }
-        
-        // Show loading indicator for a property card
-        function showLoadingIndicator(card) {
-            if (!card) {
-                console.log('[LOADING] No card provided to showLoadingIndicator');
-                return;
-            }
-            
-            console.log('[LOADING] Showing loading indicator for card:', card);
-            
-            // Create loading indicator if it doesn't exist
-            let loadingIndicator = card.querySelector('.loading-indicator');
-            if (!loadingIndicator) {
-                console.log('[LOADING] Creating new loading indicator');
-                loadingIndicator = document.createElement('div');
-                loadingIndicator.className = 'loading-indicator';
-                loadingIndicator.innerHTML = `
-                    <div class="loading-spinner">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                    <div class="loading-text">Loading high-quality image...</div>
-                `;
-                
-                // Position it over the image
-                const img = card.querySelector('.card-img-top');
-                if (img) {
-                    const imgContainer = img.parentElement;
-                    console.log('[LOADING] Found image container:', imgContainer);
-                    if (imgContainer) {
-                        console.log('[LOADING] Adding loading indicator to image container');
-                        imgContainer.style.position = 'relative';
-                        imgContainer.appendChild(loadingIndicator);
-                    } else {
-                        console.log('[LOADING] No image container found, adding to card directly');
-                        card.appendChild(loadingIndicator);
-                    }
-                } else {
-                    console.log('[LOADING] No image found, adding to card directly');
-                    card.appendChild(loadingIndicator);
-                }
-            }
-            
-            loadingIndicator.style.display = 'flex';
-            console.log('[LOADING] Loading indicator should now be visible');
-        }
-        
-        // Hide loading indicator for a property card
-        function hideLoadingIndicator(card) {
-            if (!card) return;
-            
-            const loadingIndicator = card.querySelector('.loading-indicator');
-            if (loadingIndicator) {
-                // Add fade-out class for smooth transition
-                loadingIndicator.classList.add('fade-out');
-                
-                // Remove the element after animation completes
-                setTimeout(() => {
-                    if (loadingIndicator.parentNode) {
-                        loadingIndicator.parentNode.removeChild(loadingIndicator);
-                    }
-                }, 300);
-            }
-        }
-
-        // Update home card with all high-quality images
+        // Update home card with new images (optimized version)
         function updateHomeCardImages(home, index) {
             const card = document.querySelector(`[data-home-id="${home.id}"]`);
             if (card && home.images && home.images.length > 0) {
@@ -1621,16 +1361,17 @@
                     img.alt = home.address;
                 }
                 
-                // Update image bubbles
-                const bubblesContainer = card.querySelector('.image-bubbles');
-                if (bubblesContainer) {
-                    bubblesContainer.innerHTML = '';
-                    home.images.forEach((_, imgIndex) => {
-                        const bubble = document.createElement('div');
-                        bubble.className = `image-bubble ${imgIndex === 0 ? 'active' : ''}`;
-                        bubble.onclick = () => switchImage(card, imgIndex);
-                        bubblesContainer.appendChild(bubble);
-                    });
+                // Update image counter
+                const counter = card.querySelector('.image-counter');
+                if (counter) {
+                    counter.textContent = `1 of ${home.imageCount}`;
+                    counter.setAttribute('data-total', home.imageCount);
+                }
+                
+                // Make card interactive for swipe functionality if multiple images
+                const swipeArea = card.querySelector('.swipe-area');
+                if (swipeArea && home.images.length > 1) {
+                    makeCardInteractive(swipeArea);
                 }
                 
                 // Update modal data attributes
@@ -1638,9 +1379,95 @@
                 if (modalButton) {
                     modalButton.setAttribute('data-original-image', home.images[0]);
                     modalButton.setAttribute('data-images', JSON.stringify(home.images));
+                    modalButton.setAttribute('data-image-count', home.imageCount);
                 }
+                
+                // Hide loading state
+                hideCardLoadingState(card);
+                
+                console.log(`✅ Updated card for ${home.address} with ${home.images.length} images`);
             }
         }
+
+        function showCardLoadingState(card) {
+            const img = card.querySelector('.card-img-top');
+            const counter = card.querySelector('.image-counter');
+            
+            console.log('🔄 Showing loading state for card:', card.getAttribute('data-home-id'));
+            
+            if (img) {
+                // Add loading class for styling
+                img.classList.add('loading');
+                
+                // Add loading overlay - ensure it perfectly matches the image dimensions
+                let loadingOverlay = card.querySelector('.loading-overlay');
+                if (!loadingOverlay) {
+                    loadingOverlay = document.createElement('div');
+                    loadingOverlay.className = 'loading-overlay';
+                    loadingOverlay.innerHTML = `
+                        <div class="loading-spinner">
+                            <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+                                <span class="visually-hidden">Loading high-quality images...</span>
+                            </div>
+                            <div class="loading-text">Loading...</div>
+                        </div>
+                    `;
+                    
+                    // Get the image bounding rect to match exact dimensions
+                    const imgRect = img.getBoundingClientRect();
+                    const imgContainer = img.parentElement;
+                    
+                    // Ensure the image container has relative positioning
+                    imgContainer.style.position = 'relative';
+                    
+                    // Position overlay exactly over the image
+                    const containerRect = imgContainer.getBoundingClientRect();
+                    loadingOverlay.style.position = 'absolute';
+                    loadingOverlay.style.top = '0';
+                    loadingOverlay.style.left = '0';
+                    loadingOverlay.style.width = '100%';
+                    loadingOverlay.style.height = '100%';
+                    loadingOverlay.style.borderRadius = 'inherit'; // Inherit parent's border radius
+                    
+                    imgContainer.appendChild(loadingOverlay);
+                }
+                
+                // Show overlay with smooth transition
+                loadingOverlay.style.display = 'flex';
+                
+                console.log('✅ Loading overlay displayed for card');
+            }
+            
+            if (counter) {
+                counter.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            }
+        }
+
+        function hideCardLoadingState(card) {
+            const img = card.querySelector('.card-img-top');
+            const counter = card.querySelector('.image-counter');
+            const loadingOverlay = card.querySelector('.loading-overlay');
+            
+            console.log('✅ Hiding loading state for card:', card.getAttribute('data-home-id'));
+            
+            if (loadingOverlay) {
+                // Smooth fade out transition
+                loadingOverlay.style.opacity = '0';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                    loadingOverlay.style.opacity = '1'; // Reset for next time
+                }, 300);
+            }
+            
+            if (img) {
+                img.classList.remove('loading');
+            }
+            
+            if (counter) {
+                // Counter will be updated by updateHomeCardImages
+            }
+        }
+
 
         // Get fallback images for properties
         function getPropertyImages(propertyId) {
@@ -1696,13 +1523,26 @@
         function displayHomes(homes) {
             const homesGrid = document.getElementById('homesGrid');
             const loadingState = document.getElementById('loadingState');
-            
+
+            // Store homes globally for lazy loading access
+            homesList = homes;
+
             homesGrid.innerHTML = '';
             
             homes.forEach((home, index) => {
                 const col = createHomeCard(home, index);
                 homesGrid.appendChild(col);
             });
+            
+            // Make new cards interactive after DOM updates
+            setTimeout(() => {
+                const newCards = homesGrid.querySelectorAll('.swipe-area.image-carousel');
+                newCards.forEach(swipeArea => {
+                    if (swipeArea) {
+                        makeCardInteractive(swipeArea);
+                    }
+                });
+            }, 100);
             
             loadingState.style.display = 'none';
             homesGrid.style.display = 'flex';
@@ -1713,17 +1553,19 @@
             const col = document.createElement('div');
             col.className = 'col-md-6 col-lg-4';
             
-            const images = home.images || getPropertyImages(index + 1);
+            const images = home.images || [];
             const currentImage = images[0] || 'https://via.placeholder.com/400x250?text=No+Image';
+            const totalImages = home.imageCount || images.length || 1;
             
             col.innerHTML = `
                 <div class="card home-card" data-home-id="${home.id}">
                     <div class="position-relative">
                         <img src="${currentImage}" class="card-img-top" alt="${home.address}" loading="lazy">
-                        <div class="image-bubbles">
-                            ${images.map((_, imgIndex) => 
-                                `<div class="image-bubble ${imgIndex === 0 ? 'active' : ''}" onclick="switchImage(this.closest('.card'), ${imgIndex})"></div>`
-                            ).join('')}
+                        <div class="swipe-area image-carousel" data-image-index="0" data-home-id="${home.id}" onclick="makeCardInteractive(this)">
+                            <!-- Swipe functionality will be handled by JavaScript -->
+                        </div>
+                        <div class="image-counter" data-image-index="0" data-total="${totalImages}">
+                            1 of ${totalImages}
                         </div>
                     </div>
                     <div class="card-body">
@@ -1737,7 +1579,8 @@
                                 data-original-image="${currentImage}" 
                                 data-images='${JSON.stringify(images)}'
                                 data-current-value="${home.price}"
-                                data-upgraded-value="${Math.round(home.price * 1.15)}">
+                                data-upgraded-value="${Math.round(home.price * 1.15)}"
+                                data-image-count="${totalImages}">
                             <i class="fas fa-magic me-2"></i>Imagine Upgrades
                         </button>
                     </div>
@@ -1745,6 +1588,87 @@
             `;
             
             return col;
+        }
+
+        // Global variables for swipe tracking
+        let isDrag = false;
+        let startX = 0;
+        let currentX = 0;
+        let dragThreshold = 50; // Minimum distance for swipe
+        let swipeSensitivity = 100; // Maximum distance for single swipe
+        
+        // Make card interactive with swipe functionality
+        function makeCardInteractive(swipeArea) {
+            const card = swipeArea.closest('.card');
+            const homeId = card.getAttribute('data-home-id');
+            const home = homesList.find(h => h.id == homeId);
+            const images = JSON.parse(card.querySelector('[data-bs-target="#upgradeModal"]').getAttribute('data-images'));
+            const currentIndex = parseInt(swipeArea.getAttribute('data-image-index'));
+            
+            // Trigger lazy loading on first interaction if not already loaded
+            if (home && !home.lazyLoaded) {
+                console.log('🗂️ First interaction detected, triggering lazy load...');
+                lazyLoadImagesForCard(card, home);
+            }
+            
+            if (images.length <= 1) return; // No need for interaction if only one image
+            
+            // Touch events for mobile
+            swipeArea.addEventListener('touchstart', handleSwipeStart, { passive: true });
+            swipeArea.addEventListener('touchmove', handleSwipeMove, { passive: true });
+            swipeArea.addEventListener('touchend', handleSwipeEnd, { passive: true });
+            
+            // Mouse events for desktop
+            swipeArea.addEventListener('mousedown', handleSwipeStart);
+            swipeArea.addEventListener('mousemove', handleSwipeMove);
+            swipeArea.addEventListener('mouseup', handleSwipeEnd);
+            swipeArea.addEventListener('mouseleave', handleSwipeEnd);
+            
+            function handleSwipeStart(e) {
+                isDrag = true;
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                swipeArea.style.cursor = 'grabbing';
+            }
+            
+            function handleSwipeMove(e) {
+                if (!isDrag) return;
+                
+                currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                
+                // On desktop, only process if mouse button is pressed
+                if (e.type === 'mousemove' && !(e.buttons & 1)) {
+                    isDrag = false;
+                    swipeArea.style.cursor = 'grab';
+                    return;
+                }
+            }
+            
+            function handleSwipeEnd(e) {
+                if (!isDrag) return;
+                
+                const deltaX = currentX - startX;
+                const absDeltaX = Math.abs(deltaX);
+                
+                swipeArea.style.cursor = 'grab';
+                isDrag = false;
+                
+                if (absDeltaX > dragThreshold && absDeltaX < swipeSensitivity) {
+                    if (deltaX > 0) {
+                        // Swipe right - previous image
+                        switchImage(card, Math.max(0, currentIndex - 1));
+                    } else {
+                        // Swipe left - next image
+                        switchImage(card, Math.min(images.length - 1, currentIndex + 1));
+                    }
+                } else if (absDeltaX >= swipeSensitivity) {
+                    // Long swipe - scroll multiple images
+                    const imagesToSkip = Math.floor(absDeltaX / swipeSensitivity);
+                    const newIndex = deltaX > 0 
+                        ? Math.max(0, currentIndex - imagesToSkip)
+                        : Math.min(images.length - 1, currentIndex + imagesToSkip);
+                    switchImage(card, newIndex);
+                }
+            }
         }
 
         // Switch image in a card
@@ -1757,15 +1681,209 @@
                 const img = card.querySelector('.card-img-top');
                 img.src = images[imageIndex];
                 
-                // Update active bubble
-                const bubbles = card.querySelectorAll('.image-bubble');
-                bubbles.forEach((bubble, index) => {
-                    bubble.classList.toggle('active', index === imageIndex);
-                });
+                // Update swipe area data
+                const swipeArea = card.querySelector('.swipe-area');
+                swipeArea.setAttribute('data-image-index', imageIndex);
+                
+                // Update counter
+                const counter = card.querySelector('.image-counter');
+                const totalImages = counter.getAttribute('data-total') || images.length;
+                counter.textContent = `${imageIndex + 1} of ${totalImages}`;
+                counter.setAttribute('data-image-index', imageIndex);
                 
                 // Update modal data
                 modalButton.setAttribute('data-original-image', images[imageIndex]);
             }
+        }
+
+        // Function to retry failed high-quality image requests
+        async function retryFailedHighQualityImages(homes) {
+            const propertiesNeedingRetry = homes.filter(home => 
+                home.hasHighQualityPhotos && 
+                (!home.lazyLoaded || home.rateLimited) &&
+                home.property_data
+            );
+
+            if (propertiesNeedingRetry.length === 0) {
+                console.log('ℹ️ No properties need retry for high-quality images');
+                return;
+            }
+
+            console.log(`🔄 Retrying high-quality images for ${propertiesNeedingRetry.length} properties`);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/realtor/retry-high-quality-images`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        properties: propertiesNeedingRetry.map(home => home.property_data)
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ Retry high-quality images response:', data);
+
+                    if (data.success && data.results) {
+                        // Show loading states for retry attempts
+                        propertiesNeedingRetry.forEach(home => {
+                            const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                            if (card) {
+                                showCardLoadingState(card);
+                            }
+                        });
+
+                        data.results.forEach((result, index) => {
+                            const home = propertiesNeedingRetry.find(h => h.id == result.propertyId);
+                            if (home && result.images && result.images.length > 0 && result.retrySuccess) {
+                                console.log(`🖼️ Retry successful: Updating ${home.address} with ${result.images.length} high-quality images`);
+                                home.images = result.images;
+                                home.imageCount = result.imageCount;
+                    home.lazyLoaded = true;
+                                home.rateLimited = false;
+                                
+                                // Update the displayed card
+                                const cardIndex = homes.indexOf(home);
+                                updateHomeCardImages(home, cardIndex);
+                            } else if (result.rateLimited) {
+                                console.log(`⏳ Property ${home.address} still rate limited after retry`);
+                                // Hide loading state for still rate-limited properties
+                                const card = document.querySelector(`[data-home-id="${home.id}"]`);
+                                if (card) {
+                                    hideCardLoadingState(card);
+                                }
+                            }
+                        });
+                        
+                        const retrySuccesses = data.results.filter(r => r.retrySuccess).length;
+                        const stillRateLimited = data.results.filter(r => r.rateLimited).length;
+                        console.log(`✅ Retry complete: ${retrySuccesses} successful, ${stillRateLimited} still rate limited`);
+                    }
+                } else {
+                    console.log('⚠️ Failed to retry high-quality images');
+                }
+            } catch (error) {
+                console.error('❌ Error retrying high-quality images:', error);
+            }
+        }
+
+        // Lazy load images when user interacts with a card (optimized version)
+        async function lazyLoadImagesForCard(card, home) {
+            if (home.lazyLoaded || !home.property_data || !home.hasHighQualityPhotos) {
+                return; // Already loaded, no property data, or no high-quality photos available
+            }
+            
+            console.log('🔄 Lazy loading high-quality images for property:', home.id);
+            
+            try {
+                // Use the optimized batch endpoint for single property
+                const batchResponse = await fetch(`${API_BASE_URL}/api/realtor/batch-high-quality-images`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        properties: [home.property_data]
+                    })
+                });
+                
+                if (batchResponse.ok) {
+                    const batchData = await batchResponse.json();
+                    
+                    if (batchData.success && batchData.results && batchData.results.length > 0) {
+                        const result = batchData.results[0];
+                        
+                        if (result.images && result.images.length > 0) {
+                            // Update the home object
+                            home.images = result.images;
+                            home.imageCount = result.imageCount;
+                            home.lazyLoaded = true;
+                            
+                            // Update the modal button data
+                            const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
+                            if (modalButton) {
+                                modalButton.setAttribute('data-images', JSON.stringify(result.images));
+                                modalButton.setAttribute('data-original-image', result.images[0]);
+                                modalButton.setAttribute('data-image-count', result.imageCount);
+                            }
+                            
+                            console.log('✅ Lazy loaded high-quality images for property:', home.id, result.images.length);
+                        }
+                    }
+                } else {
+                    console.log('⚠️ Failed to lazy load high-quality images for property:', home.id);
+                }
+            } catch (error) {
+                console.error('❌ Failed to lazy load images for property:', home.id, error);
+            }
+        }
+
+
+        // Setup swipe functionality for modal images
+        function setupModalSwipe(swipeArea, images, switchFunctionName) {
+            let isDrag = false;
+            let startX = 0;
+            let currentX = 0;
+            const dragThreshold = 50;
+            const swipeSensitivity = 100;
+            
+            function handleSwipeStart(e) {
+                isDrag = true;
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                swipeArea.style.cursor = 'grabbing';
+            }
+            
+            function handleSwipeMove(e) {
+                if (!isDrag) return;
+                
+                currentX = e.touches ? e.touches[0].clientX : e.clientX;
+                
+                if (e.type === 'mousemove' && !(e.buttons & 1)) {
+                    isDrag = false;
+                    swipeArea.style.cursor = 'grab';
+                    return;
+                }
+            }
+            
+            function handleSwipeEnd(e) {
+                if (!isDrag) return;
+                
+                const deltaX = currentX - startX;
+                const absDeltaX = Math.abs(deltaX);
+                
+                swipeArea.style.cursor = 'grab';
+                isDrag = false;
+                
+                if (absDeltaX > dragThreshold && absDeltaX < swipeSensitivity) {
+                    const currentIndex = parseInt(swipeArea.getAttribute('data-image-index'));
+                    if (deltaX > 0) {
+                        // Swipe right - previous image
+                        const newIndex = Math.max(0, currentIndex - 1);
+                        window[switchFunctionName](newIndex);
+                    } else {
+                        // Swipe left - next image
+                        const newIndex = Math.min(images.length - 1, currentIndex + 1);
+                        window[switchFunctionName](newIndex);
+                    }
+                } else if (absDeltaX >= swipeSensitivity) {
+                    // Long swipe - scroll multiple images
+                    const currentIndex = parseInt(swipeArea.getAttribute('data-image-index'));
+                    const imagesToSkip = Math.floor(absDeltaX / swipeSensitivity);
+                    const newIndex = deltaX > 0 
+                        ? Math.max(0, currentIndex - imagesToSkip)
+                        : Math.min(images.length - 1, currentIndex + imagesToSkip);
+                    window[switchFunctionName](newIndex);
+                }
+            }
+            
+            // Touch events for mobile
+            swipeArea.addEventListener('touchstart', handleSwipeStart, { passive: true });
+            swipeArea.addEventListener('touchmove', handleSwipeMove, { passive: true });
+            swipeArea.addEventListener('touchend', handleSwipeEnd, { passive: true });
+            
+            // Mouse events for desktop
+            swipeArea.addEventListener('mousedown', handleSwipeStart);
+            swipeArea.addEventListener('mousemove', handleSwipeMove);
+            swipeArea.addEventListener('mouseup', handleSwipeEnd);
+            swipeArea.addEventListener('mouseleave', handleSwipeEnd);
         }
 
         // Pagination and sorting functions
@@ -2121,8 +2239,10 @@
             try {
                 console.log('Starting image generation process...');
                 
-                // Generate the upgrade image
-                const generatedImageUrl = await generateUpgradeImage(originalImageSrc, upgradeType);
+                // Generate the upgrade image using the current modal image
+                const currentImageSrc = window.currentModalImageSrc || originalImageSrc;
+                console.log('🎯 Using image for AI generation:', currentImageSrc);
+                const generatedImageUrl = await generateUpgradeImage(currentImageSrc, upgradeType);
                 
                 if (!generatedImageUrl) {
                     console.log('❌ Image generation failed - no URL returned');
@@ -2260,8 +2380,10 @@
             try {
                 console.log('Starting custom upgrade generation...');
                 
-                // Generate the custom upgrade image
-                const generatedImageUrl = await generateCustomUpgradeImage(originalImageSrc, customText);
+                // Generate the upgrade image using the current modal image
+                const currentImageSrc = window.currentModalImageSrc || originalImageSrc;
+                console.log('🎯 Using image for custom AI generation:', currentImageSrc);
+                const generatedImageUrl = await generateCustomUpgradeImage(currentImageSrc, customText);
                 
                 if (!generatedImageUrl) {
                     console.log('❌ Custom upgrade generation failed - no URL returned');
@@ -2444,22 +2566,32 @@
             
             const images = JSON.parse(modalButton.getAttribute('data-images'));
             const originalImage = document.getElementById('originalImage');
-            const bubblesContainer = document.getElementById('originalImageBubbles');
+            const counterContainer = document.getElementById('originalImageCounter');
+            const swipeArea = document.getElementById('originalImageSwipe');
             
             if (images && images[imageIndex] && originalImage) {
                 originalImage.src = images[imageIndex];
                 
-                // Update active bubble
-                const bubbles = bubblesContainer.querySelectorAll('.image-bubble');
-                bubbles.forEach((bubble, index) => {
-                    bubble.classList.toggle('active', index === imageIndex);
-                });
+                // Update counter
+                if (counterContainer) {
+                    counterContainer.textContent = `${imageIndex + 1} of ${images.length}`;
+                    counterContainer.setAttribute('data-image-index', imageIndex);
+                }
+                
+                // Update swipe area data
+                if (swipeArea) {
+                    swipeArea.setAttribute('data-image-index', imageIndex);
+                }
                 
                 // Update modal data
                 modalButton.setAttribute('data-original-image', images[imageIndex]);
                 
                 // Update stored original image for mobile view and save functionality
                 window.originalImageSrc = images[imageIndex];
+                
+                // Update global modal context for AI generation
+                window.currentModalImageSrc = images[imageIndex];
+                console.log('🖼️ Modal image switched to:', images[imageIndex]);
             }
         }
         
@@ -2470,16 +2602,22 @@
             
             const images = JSON.parse(modalButton.getAttribute('data-images'));
             const mobileImage = document.getElementById('mobileImage');
-            const mobileBubblesContainer = document.getElementById('mobileImageBubbles');
+            const mobileCounter = document.getElementById('mobileImageCounter');
+            const mobileSwipeArea = document.getElementById('mobileImageSwipe');
             
             if (images && images[imageIndex] && mobileImage) {
                 mobileImage.src = images[imageIndex];
                 
-                // Update active bubble
-                const bubbles = mobileBubblesContainer.querySelectorAll('.image-bubble');
-                bubbles.forEach((bubble, index) => {
-                    bubble.classList.toggle('active', index === imageIndex);
-                });
+                // Update counter
+                if (mobileCounter) {
+                    mobileCounter.textContent = `${imageIndex + 1} of ${images.length}`;
+                    mobileCounter.setAttribute('data-image-index', imageIndex);
+                }
+                
+                // Update swipe area data
+                if (mobileSwipeArea) {
+                    mobileSwipeArea.setAttribute('data-image-index', imageIndex);
+                }
                 
                 // Update modal data
                 modalButton.setAttribute('data-original-image', images[imageIndex]);
@@ -2487,6 +2625,10 @@
                 // Update stored original image for mobile view and save functionality
                 window.originalImageSrc = images[imageIndex];
                 
+                // Update global modal context for AI generation  
+                window.currentModalImageSrc = images[imageIndex];
+                console.log('📱 Mobile image switched to:', images[imageIndex]);
+            
                 // Update mobile view if currently showing before
                 if (currentMobileView === 'before') {
                     showMobileView('before');
@@ -2495,12 +2637,38 @@
         }
 
 
+        // Test loading states function (for debugging)
+        function testLoadingStates() {
+            console.log('🧪 Testing loading states...');
+            const cards = document.querySelectorAll('[data-home-id]');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    showCardLoadingState(card);
+                }, index * 500);
+                
+                setTimeout(() => {
+                    hideCardLoadingState(card);
+                }, index * 500 + 3000);
+            });
+        }
+
         // Load homes when page loads
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Page loaded, testing APIs...');
             
             // Load prompts configuration
             loadPrompts();
+            
+            // Add test loading states button (for debugging)
+            const testButton = document.createElement('button');
+            testButton.textContent = 'Test Loading States';
+            testButton.className = 'btn btn-warning btn-sm';
+            testButton.style.position = 'fixed';
+            testButton.style.top = '10px';
+            testButton.style.right = '10px';
+            testButton.style.zIndex = '1000';
+            testButton.onclick = testLoadingStates;
+            document.body.appendChild(testButton);
             
             // Add Enter key event listener for search input
             const locationInput = document.getElementById('locationSearchHome');
@@ -2546,6 +2714,24 @@
             const originalImage = button.getAttribute('data-original-image');
             const currentValue = button.getAttribute('data-current-value');
             const images = JSON.parse(button.getAttribute('data-images') || '[]');
+            const imageCount = parseInt(button.getAttribute('data-image-count') || images.length || 1);
+            
+            // Trigger lazy loading when modal opens
+            const card = button.closest('.card');
+            const homeId = card.getAttribute('data-home-id');
+            const home = homesList.find(h => h.id == homeId);
+            if (home && !home.lazyLoaded) {
+                console.log('📸 Modal opened, triggering lazy load...');
+                lazyLoadImagesForCard(card, home);
+            }
+            
+            // If this property doesn't have high-quality images yet, try to retry
+            if (home && home.hasHighQualityPhotos && (!home.lazyLoaded || home.rateLimited)) {
+                console.log('🔄 Property needs high-quality images, triggering retry...');
+                setTimeout(async () => {
+                    await retryFailedHighQualityImages([home]);
+                }, 1000); // Small delay to let lazy load complete first
+            }
             
             // Set original image and current value
             document.getElementById('originalImage').src = originalImage;
@@ -2554,36 +2740,42 @@
             // Store original image for mobile view and save functionality
             window.originalImageSrc = originalImage;
             
-            // Set up image navigation bubbles for modal
-            const bubblesContainer = document.getElementById('originalImageBubbles');
-            if (bubblesContainer && images.length > 1) {
-                bubblesContainer.innerHTML = '';
-                images.forEach((_, imgIndex) => {
-                    const bubble = document.createElement('div');
-                    bubble.className = `image-bubble ${imgIndex === 0 ? 'active' : ''}`;
-                    bubble.onclick = () => switchModalImage(imgIndex);
-                    bubblesContainer.appendChild(bubble);
-                });
-            } else if (bubblesContainer) {
-                bubblesContainer.innerHTML = '';
+            // Initialize global modal context for AI generation
+            window.currentModalImageSrc = originalImage;
+            
+            // Set up image navigation and swipe functionality for modal
+            const swipeArea = document.getElementById('originalImageSwipe');
+            const counterContainer = document.getElementById('originalImageCounter');
+            
+            if (counterContainer) {
+                counterContainer.textContent = `1 of ${imageCount}`;
+                counterContainer.setAttribute('data-image-index', '0');
+                counterContainer.setAttribute('data-total', imageCount);
             }
             
-            // Set up mobile image and bubbles
+            if (swipeArea && images.length > 1) {
+                swipeArea.setAttribute('data-image-index', '0');
+                setupModalSwipe(swipeArea, images, 'switchModalImage');
+            }
+            
+            // Set up mobile image navigation
             const mobileImage = document.getElementById('mobileImage');
-            const mobileBubblesContainer = document.getElementById('mobileImageBubbles');
+            const mobileSwipeArea = document.getElementById('mobileImageSwipe');
+            const mobileCounter = document.getElementById('mobileImageCounter');
+            
             if (mobileImage) {
                 mobileImage.src = originalImage;
             }
-            if (mobileBubblesContainer && images.length > 1) {
-                mobileBubblesContainer.innerHTML = '';
-                images.forEach((_, imgIndex) => {
-                    const bubble = document.createElement('div');
-                    bubble.className = `image-bubble ${imgIndex === 0 ? 'active' : ''}`;
-                    bubble.onclick = () => switchMobileImage(imgIndex);
-                    mobileBubblesContainer.appendChild(bubble);
-                });
-            } else if (mobileBubblesContainer) {
-                mobileBubblesContainer.innerHTML = '';
+            
+            if (mobileCounter) {
+                mobileCounter.textContent = `1 of ${imageCount}`;
+                mobileCounter.setAttribute('data-image-index', '0');
+                mobileCounter.setAttribute('data-total', imageCount);
+            }
+            
+            if (mobileSwipeArea && images.length > 1) {
+                mobileSwipeArea.setAttribute('data-image-index', '0');
+                setupModalSwipe(mobileSwipeArea, images, 'switchMobileImage');
             }
             
             // Reset upgraded image and controls
