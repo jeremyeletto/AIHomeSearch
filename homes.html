@@ -1327,17 +1327,17 @@
             try {
                 console.log('Testing API connectivity...');
                 
-                // Test Bedrock first (primary service)
-                console.log('Testing AWS Bedrock connectivity...');
-                const bedrockResponse = await fetch(`${API_BASE_URL}/api/test-bedrock`);
+                // Test Gemini first (primary service)
+                console.log('Testing Gemini connectivity...');
+                const bedrockResponse = await fetch(`${API_BASE_URL}/api/test-gemini`);
                 const bedrockResult = await bedrockResponse.json();
                 
                 if (bedrockResult.success) {
-                    console.log('✅ AWS Bedrock is accessible');
-                    console.log('Model:', bedrockResult.modelId);
+                    console.log('✅ Gemini API is accessible');
+                    console.log('Model:', bedrockResult.result?.modelVersion || 'gemini-2.5-flash');
                     console.log('Region:', bedrockResult.region);
                 } else {
-                    console.log('❌ AWS Bedrock test failed:', bedrockResult.error);
+                    console.log('❌ Gemini API test failed:', bedrockResult.error);
                 }
                 
                 // Test Gemini as backup
