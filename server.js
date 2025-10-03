@@ -105,7 +105,7 @@ const MODEL_PROVIDER = process.env.MODEL_PROVIDER || 'gemini'; // 'gemini' or 'a
 // Gemini API configuration - SECURE: Use environment variables only
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_PROJECT = process.env.GEMINI_PROJECT || '549560236821';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash-exp';
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash-image-preview';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Validate Gemini API key - REQUIRED for security
