@@ -1219,13 +1219,20 @@ app.get('/api/realtor/image-counts', async (req, res) => {
     
     console.log('📡 Fetching property listings from:', apiUrl);
     
+    // Create an AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
     const response = await fetch(apiUrl, {
       method: 'GET',
       headers: {
         'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
         'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -1308,10 +1315,20 @@ app.get('/api/realtor/image-counts', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Error in optimized property loader:', error);
-    res.status(500).json({
-      success: false,
-      error: `Failed to get properties: ${error.message}`
-    });
+    
+    // Handle specific timeout errors
+    if (error.name === 'AbortError') {
+      res.status(504).json({
+        success: false,
+        error: 'Request timeout - External API took too long to respond',
+        timeout: true
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: `Failed to get properties: ${error.message}`
+      });
+    }
   }
 });
 

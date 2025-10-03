@@ -118,6 +118,74 @@
         .card:not(.loading):hover .card-img-top:not(.loading) {
             transform: scale(1.05);
         }
+        
+        /* Image navigation arrows */
+        .image-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .image-nav-arrow:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .image-nav-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        .image-nav-arrow.prev {
+            left: 10px;
+        }
+        
+        .image-nav-arrow.next {
+            right: 10px;
+        }
+        
+        /* Show arrows on card hover */
+        .card:hover .image-nav-arrow {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Show arrows on modal image hover */
+        #upgradeModal .position-relative:hover .image-nav-arrow {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hide arrows when loading */
+        .card-img-top.loading + .image-nav-arrow,
+        .card:has(.card-img-top.loading) .image-nav-arrow {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none;
+        }
+        
+        /* Ensure arrows are always on top */
+        .image-nav-arrow {
+            z-index: 25;
+        }
+        
+        /* Arrow icons */
+        .image-nav-arrow i {
+            font-size: 16px;
+        }
 
         .home-card:hover .card-img-top {
             transform: scale(1.05);
@@ -442,6 +510,167 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /* Magical Loading Animation Styles */
+        .magic-spinner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .magic-ring {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea);
+            animation: magical-rotate 3s linear infinite;
+        }
+
+        .magic-ring::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .magic-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            font-size: 32px;
+            color: #667eea;
+            animation: magic-pulse 1.5s ease-in-out infinite alternate;
+        }
+
+        .magic-sparkles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sparkle {
+            position: absolute;
+            font-size: 16px;
+            color: #ffd700;
+            animation: sparkle-twinkl 2s ease-in-out infinite;
+        }
+
+        .sparkle:nth-child(1) {
+            top: 10%;
+            left: 20%;
+            animation-delay: 0s;
+        }
+
+        .sparkle:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-delay: 0.3s;
+        }
+
+        .sparkle:nth-child(3) {
+            bottom: 20%;
+            left: 15%;
+            animation-delay: 0.6s;
+        }
+
+        .sparkle:nth-child(4) {
+            bottom: 10%;
+            right: 20%;
+            animation-delay: 0.9s;
+        }
+
+        .sparkle:nth-child(5) {
+            top: 50%;
+            left: 5%;
+            animation-delay: 1.2s;
+        }
+
+        .sparkle:nth-child(6) {
+            top: 50%;
+            right: 5%;
+            animation-delay: 1.5s;
+        }
+
+        .magic-text h5, .magic-text h6 {
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: text-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes magical-rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes magic-pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        @keyframes sparkle-twinkl {
+            0%, 100% { 
+                opacity: 0; 
+                transform: scale(0.5) rotate(0deg);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1) rotate(180deg);
+            }
+        }
+
+        @keyframes text-glow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2); }
+        }
+
+        /* Smaller version for mobile with better centering */
+        @media (max-width: 768px) {
+            .magic-spinner {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .magic-icon {
+                font-size: 20px;
+            }
+            
+            .sparkle {
+                font-size: 10px;
+            }
+            
+            .magic-text h6 {
+                font-size: 1rem;
+                line-height: 1.2;
+            }
+            
+            .magic-text small {
+                font-size: 0.75rem;
+                line-height: 1.3;
+            }
+            
+            /* Improve mobile magical loading centering */
+            #mobileMagicalLoading .d-flex {
+                padding: 2rem 1rem;
+            }
+            
+            #mobileMagicalLoading .magic-text {
+                margin-top: 0;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -579,6 +808,15 @@
                             <h6 class="text-primary mb-3">Current Property</h6>
                         <div class="position-relative">
                             <img id="originalImage" src="" alt="Original" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
+                            
+                            <!-- Modal Navigation Arrows -->
+                            <button class="image-nav-arrow prev" onclick="navigateModalImage('prev')" aria-label="Previous image" title="Previous image">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="image-nav-arrow next" onclick="navigateModalImage('next')" aria-label="Next image" title="Next image">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            
                             <div class="swipe-area image-carousel" id="originalImageSwipe"></div>
                             <div class="image-counter" id="originalImageCounter">
                                 <!-- Counter will be added here -->
@@ -590,19 +828,73 @@
                         </div>
                         <div class="col-md-6">
                             <h6 class="text-success mb-3">AI-Generated Upgrade Preview</h6>
-                            <div id="upgradedImageContainer" style="position: relative;">
-                                <img id="upgradedImage" src="" alt="AI Generated" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover; display: none;">
-                                <div id="upgradeDescription" style="display: none;"></div>
-                                <div id="generationLoading" class="position-absolute top-50 start-50 translate-middle text-center">
+                            
+                            <!-- Desktop Image Container with Placeholder Card -->
+                            <div class="position-relative">
+                                <!-- Instruction Placeholder Card -->
+                                <div id="desktopInstructionPlaceholder" class="bg-light border rounded mb-3 position-relative d-none d-md-flex flex-column align-items-center justify-content-center text-center p-4" style="width: 100%; height: 300px; border-style: dashed !important; border-color: #dee2e6 !important;">
+                                    <div class="instruction-icon mb-3">
+                                        <i class="fas fa-magic fa-3x text-muted"></i>
+                                    </div>
+                                    <div class="instruction-text">
+                                        <h5 class="text-primary mb-2">✨ AI-Powered Transformations ✨</h5>
+                                        <p class="text-muted mb-3">Click any upgrade option below to see how AI transforms your property</p>
+                                        <div class="instruction-features">
+                                            <div class="row text-start small">
+                                                <div class="col-6">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    <span>Realistic improvements</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    <span>Quick generation</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    <span>High-quality images</span>
+                                                </div>
+                                                <div class="col-6">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                    <span>Download results</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!--Magical Loading Card (shown during generation) -->
+                                <div id="desktopMagicalLoadingCard" class="bg-light border rounded mb-3 position-absolute top-0 start-0" style="width: 100%; height: 300px; border-style: dashed !important; border-color: #dee2e6 !important; z-index: 10; display: none; flex-direction: column; align-items: center; justify-content: center;">
+                                    <div class="magic-spinner mb-3">
+                                        <div class="magic-ring">
+                                            <div class="magic-sparkles">
+                                                <span class="sparkle"></span>
+                                                <span class="sparkle"></span>
+                                                <span class="sparkle"></span>
+                                                <span class="sparkle"></span>
+                                                <span class="sparkle"></span>
+                                                <span class="sparkle"></span>
+                                            </div>
+                                            <div class="magic-icon">
+                                                <i class="fas fa-magic"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="magic-text">
+                                        <h6 class="text-primary mb-1">✨ AI Creating Magic ✨</h6>
+                                        <small class="text-muted">Transforming your vision into reality...</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Actual Generated Image -->
+                                <img id="upgradedImage" src="" alt="AI Generated" class="img-fluid rounded mb-3 position-absolute top-0 start-0" style="width: 100%; height: 300px; object-fit: cover; display: none;">
+                                
+                                <!-- Legacy Loading Fallback -->
+                                <div id="generationLoading" class="position-absolute top-50 start-50 translate-middle text-center" style="display: none;">
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Generating upgrade...</span>
                                     </div>
                                     <p class="mt-2 text-muted">AI is imagining your upgrade...</p>
                                 </div>
-                            </div>
-                            <div class="bg-light p-3 rounded text-center">
-                                <strong>Estimated Value: </strong><span id="upgradedValue">$0</span>
-                                <div class="text-success small mt-1" id="valueIncrease"></div>
                             </div>
                         </div>
                     </div>
@@ -622,17 +914,43 @@
                         
                 <div class="position-relative">
                     <img id="mobileImage" src="" alt="Property" class="img-fluid rounded mb-3" style="width: 100%; height: 300px; object-fit: cover;">
+                    
+                    <!-- Modal Mobile Navigation Arrows -->
+                    <button class="image-nav-arrow prev" onclick="navigateModalImage('prev')" aria-label="Previous image" title="Previous image">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="image-nav-arrow next" onclick="navigateModalImage('next')" aria-label="Next image" title="Next image">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    
                     <div class="swipe-area image-carousel" id="mobileImageSwipe"></div>
                     <div class="image-counter" id="mobileImageCounter">
                         <!-- Counter will be added here -->
                     </div>
-                </div>
-                        
-                        <div class="bg-light p-3 rounded text-center">
-                            <div id="mobileValueInfo">
-                                <strong>Current Value: </strong><span id="mobileCurrentValue">$0</span>
+                    
+                    <!-- Magical Loading Overlay for Mobile -->
+                    <div id="mobileMagicalLoading" class="position-absolute top-0 start-0 w-100 h-100 d-md-none" style="background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: none; border-radius: 15px; align-items: center; justify-content: center;">
+                        <div class="magic-spinner mb-4">
+                            <div class="magic-ring">
+                                <div class="magic-sparkles">
+                                    <span class="sparkle"></span>
+                                    <span class="sparkle"></span>
+                                    <span class="sparkle"></span>
+                                    <span class="sparkle"></span>
+                                    <span class="sparkle"></span>
+                                    <span class="sparkle"></span>
+                                </div>
+                                <div class="magic-icon">
+                                    <i class="fas fa-magic"></i>
+                                </div>
                             </div>
                         </div>
+                        <div class="magic-text text-center">
+                            <h6 class="text-primary mb-2">✨ AI Creating Magic ✨</h6>
+                            <small class="text-muted">Transforming your vision...</small>
+                        </div>
+                    </div>
+                </div>
                     </div>
                     
                     <div class="mt-4">
@@ -702,6 +1020,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    
+                    <!-- Generate New Image Button (shown after generation completes) -->
+                    <button type="button" class="btn btn-outline-primary" id="generateNewImageBtn" style="display: none;" onclick="resetModalForNewGeneration()">
+                        <i class="fas fa-redo me-2"></i>Generate New Image
+                    </button>
+                    
                     <button type="button" class="btn btn-primary" id="saveUpgrade" disabled onclick="saveBeforeAfterImage()">
                         <i class="fas fa-save"></i> Save Image
                     </button>
@@ -1076,6 +1400,12 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('❌ API Error Response:', errorText);
+                    
+                    // Handle timeout errors specifically
+                    if (response.status === 504) {
+                        throw new Error(`API timeout: Realtor16 API took too long to respond. Please try again or search in a different location.`);
+                    }
+                    
                     throw new Error(`API request failed: ${response.status} - ${errorText}`);
                 }
                 
@@ -1366,12 +1696,24 @@
                 if (counter) {
                     counter.textContent = `1 of ${home.imageCount}`;
                     counter.setAttribute('data-total', home.imageCount);
+                    counter.setAttribute('data-image-index', '0');
+                }
+                
+                // Update navigation arrows visibility
+                const prevArrow = card.querySelector('.image-nav-arrow.prev');
+                const nextArrow = card.querySelector('.image-nav-arrow.next');
+                
+                if (prevArrow && nextArrow) {
+                    const showArrows = home.images.length > 1;
+                    prevArrow.style.display = showArrows ? 'flex' : 'none';
+                    nextArrow.style.display = showArrows ? 'flex' : 'none';
                 }
                 
                 // Make card interactive for swipe functionality if multiple images
                 const swipeArea = card.querySelector('.swipe-area');
                 if (swipeArea && home.images.length > 1) {
                     makeCardInteractive(swipeArea);
+                    swipeArea.setAttribute('data-image-index', '0');
                 }
                 
                 // Update modal data attributes
@@ -1453,13 +1795,13 @@
             if (loadingOverlay) {
                 // Smooth fade out transition
                 loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
+                            setTimeout(() => {
                     loadingOverlay.style.display = 'none';
                     loadingOverlay.style.opacity = '1'; // Reset for next time
                 }, 300);
             }
             
-            if (img) {
+                if (img) {
                 img.classList.remove('loading');
             }
             
@@ -1467,6 +1809,280 @@
                 // Counter will be updated by updateHomeCardImages
             }
         }
+
+        // Shared function to get current image index from a card
+        function getCurrentImageIndex(card) {
+            const counter = card.querySelector('.image-counter');
+            if (counter) {
+                const currentIndex = parseInt(counter.getAttribute('data-image-index')) || 0;
+                return currentIndex;
+            }
+            return 0; // Default to first image if no counter found
+        }
+        
+        // Shared function to update modal data attributes with current image
+        function updateModalDataAttributes(card, home) {
+            const modalButton = card.querySelector('[data-bs-target="#upgradeModal"]');
+            if (modalButton && home && home.images && home.images.length > 0) {
+                const currentIndex = getCurrentImageIndex(card);
+                const currentImage = home.images[currentIndex] || home.images[0];
+                
+                modalButton.setAttribute('data-original-image', currentImage);
+                modalButton.setAttribute('data-images', JSON.stringify(home.images));
+                modalButton.setAttribute('data-image-count', home.imageCount);
+                modalButton.setAttribute('data-current-image-index', currentIndex);
+                
+                console.log(`🔄 Updated modal data for ${home.address}: image ${currentIndex + 1}/${home.imageCount}`);
+            }
+        }
+
+        // Navigate images using arrow buttons
+        function navigateImage(homeId, direction) {
+            console.log(`🔍 ARROW CLICK DEBUG - Starting navigation for homeId: ${homeId}, direction: ${direction}`);
+            
+            const card = document.querySelector(`[data-home-id="${homeId}"]`);
+            console.log(`🔍 Card found:`, card);
+            if (!card) {
+                console.log(`❌ No card found with data-home-id="${homeId}"`);
+                    return;
+                }
+                
+            const img = card.querySelector('.card-img-top');
+            const counter = card.querySelector('.image-counter');
+            const swipeArea = card.querySelector('.swipe-area');
+            
+            console.log(`🔍 Elements found:`, {
+                img: img,
+                counter: counter,
+                swipeArea: swipeArea,
+                imgSrc: img ? img.src : 'N/A',
+                counterText: counter ? counter.textContent : 'N/A'
+            });
+            
+            if (!img || !counter || !swipeArea) {
+                console.log(`❌ Missing required elements:`, {
+                    hasImg: !!img,
+                    hasCounter: !!counter,
+                    hasSwipeArea: !!swipeArea
+                });
+                return;
+            }
+            
+            // Get current image index and total images
+            const currentIndex = parseInt(counter.getAttribute('data-image-index')) || 0;
+            const totalImages = parseInt(counter.getAttribute('data-total')) || 1;
+            
+            console.log(`🔍 Current state:`, {
+                currentIndex: currentIndex,
+                totalImages: totalImages,
+                counterAttributes: {
+                    'data-image-index': counter.getAttribute('data-image-index'),
+                    'data-total': counter.getAttribute('data-total')
+                }
+            });
+            
+            if (totalImages <= 1) {
+                console.log(`⚠️ Only ${totalImages} image(s), no navigation needed`);
+                return; // No navigation needed for single image
+            }
+            
+            // Calculate new index
+            let newIndex;
+            if (direction === 'prev') {
+                newIndex = currentIndex > 0 ? currentIndex - 1 : totalImages - 1; // Loop to last image
+            } else if (direction === 'next') {
+                newIndex = currentIndex < totalImages - 1 ? currentIndex + 1 : 0; // Loop to first image
+            } else {
+                console.log(`❌ Invalid direction: ${direction}`);
+                return;
+            }
+            
+            console.log(`🔍 Calculated new index: ${newIndex} (from ${currentIndex} with direction ${direction})`);
+            
+            // Get the images array from the processed home object
+            // We need to look in the processed homes array, not the raw recentProperties array
+            console.log(`🔍 Searching for homeId: ${homeId} in processed homes array:`, {
+                homesLength: homesList.length,
+                homesIds: homesList.map(h => ({ id: h.id, idType: typeof h.id, address: h.address, hasImages: !!h.images })),
+                homeIdType: typeof homeId,
+                homeIdValue: homeId
+            });
+            
+            // Find the processed home object that has the high-quality images
+            const home = homesList.find(h => h.id == homeId);
+            
+            // Let's see what the actual processed home structure looks like
+            console.log(`🔍 Found processed home structure:`, {
+                id: home?.id,
+                address: home?.address,
+                images: home?.images,
+                imageCount: home?.imageCount,
+                hasImages: !!home?.images,
+                imagesLength: home?.images?.length || 0,
+                availableProps: home ? Object.keys(home).slice(0, 15) : []
+            });
+            
+            // The processed home object should have the high-quality images in the 'images' array
+            let images = home?.images || [];
+            let imageCount = home?.imageCount || images.length;
+            
+            console.log(`🔍 Extracted images:`, {
+                images: images.slice(0, 3), // Show first 3 images
+                imageCount: imageCount,
+                hasImages: imageCount > 0
+            });
+            
+            if (!home || imageCount === 0) {
+                console.log(`❌ No home object or images found for homeId: ${homeId}`);
+                return;
+            }
+            
+            // Update image source
+            const newImageSrc = images[newIndex] || images[0];
+            console.log(`🔍 Updating image source:`, {
+                oldSrc: img.src,
+                newSrc: newImageSrc,
+                newIndex: newIndex,
+                totalImages: imageCount
+            });
+            
+            img.src = newImageSrc;
+            
+            // Update counter
+            const newCounterText = `${newIndex + 1} of ${imageCount}`;
+            console.log(`🔍 Updating counter:`, {
+                oldText: counter.textContent,
+                newText: newCounterText,
+                newIndex: newIndex,
+                totalImages: imageCount
+            });
+            
+            counter.textContent = newCounterText;
+            counter.setAttribute('data-image-index', newIndex);
+            counter.setAttribute('data-total', imageCount);
+            
+            // Update swipe area
+            console.log(`🔍 Updating swipe area data-image-index to: ${newIndex}`);
+            swipeArea.setAttribute('data-image-index', newIndex);
+            
+            // Update modal data attributes for when user opens the modal
+            console.log(`🔍 Updating card data-current-image to: ${newIndex}`);
+            card.setAttribute('data-current-image', newIndex);
+            
+            // Update modal data attributes with current image
+            updateModalDataAttributes(card, home);
+            
+            console.log(`✅ Successfully navigated to image ${newIndex + 1}/${totalImages} for property ${homeId}`);
+            console.log(`🔍 Final state:`, {
+                imgSrc: img.src,
+                counterText: counter.textContent,
+                counterDataIndex: counter.getAttribute('data-image-index'),
+                swipeAreaDataIndex: swipeArea.getAttribute('data-image-index'),
+                cardDataCurrent: card.getAttribute('data-current-image')
+            });
+        }
+
+        // Navigate images in modal using arrow buttons
+        function navigateModalImage(direction) {
+            console.log(`🔍 MODAL ARROW CLICK - Direction: ${direction}`);
+            
+            // Get the current modal button to access the images data
+            const modalButton = document.querySelector('[data-bs-target="#upgradeModal"]:not([style*="display: none"])');
+            if (!modalButton) {
+                console.log('❌ No modal button found');
+                return;
+            }
+            
+            const images = JSON.parse(modalButton.getAttribute('data-images') || '[]');
+            const imageCount = parseInt(modalButton.getAttribute('data-image-count') || images.length || 1);
+            
+            console.log(`🔍 Modal images:`, { images: images.slice(0, 3), imageCount });
+            
+            if (imageCount <= 1) {
+                console.log(`⚠️ No navigation needed for single image (imageCount: ${imageCount})`);
+                return;
+            }
+            
+            // Get current image index from desktop counter (preferred) or mobile counter
+            const desktopCounter = document.getElementById('originalImageCounter');
+            const mobileCounter = document.getElementById('mobileImageCounter');
+            const counter = desktopCounter || mobileCounter;
+            
+            if (!counter) {
+                console.log('❌ No image counter found in modal');
+                return;
+            }
+            
+            const currentIndex = parseInt(counter.getAttribute('data-image-index')) || 0;
+            
+            console.log(`🔍 Current modal state:`, {
+                currentIndex: currentIndex,
+                imageCount: imageCount,
+                counterElement: counter.id
+            });
+            
+            // Calculate new index
+            let newIndex;
+            if (direction === 'prev') {
+                newIndex = currentIndex > 0 ? currentIndex - 1 : imageCount - 1; // Loop to last image
+            } else if (direction === 'next') {
+                newIndex = currentIndex < imageCount - 1 ? currentIndex + 1 : 0; // Loop to first image
+            } else {
+                console.log(`❌ Invalid modal navigation direction: ${direction}`);
+                return;
+            }
+            
+            console.log(`🔍 Modal navigation: ${currentIndex} → ${newIndex} (direction: ${direction})`);
+            
+            // Update both desktop and mobile views
+            const originalImage = document.getElementById('originalImage');
+            const mobileImage = document.getElementById('mobileImage');
+            const originalSwipeArea = document.getElementById('originalImageSwipe');
+            const mobileSwipeArea = document.getElementById('mobileImageSwipe');
+            
+            const newImageSrc = images[newIndex] || images[0];
+            
+            // Update desktop view
+            if (originalImage) {
+                originalImage.src = newImageSrc;
+                console.log(`🖥️ Updated desktop image: ${newImageSrc}`);
+            }
+            
+            // Update mobile view
+            if (mobileImage) {
+                mobileImage.src = newImageSrc;
+                console.log(`📱 Updated mobile image: ${newImageSrc}`);
+            }
+            
+            // Update counters
+            const newCounterText = `${newIndex + 1} of ${imageCount}`;
+            
+            if (desktopCounter) {
+                desktopCounter.textContent = newCounterText;
+                desktopCounter.setAttribute('data-image-index', newIndex);
+                desktopCounter.setAttribute('data-total', imageCount);
+            }
+            
+            if (mobileCounter) {
+                mobileCounter.textContent = newCounterText;
+                mobileCounter.setAttribute('data-image-index', newIndex);
+                mobileCounter.setAttribute('data-total', imageCount);
+            }
+            
+            // Update swipe areas
+            if (originalSwipeArea) {
+                originalSwipeArea.setAttribute('data-image-index', newIndex);
+            }
+            
+            if (mobileSwipeArea) {
+                mobileSwipeArea.setAttribute('data-image-index', newIndex);
+            }
+            
+            console.log(`✅ Modal navigation complete: ${newIndex + 1}/${imageCount}`);
+        }
+
+        // Add keyboard navigation support (controlled version)
+        document.addEventListener('keydown', handleKeyboardNavigation);
 
 
         // Get fallback images for properties
@@ -1550,6 +2166,14 @@
 
         // Create a home card
         function createHomeCard(home, index) {
+            console.log(`🏠 Creating card for home:`, {
+                id: home.id,
+                address: home.address,
+                images: home.images,
+                imageCount: home.imageCount,
+                hasMultipleImages: (home.images || []).length > 1
+            });
+            
             const col = document.createElement('div');
             col.className = 'col-md-6 col-lg-4';
             
@@ -1557,10 +2181,26 @@
             const currentImage = images[0] || 'https://via.placeholder.com/400x250?text=No+Image';
             const totalImages = home.imageCount || images.length || 1;
             
+            console.log(`🏠 Card creation details:`, {
+                imagesArray: images,
+                currentImage: currentImage,
+                totalImages: totalImages,
+                showArrows: images.length > 1
+            });
+            
             col.innerHTML = `
                 <div class="card home-card" data-home-id="${home.id}">
                     <div class="position-relative">
                         <img src="${currentImage}" class="card-img-top" alt="${home.address}" loading="lazy">
+                        
+                        <!-- Navigation arrows -->
+                        <button class="image-nav-arrow prev" onclick="console.log('🖱️ PREV ARROW CLICKED for homeId: ${home.id}'); navigateImage('${home.id}', 'prev')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Previous image" title="Previous image">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="image-nav-arrow next" onclick="console.log('🖱️ NEXT ARROW CLICKED for homeId: ${home.id}'); navigateImage('${home.id}', 'next')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Next image" title="Next image">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        
                         <div class="swipe-area image-carousel" data-image-index="0" data-home-id="${home.id}" onclick="makeCardInteractive(this)">
                             <!-- Swipe functionality will be handled by JavaScript -->
                         </div>
@@ -2020,16 +2660,175 @@
             }
         }
 
+        // Get the currently displayed image in the modal
+        function getCurrentModalImage() {
+            const modalImg = document.getElementById('originalImage');
+            if (modalImg && modalImg.src) {
+                console.log('📷 Current modal image URL:', modalImg.src);
+                return modalImg.src;
+            }
+            
+            // Fallback to stored original image
+            const fallback = window.currentModalImageSrc || originalImageSrc;
+            console.log('📷 Fallback image URL:', fallback);
+            return fallback;
+        }
+
+        // Reset modal for new generation (called by "Generate New Image" button)
+        function resetModalForNewGeneration() {
+            console.log('🔄 Modal reset for new generation');
+            
+            // Re-enable image navigation
+            enableImageNavigation();
+            
+            // Hide the "Generate New Image" button
+            document.getElementById('generateNewImageBtn').style.display = 'none';
+            
+            // Reset desktop view to instruction placeholder
+            if (window.innerWidth >= 768) {
+                document.getElementById('desktopInstructionPlaceholder').style.display = 'flex';
+                document.getElementById('desktopMagicalLoadingCard').style.display = 'none';
+            }
+            
+            // Hide upgraded image
+            const upgradedImage = document.getElementById('upgradedImage');
+            upgradedImage.style.display = 'none';
+            upgradedImage.src = '';
+            
+            // Hide mobile toggle group and save button
+            document.getElementById('mobileToggleGroup').style.display = 'none';
+            document.getElementById('saveUpgrade').disabled = true;
+            
+            // Reset upgrade pills (enable all, remove active state)
+            document.querySelectorAll('.upgrade-pill').forEach(pill => {
+                pill.classList.remove('active');
+                pill.disabled = false;
+            });
+            
+            // Reset custom input
+            const customInput = document.getElementById('customUpgradeInput');
+            const customBtn = document.getElementById('customUpgradeBtn');
+            if (customInput) {
+                customInput.value = '';
+                customInput.disabled = false;
+            }
+            if (customBtn) {
+                customBtn.disabled = false;
+            }
+            
+            // Reset mobile view
+            showMobileView('before');
+            
+            console.log('✅ Modal reset complete - ready for new generation');
+        }
+
         // Show/hide generation loading state
         function showGenerationLoading(show) {
             const loadingDiv = document.getElementById('generationLoading');
             const upgradedImage = document.getElementById('upgradedImage');
+            const desktopInstructionPlaceholder = document.getElementById('desktopInstructionPlaceholder');
+            const desktopMagicalLoadingCard = document.getElementById('desktopMagicalLoadingCard');
+            const mobileMagicalLoading = document.getElementById('mobileMagicalLoading');
             
             if (show) {
-                loadingDiv.style.display = 'block';
-                upgradedImage.style.display = 'none';
-            } else {
+                // Hide old loading and upgraded image
                 loadingDiv.style.display = 'none';
+                upgradedImage.style.display = 'none';
+                
+                // Show magical loading for desktop (only on desktop)
+                if (window.innerWidth >= 768) {
+                    // Hide instruction placeholder completely
+                    desktopInstructionPlaceholder.style.display = 'none';
+                    
+                    // Show loading card with absolute positioning overlay
+                    desktopMagicalLoadingCard.style.display = 'flex';
+                }
+                
+                // Show magical loading for mobile overlay (only on mobile)
+                if (window.innerWidth < 768) {
+                    mobileMagicalLoading.style.display = 'flex';
+                    mobileMagicalLoading.style.flexDirection = 'column';
+                    mobileMagicalLoading.style.alignItems = 'center';
+                    mobileMagicalLoading.style.justifyContent = 'center';
+                }
+                
+                // Hide mobile toggle group while loading
+                document.getElementById('mobileToggleGroup').style.display = 'none';
+            } else {
+                // Hide all loading states
+                loadingDiv.style.display = 'none';
+                desktopMagicalLoadingCard.style.display = 'none';
+                mobileMagicalLoading.style.display = 'none';
+            }
+        }
+
+        // Disable image navigation during generation (modal-only)
+        function disableImageNavigation() {
+            // Hide only MODAL image navigation arrows
+            document.querySelectorAll('#upgradeModal .image-nav-arrow').forEach(arrow => {
+                arrow.style.display = 'none';
+            });
+            
+            // Hide only MODAL image counters
+            document.querySelectorAll('#upgradeModal .image-counter').forEach(counter => {
+                counter.style.display = 'none';
+            });
+            
+            // Disable MODAL swipe areas
+            document.querySelectorAll('#upgradeModal .swipe-area').forEach(swipeArea => {
+                swipeArea.style.pointerEvents = 'none';
+                swipeArea.style.cursor = 'notAllowed';
+            });
+            
+            // Disable keyboard navigation
+            document.removeEventListener('keydown', handleKeyboardNavigation);
+            
+            console.log('🔒 Modal image navigation hidden during generation');
+        }
+        
+        // Re-enable image navigation after generation (modal-only)
+        function enableImageNavigation() {
+            // Show only MODAL image navigation arrows
+            document.querySelectorAll('#upgradeModal .image-nav-arrow').forEach(arrow => {
+                arrow.style.display = 'flex';
+                arrow.style.pointerEvents = 'auto';
+                arrow.style.opacity = '';
+                arrow.style.cursor = '';
+            });
+            
+            // Show only MODAL image counters
+            document.querySelectorAll('#upgradeModal .image-counter').forEach(counter => {
+                counter.style.display = 'block';
+            });
+            
+            // Re-enable only MODAL swipe areas
+            document.querySelectorAll('#upgradeModal .swipe-area').forEach(swipeArea => {
+                swipeArea.style.pointerEvents = 'auto';
+                swipeArea.style.cursor = '';
+            });
+            
+            // Re-enable keyboard navigation
+            document.addEventListener('keydown', handleKeyboardNavigation);
+            
+            console.log('🔓 Modal image navigation re-enabled');
+        }
+        
+        // Handle keyboard navigation separately to control enabling/disabling
+        function handleKeyboardNavigation(event) {
+            // Handle card navigation
+            if (event.target.closest('.card') && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+                event.preventDefault();
+                const card = event.target.closest('.card');
+                const homeId = card.getAttribute('data-home-id');
+                if (homeId) {
+                    navigateImage(homeId, event.key === 'ArrowLeft' ? 'prev' : 'next');
+                }
+            }
+            
+            // Handle modal navigation
+            if (event.target.closest('#upgradeModal') && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+                event.preventDefault();
+                navigateModalImage(event.key === 'ArrowLeft' ? 'prev' : 'next');
             }
         }
 
@@ -2069,21 +2868,15 @@
             const mobileImage = document.getElementById('mobileImage');
             const beforeBtn = document.getElementById('beforeBtn');
             const afterBtn = document.getElementById('afterBtn');
-            const mobileValueInfo = document.getElementById('mobileValueInfo');
             
             if (view === 'before') {
                 mobileImage.src = window.originalImageSrc || originalImageSrc;
                 beforeBtn.classList.add('active');
                 afterBtn.classList.remove('active');
-                mobileValueInfo.innerHTML = `<strong>Current Value: </strong><span id="mobileCurrentValue">${document.getElementById('currentValue').textContent}</span>`;
             } else {
                 mobileImage.src = window.upgradedImageSrc || upgradedImageSrc;
                 afterBtn.classList.add('active');
                 beforeBtn.classList.remove('active');
-                mobileValueInfo.innerHTML = `
-                    <strong>Estimated Value: </strong><span id="mobileUpgradedValue">${document.getElementById('upgradedValue').textContent}</span>
-                    <div class="text-success small mt-1">${document.getElementById('valueIncrease').innerHTML}</div>
-                `;
             }
         }
         
@@ -2140,20 +2933,11 @@
                         ctx.textAlign = 'center';
                         ctx.fillText('AFTER', (padding * 2) + imageWidth + (imageWidth / 2), padding - 10);
                         
-                        // Add property value information
-                        const currentValue = document.getElementById('currentValue').textContent;
-                        const upgradedValue = document.getElementById('upgradedValue').textContent;
-                        const valueIncrease = document.getElementById('valueIncrease').textContent;
-                        
+                        // Add image labels
                         ctx.fillStyle = '#333333';
                         ctx.font = '16px Arial';
                         ctx.textAlign = 'center';
-                        ctx.fillText(`Current Value: ${currentValue}`, totalWidth / 2, totalHeight - 40);
-                        ctx.fillText(`Upgraded Value: ${upgradedValue}`, totalWidth / 2, totalHeight - 20);
-                        if (valueIncrease) {
-                            ctx.fillStyle = '#28a745';
-                            ctx.fillText(valueIncrease, totalWidth / 2, totalHeight - 5);
-                        }
+                        ctx.fillText('AI Home Upgrade', totalWidth / 2, totalHeight - 20);
                         
                         // Convert canvas to blob and download
                         canvas.toBlob(function(blob) {
@@ -2236,12 +3020,15 @@
                 pill.disabled = true;
             });
             
+            // Disable image navigation during generation
+            disableImageNavigation();
+            
             try {
                 console.log('Starting image generation process...');
                 
-                // Generate the upgrade image using the current modal image
-                const currentImageSrc = window.currentModalImageSrc || originalImageSrc;
-                console.log('🎯 Using image for AI generation:', currentImageSrc);
+                // Generate the upgrade image using the currently displayed modal image
+                const currentImageSrc = getCurrentModalImage();
+                console.log('🎯 Using currently displayed modal image for AI generation:', currentImageSrc);
                 const generatedImageUrl = await generateUpgradeImage(currentImageSrc, upgradeType);
                 
                 if (!generatedImageUrl) {
@@ -2293,18 +3080,17 @@
                     // Hide loading state
                     showGenerationLoading(false);
                     
-                    // Calculate new value (15% increase)
-                    const upgradedValue = Math.round(currentValue * 1.15);
-                    const valueIncrease = upgradedValue - currentValue;
-                    
-                    document.getElementById('upgradedValue').textContent = `$${upgradedValue.toLocaleString()}`;
-                    document.getElementById('valueIncrease').innerHTML = `
-                        <i class="fas fa-arrow-up"></i> +$${valueIncrease.toLocaleString()} (15% increase)
-                    `;
+                    // Hide all placeholders and get the generated image
+                    document.getElementById('desktopInstructionPlaceholder').style.display = 'none';
+                    document.getElementById('desktopMagicalLoadingCard').style.display = 'none';
+                    upgradedImage.style.display = 'block';
                     
                     // Enable mobile toggle and save button
                     document.getElementById('mobileToggleGroup').style.display = 'block';
                     document.getElementById('saveUpgrade').disabled = false;
+                    
+                    // Show "Generate New Image" button (navigation stays disabled)
+                    document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                     
                     // Auto-switch to "after" view on mobile once image is loaded
                     showMobileView('after');
@@ -2314,6 +3100,9 @@
                     
                     // Clear the timeout since we're handling the error
                     clearTimeout(loadingTimeout);
+                    
+                    // Show "Generate New Image" button even on error (navigation stays disabled)
+                    document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                     
                     showGenerationError('Generated image failed to load');
                 };
@@ -2340,6 +3129,9 @@
                 document.querySelectorAll('.upgrade-pill').forEach(pill => {
                     pill.disabled = false;
                 });
+                
+                // Show "Generate New Image" button even on error (navigation stays disabled)
+                document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                 
                 // Show error message with more details
                 const errorMessage = `${error.message || error.toString()} (Check console for full details)`;
@@ -2377,12 +3169,15 @@
                 pill.disabled = true;
             });
             
+            // Disable image navigation during generation
+            disableImageNavigation();
+            
             try {
                 console.log('Starting custom upgrade generation...');
                 
-                // Generate the upgrade image using the current modal image
-                const currentImageSrc = window.currentModalImageSrc || originalImageSrc;
-                console.log('🎯 Using image for custom AI generation:', currentImageSrc);
+                // Generate the upgrade image using the currently displayed modal image
+                const currentImageSrc = getCurrentModalImage();
+                console.log('🎯 Using currently displayed modal image for custom AI generation:', currentImageSrc);
                 const generatedImageUrl = await generateCustomUpgradeImage(currentImageSrc, customText);
                 
                 if (!generatedImageUrl) {
@@ -2435,18 +3230,17 @@
                     // Hide loading state
                     showGenerationLoading(false);
                     
-                    // Calculate new value (15% increase)
-                    const upgradedValue = Math.round(currentValue * 1.15);
-                    const valueIncrease = upgradedValue - currentValue;
-                    
-                    document.getElementById('upgradedValue').textContent = `$${upgradedValue.toLocaleString()}`;
-                    document.getElementById('valueIncrease').innerHTML = `
-                        <i class="fas fa-arrow-up"></i> +$${valueIncrease.toLocaleString()} (15% increase)
-                    `;
+                    // Hide all placeholders and show the generated image
+                    document.getElementById('desktopInstructionPlaceholder').style.display = 'none';
+                    document.getElementById('desktopMagicalLoadingCard').style.display = 'none';
+                    upgradedImage.style.display = 'block';
                     
                     // Enable mobile toggle and save button
                     document.getElementById('mobileToggleGroup').style.display = 'block';
                     document.getElementById('saveUpgrade').disabled = false;
+                    
+                    // Show "Generate New Image" button (navigation stays disabled)
+                    document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                     
                     // Auto-switch to "after" view on mobile once image is loaded
                     showMobileView('after');
@@ -2456,6 +3250,9 @@
                     
                     // Clear the timeout since we're handling the error
                     clearTimeout(customLoadingTimeout);
+                    
+                    // Show "Generate New Image" button even on error (navigation stays disabled)
+                    document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                     
                     showGenerationError('Custom upgrade image failed to load');
                 };
@@ -2486,6 +3283,9 @@
                 document.querySelectorAll('.upgrade-pill').forEach(pill => {
                     pill.disabled = false;
                 });
+                
+                // Show "Generate New Image" button even on error (navigation stays disabled)
+                document.getElementById('generateNewImageBtn').style.display = 'inline-block';
                 
                 // Show error message with more details
                 const errorMessage = `${error.message || error.toString()} (Check console for full details)`;
@@ -2711,13 +3511,20 @@
         const upgradeModal = document.getElementById('upgradeModal');
         upgradeModal.addEventListener('show.bs.modal', event => {
             const button = event.relatedTarget;
-            const originalImage = button.getAttribute('data-original-image');
+            const card = button.closest('.card');
+            
+            // Get the current image index from the card (which image is currently displayed)
+            const currentImageIndex = getCurrentImageIndex(card);
             const currentValue = button.getAttribute('data-current-value');
             const images = JSON.parse(button.getAttribute('data-images') || '[]');
             const imageCount = parseInt(button.getAttribute('data-image-count') || images.length || 1);
             
+            // Use the currently displayed image instead of always the first image
+            const originalImage = images[currentImageIndex] || images[0] || button.getAttribute('data-original-image');
+            
+            console.log(`📸 Modal opening with current image ${currentImageIndex + 1}/${imageCount} for property`);
+            
             // Trigger lazy loading when modal opens
-            const card = button.closest('.card');
             const homeId = card.getAttribute('data-home-id');
             const home = homesList.find(h => h.id == homeId);
             if (home && !home.lazyLoaded) {
@@ -2748,15 +3555,21 @@
             const counterContainer = document.getElementById('originalImageCounter');
             
             if (counterContainer) {
-                counterContainer.textContent = `1 of ${imageCount}`;
-                counterContainer.setAttribute('data-image-index', '0');
+                counterContainer.textContent = `${currentImageIndex + 1} of ${imageCount}`;
+                counterContainer.setAttribute('data-image-index', currentImageIndex);
                 counterContainer.setAttribute('data-total', imageCount);
             }
             
             if (swipeArea && images.length > 1) {
-                swipeArea.setAttribute('data-image-index', '0');
+                swipeArea.setAttribute('data-image-index', currentImageIndex);
                 setupModalSwipe(swipeArea, images, 'switchModalImage');
             }
+            
+            // Show/hide modal navigation arrows based on number of images
+            const modalArrows = document.querySelectorAll('#upgradeModal .image-nav-arrow');
+            modalArrows.forEach(arrow => {
+                arrow.style.display = images.length > 1 ? 'flex' : 'none';
+            });
             
             // Set up mobile image navigation
             const mobileImage = document.getElementById('mobileImage');
@@ -2768,27 +3581,37 @@
             }
             
             if (mobileCounter) {
-                mobileCounter.textContent = `1 of ${imageCount}`;
-                mobileCounter.setAttribute('data-image-index', '0');
+                mobileCounter.textContent = `${currentImageIndex + 1} of ${imageCount}`;
+                mobileCounter.setAttribute('data-image-index', currentImageIndex);
                 mobileCounter.setAttribute('data-total', imageCount);
             }
             
             if (mobileSwipeArea && images.length > 1) {
-                mobileSwipeArea.setAttribute('data-image-index', '0');
+                mobileSwipeArea.setAttribute('data-image-index', currentImageIndex);
                 setupModalSwipe(mobileSwipeArea, images, 'switchMobileImage');
             }
             
             // Reset upgraded image and controls
             const upgradedImage = document.getElementById('upgradedImage');
+            const desktopInstructionPlaceholder = document.getElementById('desktopInstructionPlaceholder');
+            const desktopMagicalLoadingCard = document.getElementById('desktopMagicalLoadingCard');
+            
             upgradedImage.style.display = 'none';
             upgradedImage.src = '';
             
-            // Reset values
-            document.getElementById('upgradedValue').textContent = '$0';
-            document.getElementById('valueIncrease').textContent = '';
+            // Show instruction placeholder by default (only on desktop)
+            if (window.innerWidth >= 768) {
+                desktopInstructionPlaceholder.style.display = 'flex';
+                desktopMagicalLoadingCard.style.display = 'none';
+            }
+            
+            // Reset upgrade state
             
             // Hide controls until upgrade is selected
             document.getElementById('mobileToggleGroup').style.display = 'none';
+            
+            // Hide "Generate New Image" button initially
+            document.getElementById('generateNewImageBtn').style.display = 'none';
             document.getElementById('saveUpgrade').disabled = true;
             
             // Reset upgrade pills
