@@ -52,8 +52,19 @@ function setCachedData(type, key, data, ttl = CACHE_TTL[type]) {
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Enable CORS for all origins
-app.use(cors());
+// Enable CORS for all origins with explicit GitHub Pages support
+app.use(cors({
+  origin: [
+    'https://jeremyeletto.github.io',
+    'https://jeremyeletto.github.io/AIHomeSearch',
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'http://localhost:3001'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-goog-api-key']
+}));
 app.use(express.json({ limit: '50mb' }));
 
 // Environment validation for production
