@@ -57,13 +57,15 @@ app.use(cors({
   origin: [
     'https://jeremyeletto.github.io',
     'https://jeremyeletto.github.io/AIHomeSearch',
+    'https://jeremyeletto.github.io/AIHomeSearch/',
     'http://localhost:3000',
     'http://localhost:8080',
     'http://localhost:3001'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-goog-api-key']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-goog-api-key'],
+  optionsSuccessStatus: 200
 }));
 app.use(express.json({ limit: '50mb' }));
 
