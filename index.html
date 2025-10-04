@@ -18,11 +18,12 @@
 
         /* Global Styles */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
             background-size: 400% 400%;
             animation: gradientShift 15s ease infinite;
             min-height: 100vh;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
         }
 
         @keyframes gradientShift {
@@ -35,7 +36,7 @@
         .navbar {
             background: rgba(255, 255, 255, 0.9) !important;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(102, 126, 234, 0.1);
+            border: none;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
@@ -48,7 +49,16 @@
             background-clip: text;
         }
 
-        /* Search Page Animations */
+        .navbar-nav .nav-link {
+            color: #2d3748 !important;
+            font-weight: 500;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #667eea !important;
+        }
+
+        /* Landing Page Animations */
         .animate-fade-in {
             animation: fadeIn 1s ease-out;
         }
@@ -59,6 +69,14 @@
 
         .animate-scale-in {
             animation: scaleIn 1s ease-out 0.6s both;
+        }
+
+        .animate-bounce-in {
+            animation: bounceIn 1.2s ease-out 0.9s both;
+        }
+
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
         }
 
         @keyframes fadeIn {
@@ -76,41 +94,88 @@
             to { opacity: 1; transform: scale(1); }
         }
 
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { opacity: 1; transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Hero Section */
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 1.4rem;
+            color: #2d3748;
+            margin-bottom: 3rem;
+            font-weight: 400;
+            text-align: center;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         /* Search Hero Container */
         .search-hero-container {
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
+            width: 100%;
         }
 
         .search-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            padding: 3rem 2rem;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            background: none;
+            backdrop-filter: none;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            box-shadow: none;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
         }
 
         .search-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--primary-gradient);
+            display: none;
         }
 
-        .search-header h2 {
-            color: #2d3748;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
+        .search-header {
+            display: none;
         }
 
         .search-input-container {
-            margin: 2rem 0;
+            margin: 0 0 2rem 0;
         }
 
         .search-input-group {
@@ -118,30 +183,40 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            background: white;
+            border: 2px solid transparent;
         }
 
         .search-input-group:focus-within {
             transform: translateY(-2px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
         }
 
         .search-icon {
-            background: var(--primary-gradient);
-            color: white;
+            background: transparent;
+            color: #a0aec0;
             border: none;
             padding: 1rem 1.2rem;
         }
 
         .search-input {
             border: none;
-            padding: 1rem 1.5rem;
+            padding: 1rem 0.5rem;
             font-size: 1.1rem;
-            background: white;
+            background: transparent;
+            color: #2d3748;
+            flex: 1;
+        }
+
+        .search-input::placeholder {
+            color: #a0aec0;
         }
 
         .search-input:focus {
             box-shadow: none;
             border: none;
+            background: transparent;
         }
 
         .search-btn {
@@ -152,6 +227,7 @@
             position: relative;
             overflow: hidden;
             transition: all 0.3s ease;
+            font-size: 1rem;
         }
 
         .search-btn:hover {
@@ -168,12 +244,73 @@
         }
 
         .search-btn:hover .btn-icon {
-            transform: scale(1.2);
+            transform: scale(1.1);
+        }
+
+        /* Custom Mobile Search */
+        .mobile-search {
+            display: none;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .mobile-search-input {
+            width: 100% !important;
+            padding: 1rem !important;
+            border: 2px solid #e2e8f0 !important;
+            border-radius: 50px !important;
+            font-size: 1rem !important;
+            background-color: white !important;
+            color: #2d3748 !important;
+            margin-bottom: 1rem !important;
+            text-align: left !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+            min-height: 50px !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .mobile-search-input::placeholder {
+            color: #a0aec0 !important;
+        }
+
+        .mobile-search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: white !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .mobile-search-btn {
+            width: 100% !important;
+            padding: 1rem !important;
+            background: var(--primary-gradient) !important;
+            border: none !important;
+            border-radius: 50px !important;
+            color: white !important;
+            font-size: 1rem !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.5rem !important;
+            min-height: 50px !important;
+            box-sizing: border-box !important;
+        }
+
+        .mobile-search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
         }
 
         /* Popular Locations */
         .popular-locations {
             text-align: center;
+            margin-top: 2rem;
         }
 
         .location-tags {
@@ -201,27 +338,132 @@
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        /* Gradient Text */
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        /* Floating Elements */
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            bottom: 30%;
+            left: 20%;
+            animation-delay: 4s;
         }
 
         /* Responsive Design */
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
             .search-card {
                 padding: 2rem 1.5rem;
-                margin: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 1rem 0;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .search-card {
+                padding: 1.5rem 1rem;
+                margin: 0.5rem;
+                border-radius: 20px;
             }
             
             .search-hero-container {
                 max-width: 100%;
+                padding: 0 0.5rem;
+            }
+            
+            /* Show mobile search, hide desktop search */
+            .desktop-search {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .mobile-search {
+                display: block !important;
+                visibility: visible !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
             
             .location-tags {
                 justify-content: center;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .location-tag {
+                font-size: 0.9rem;
+                padding: 0.6rem 1rem;
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .search-card {
+                padding: 1rem 0.8rem;
+            }
+            
+            .search-header h2 {
+                font-size: 1.2rem;
+            }
+            
+            .search-header p {
+                font-size: 0.9rem;
+            }
+            
+            .mobile-search-input {
+                font-size: 0.8rem;
+                padding: 0.7rem;
+            }
+            
+            .mobile-search-btn {
+                font-size: 0.8rem;
+                padding: 0.6rem 1.2rem;
+            }
+            
+            .location-tag {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.8rem;
             }
         }
     </style>
@@ -231,7 +473,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="landing.html">
-                 homeupgrades.ai
+                homeupgrades.ai
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -249,41 +491,55 @@
         </div>
     </nav>
 
-    <!-- Search Page Content -->
-    <main class="container-fluid d-flex align-items-center justify-content-center" style="min-height: 80vh;">
-        <div class="text-center">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <!-- Floating Elements -->
+        <div class="floating-element">
+            <i class="fas fa-home" style="font-size: 3rem; color: white;"></i>
+        </div>
+        <div class="floating-element">
+            <i class="fas fa-search" style="font-size: 2rem; color: white;"></i>
+        </div>
+        <div class="floating-element">
+            <i class="fas fa-star" style="font-size: 2.5rem; color: white;"></i>
+        </div>
+
+        <div class="hero-content">
             <!-- Animated Title -->
-            <div class="hero-title mb-5">
-                <h1 class="display-2 fw-bold mb-3 gradient-text animate-fade-in">
-                     homeupgrades.ai
-                </h1>
-                <p class="lead text-muted mb-4 animate-slide-up">Visualize Your Dream Home Upgrades ✨</p>
+            <div class="hero-title animate-fade-in">
+                Visualize Your Dream Home Upgrades
             </div>
+            <p class="hero-subtitle animate-slide-up">Find properties and transform them with AI-powered home upgrades in seconds</p>
             
-            <!-- Flashy Search Container -->
+            <!-- Search Container -->
             <div class="search-hero-container animate-scale-in">
-                <div class="search-card">
-                    <div class="search-header">
-                        <h2 class="h3 mb-3">Find Your Perfect Home</h2>
-                        <p class="text-muted">Enter any location to discover amazing properties</p>
-                    </div>
-                    
+                <div class="search-card animate-bounce-in">
                     <!-- Animated Search Bar -->
                     <div class="search-input-container">
-                        <div class="input-group search-input-group">
+                        <!-- Desktop Search -->
+                        <div class="input-group search-input-group desktop-search">
                             <span class="input-group-text search-icon">
                                 <i class="fas fa-map-marker-alt"></i>
                             </span>
-                            <input type="text" class="form-control search-input" id="locationSearch" placeholder="Enter location (e.g., New York, NY)" autocomplete="off">
+                            <input type="text" class="form-control search-input" id="locationSearch" placeholder="Enter location (e.g., New York, NY)">
                             <button class="btn btn-primary search-btn" type="button" onclick="searchHomes()">
                                 <span class="btn-text">Search</span>
                                 <i class="fas fa-search btn-icon"></i>
                             </button>
                         </div>
+                        
+                        <!-- Mobile Search -->
+                        <div class="mobile-search">
+                            <input type="text" class="mobile-search-input" id="mobileLocationSearch" placeholder="Enter location (e.g., New York, NY)">
+                            <button class="mobile-search-btn" type="button" onclick="searchHomesMobile()">
+                                <span>Search</span>
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- Popular Locations -->
-                    <div class="popular-locations mt-4">
+                    <div class="popular-locations">
                         <p class="small text-muted mb-2">Popular searches:</p>
                         <div class="location-tags">
                             <span class="location-tag" onclick="searchLocation('New York, NY')">New York, NY</span>
@@ -296,7 +552,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </section>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -322,6 +578,21 @@
             window.location.href = `homes.html?location=${encodedLocation}`;
         }
 
+        // Mobile search function
+        function searchHomesMobile() {
+            const locationInput = document.getElementById('mobileLocationSearch');
+            const location = locationInput.value.trim();
+            
+            if (location) {
+                console.log('Mobile search for homes in:', location);
+                // Redirect to homes page with location parameter
+                const encodedLocation = encodeURIComponent(location);
+                window.location.href = `homes.html?location=${encodedLocation}`;
+            } else {
+                alert('Please enter a location to search for homes.');
+            }
+        }
+
         // Page navigation functions
         function showHomesPage() {
             // Redirect to homes page
@@ -336,10 +607,20 @@
         // Allow Enter key to trigger search
         document.addEventListener('DOMContentLoaded', function() {
             const locationInput = document.getElementById('locationSearch');
+            const mobileLocationInput = document.getElementById('mobileLocationSearch');
+            
             if (locationInput) {
                 locationInput.addEventListener('keypress', function(e) {
                     if (e.key === 'Enter') {
                         searchHomes();
+                    }
+                });
+            }
+            
+            if (mobileLocationInput) {
+                mobileLocationInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        searchHomesMobile();
                     }
                 });
             }
