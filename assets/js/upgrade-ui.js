@@ -234,7 +234,7 @@ class UpgradeUI {
             }, 30000);
             
             upgradedImage.onload = () => {
-                console.log('✅ Generated image loaded successfully from AWS Bedrock');
+                console.log('✅ Generated image loaded successfully');
                 
                 // Clear the timeout since image loaded successfully
                 clearTimeout(loadingTimeout);
@@ -256,6 +256,12 @@ class UpgradeUI {
                 
                 // Auto-switch to "after" view on mobile once image is loaded
                 window.mobileView.showMobileView('after');
+                
+                // Also update mobile image to show the generated image
+                const mobileImage = document.getElementById('mobileImage');
+                if (mobileImage) {
+                    mobileImage.src = generatedImageUrl;
+                }
             };
             upgradedImage.onerror = () => {
                 console.error('❌ Generated image failed to load');
@@ -275,6 +281,12 @@ class UpgradeUI {
             });
             
             console.log('🎉 Upgrade generation completed successfully');
+            
+            // Show success message with view options
+            this.showGenerationSuccess(upgradeType, generatedImageUrl);
+            
+            // Automatically save the generated image to Supabase
+            await this.saveGeneratedImageToSupabase(upgradeType, generatedImageUrl);
             
         } catch (error) {
             console.error('❌ Error handling upgrade:', error);
@@ -427,6 +439,12 @@ class UpgradeUI {
             });
             
             console.log('🎉 Custom upgrade generation completed successfully');
+            
+            // Show success message with view options
+            this.showGenerationSuccess('custom-upgrade', generatedImageUrl, customText);
+            
+            // Automatically save the generated image to Supabase
+            await this.saveGeneratedImageToSupabase('custom-upgrade', generatedImageUrl, customText);
             
         } catch (error) {
             console.error('❌ Error handling custom upgrade:', error);
@@ -764,6 +782,262 @@ class UpgradeUI {
             </div>
             <p class="mt-2 text-muted">AI is imagining your upgrade...</p>
         `;
+    }
+
+    // Save generated image to Supabase
+    async saveGeneratedImageToSupabase(upgradeType, generatedImageUrl, customText = null) {
+        try {
+            console.log('💾 Saving generated image to Supabase...');
+            
+            // Check if user is authenticated
+            if (!window.supabaseAuth || !window.supabaseAuth.isAuthenticated()) {
+                console.log('⚠️ User not authenticated, skipping save');
+                return;
+            }
+
+            // Get property information from stored data
+            let propertyData = CONFIG.currentPropertyData || this.getPropertyDataFromModal();
+            
+            // Try to fetch detailed property information from Realtor16 API
+            try {
+                const propertyId = propertyData?.id;
+                if (propertyId) {
+                    console.log('🔍 Fetching detailed property data for:', propertyId);
+                    const detailedData = await this.fetchPropertyDetails(propertyId);
+                    if (detailedData) {
+                        propertyData = detailedData;
+                        console.log('✅ Got detailed property data:', detailedData);
+                    }
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to fetch detailed property data, using stored data:', error);
+                // Continue with stored data as fallback
+            }
+            
+            // Get the upgrade name/prompt
+            let upgradeName = upgradeType;
+            if (upgradeType === 'custom-upgrade' && customText) {
+                upgradeName = customText;
+            } else if (CONFIG.promptsConfig && CONFIG.promptsConfig.prompts[upgradeType]) {
+                upgradeName = CONFIG.promptsConfig.prompts[upgradeType].name;
+            }
+
+            // Prepare image data
+            const imageData = {
+                originalUrl: CONFIG.originalImageSrc,
+                generatedUrl: generatedImageUrl,
+                prompt: customText || upgradeName,
+                upgradeType: upgradeName,
+                propertyAddress: propertyData.address,
+                propertyPrice: propertyData.price,
+                propertyBedrooms: propertyData.bedrooms,
+                propertyBathrooms: propertyData.bathrooms,
+                propertySqft: propertyData.sqft
+            };
+
+            console.log('📊 Image data to save:', imageData);
+
+            // Save to Supabase
+            const savedImage = await window.supabaseAuth.saveGeneratedImage(imageData);
+            
+            if (savedImage) {
+                console.log('✅ Image saved successfully to Supabase:', savedImage);
+                
+                // Show success notification
+                this.showSaveNotification('Image saved to My Images!');
+            } else {
+                console.error('❌ Failed to save image to Supabase');
+                this.showSaveNotification('Failed to save image', 'error');
+            }
+
+        } catch (error) {
+            console.error('❌ Error saving image to Supabase:', error);
+            this.showSaveNotification('Failed to save image', 'error');
+        }
+    }
+
+    // Get property data from modal
+    getPropertyDataFromModal() {
+        const modal = document.getElementById('upgradeModal');
+        const card = modal.querySelector('.card');
+        
+        if (!card) {
+            return {
+                address: 'Property Address',
+                price: 0,
+                bedrooms: 0,
+                bathrooms: 0,
+                sqft: 0
+            };
+        }
+
+        // Extract property information from the modal
+        const address = card.querySelector('.card-title')?.textContent || 'Property Address';
+        const priceText = card.querySelector('.card-text strong')?.textContent || '$0';
+        const price = parseInt(priceText.replace(/\D/g, '')) || 0;
+        
+        // Try to extract bedrooms, bathrooms, and sqft from card text
+        const cardText = card.querySelector('.card-text')?.textContent || '';
+        const bedroomMatch = cardText.match(/(\d+)\s*bed/i);
+        const bathroomMatch = cardText.match(/(\d+)\s*bath/i);
+        const sqftMatch = cardText.match(/([\d,]+)\s*sqft/i);
+        
+        return {
+            address: address,
+            price: price,
+            bedrooms: bedroomMatch ? parseInt(bedroomMatch[1]) : 0,
+            bathrooms: bathroomMatch ? parseInt(bathroomMatch[1]) : 0,
+            sqft: sqftMatch ? parseInt(sqftMatch[1].replace(/,/g, '')) : 0
+        };
+    }
+
+    // Show generation success with view options
+    showGenerationSuccess(upgradeType, generatedImageUrl, customText = null) {
+        // Get upgrade name
+        let upgradeName = upgradeType;
+        if (upgradeType === 'custom-upgrade' && customText) {
+            upgradeName = customText;
+        } else if (CONFIG.promptsConfig && CONFIG.promptsConfig.prompts[upgradeType]) {
+            upgradeName = CONFIG.promptsConfig.prompts[upgradeType].name;
+        }
+
+        // Create success notification with action buttons
+        const notification = document.createElement('div');
+        notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 350px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        notification.innerHTML = `
+            <div class="d-flex align-items-center mb-2">
+                <i class="fas fa-check-circle me-2 text-success"></i>
+                <strong>${upgradeName} Generated Successfully!</strong>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-primary" onclick="viewGeneratedImage('${generatedImageUrl}', '${upgradeName}')">
+                    <i class="fas fa-eye me-1"></i>View Image
+                </button>
+                <button class="btn btn-sm btn-outline-primary" onclick="window.open('my-images.html', '_blank')">
+                    <i class="fas fa-images me-1"></i>My Images
+                </button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds (longer for success)
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 10000);
+    }
+
+    // Show save notification
+    showSaveNotification(message, type = 'success') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+
+    // Fetch detailed property information from Realtor16 API
+    async fetchPropertyDetails(propertyId) {
+        try {
+            // Use the stored property data
+            const propertyData = CONFIG.currentPropertyData;
+            if (!propertyData) {
+                throw new Error('No current property data available');
+            }
+            
+            // Use the stored href or construct from property ID
+            const propertyUrl = propertyData.href || `https://www.realtor.com/realestateandhomes-detail/${propertyId}`;
+            
+            console.log('🔍 Fetching property details from:', propertyUrl);
+            
+            // Make request to Realtor16 property details API
+            const response = await fetch(`${CONFIG.API_BASE_URL}/api/realtor/property-details?url=${encodeURIComponent(propertyUrl)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.data) {
+                throw new Error('No property data in response');
+            }
+            
+            const property = data.data;
+            
+            // Extract address components
+            const addressLine = property.location?.address?.line || '';
+            const city = property.location?.address?.city || '';
+            const state = property.location?.address?.state_code || '';
+            const zip = property.location?.address?.postal_code || '';
+            
+            // Construct full address
+            let fullAddress = '';
+            if (addressLine) {
+                fullAddress = `${addressLine}, ${city}, ${state} ${zip}`.trim();
+            } else {
+                fullAddress = `${city}, ${state} ${zip}`.trim();
+            }
+            
+            // Extract property details
+            const bedrooms = property.description?.beds || 0;
+            const bathrooms = property.description?.baths || 0;
+            const sqft = property.description?.sqft || 0;
+            const price = property.list_price || 0;
+            
+            console.log('🏠 Extracted property details:', {
+                fullAddress,
+                bedrooms,
+                bathrooms,
+                sqft,
+                price
+            });
+            
+            return {
+                id: propertyId,
+                address: fullAddress,
+                price: price,
+                bedrooms: bedrooms,
+                bathrooms: bathrooms,
+                sqft: sqft,
+                href: propertyData.href
+            };
+            
+        } catch (error) {
+            console.error('❌ Error fetching property details:', error);
+            throw error;
+        }
     }
 }
 

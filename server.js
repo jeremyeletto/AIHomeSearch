@@ -1667,6 +1667,48 @@ app.post('/api/realtor/batch-photo-counts', async (req, res) => {
   }
 });
 
+// Property details endpoint
+app.get('/api/realtor/property-details', async (req, res) => {
+  try {
+    const { url } = req.query;
+    
+    if (!url) {
+      return res.status(400).json({
+        success: false,
+        error: 'Property URL is required'
+      });
+    }
+    
+    console.log('🔍 Fetching property details for:', url);
+    
+    const options = {
+      method: 'GET',
+      url: 'https://realtor16.p.rapidapi.com/property/details',
+      params: { url: url },
+      headers: {
+        'X-RapidAPI-Key': process.env.RAPIDAPI_KEY,
+        'X-RapidAPI-Host': 'realtor16.p.rapidapi.com'
+      }
+    };
+    
+    const response = await axios.request(options);
+    
+    console.log('✅ Property details fetched successfully');
+    
+    res.json({
+      success: true,
+      data: response.data.data
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fetching property details:', error.message);
+    res.status(500).json({
+      success: false,
+      error: `Failed to fetch property details: ${error.message}`
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📁 Serving files from: ${process.cwd()}`);

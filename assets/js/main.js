@@ -5,8 +5,36 @@ class MainApp {
     }
 
     init() {
+        // Check authentication first
+        this.checkAuthentication();
         this.setupEventListeners();
         this.initializeApp();
+    }
+
+    checkAuthentication() {
+        // Wait for Supabase auth to initialize
+        const checkAuth = () => {
+            if (window.supabaseAuth && window.supabaseAuth.isInitialized) {
+                if (!window.supabaseAuth.requireAuth()) {
+                    // Header component handles authentication UI
+                    return;
+                }
+                this.setupAuthEventListeners();
+            } else {
+                // Wait a bit and try again
+                setTimeout(checkAuth, 100);
+            }
+        };
+        checkAuth();
+    }
+
+    setupAuthEventListeners() {
+        // Listen for authentication state changes
+        document.addEventListener('authStateChanged', (event) => {
+            if (!event.detail.isAuthenticated) {
+                window.location.href = 'index.html';
+            }
+        });
     }
 
     setupEventListeners() {

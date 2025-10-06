@@ -48,6 +48,42 @@ class MobileView {
         // Trigger lazy loading when modal opens
         const homeId = card.getAttribute('data-home-id');
         const home = CONFIG.homesList.find(h => h.id == homeId);
+        
+        // Store the current property data globally for later use
+        if (card && home) {
+            const address = card.querySelector('.card-title')?.textContent?.trim() || 'Property Address';
+            const priceText = card.querySelector('.card-text strong')?.textContent || '$0';
+            const price = parseInt(priceText.replace(/[$,]/g, '')) || 0;
+            
+            const cardText = card.querySelector('.card-text')?.textContent || '';
+            let bedrooms = 0, bathrooms = 0, sqft = 0;
+            
+            // Parse bedroom info
+            const bedMatch = cardText.match(/(\d+)\s*bed/);
+            if (bedMatch) bedrooms = parseInt(bedMatch[1]);
+            
+            // Parse bathroom info
+            const bathMatch = cardText.match(/(\d+)\s*bath/);
+            if (bathMatch) bathrooms = parseInt(bathMatch[1]);
+            
+            // Parse sqft info
+            const sqftMatch = cardText.match(/(\d+(?:,\d+)*)\s*sqft/);
+            if (sqftMatch) sqft = parseInt(sqftMatch[1].replace(/,/g, ''));
+            
+            // Store property data globally
+            CONFIG.currentPropertyData = {
+                id: homeId,
+                address: address,
+                price: price,
+                bedrooms: bedrooms,
+                bathrooms: bathrooms,
+                sqft: sqft,
+                href: home.href
+            };
+            
+            console.log('🏠 Stored current property data:', CONFIG.currentPropertyData);
+        }
+        
         if (home && !home.lazyLoaded) {
             console.log('📸 Modal opened, triggering lazy load...');
             window.imageHandler.lazyLoadImagesForCard(card, home);
@@ -309,7 +345,7 @@ class MobileView {
     }
 
     // Save before and after image
-    saveBeforeAfterImage() {
+    async saveBeforeAfterImage() {
         const originalImg = CONFIG.originalImageSrc;
         const upgradedImg = CONFIG.upgradedImageSrc;
         
@@ -317,6 +353,206 @@ class MobileView {
             alert('No images to save. Please generate an upgrade first.');
             return;
         }
+        
+        try {
+            // Get property data from the upgrade modal
+            const propertyData = this.getPropertyDataFromModal();
+            
+            // Get the current upgrade type/name
+            const upgradeName = this.getCurrentUpgradeName();
+            
+            // Try to fetch detailed property information from Realtor16 API
+            let detailedPropertyData = propertyData;
+            try {
+                const homeId = this.getCurrentPropertyId();
+                if (homeId) {
+                    console.log('🔍 Fetching detailed property data for:', homeId);
+                    detailedPropertyData = await this.fetchPropertyDetails(homeId);
+                    console.log('✅ Got detailed property data:', detailedPropertyData);
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to fetch detailed property data, using modal data:', error);
+                // Continue with modal data as fallback
+            }
+            
+            console.log('💾 Saving before/after image to Supabase:', {
+                originalImg,
+                upgradedImg,
+                propertyData: detailedPropertyData,
+                upgradeName,
+                fullImageData: {
+                    originalUrl: originalImg,
+                    generatedUrl: upgradedImg,
+                    prompt: upgradeName,
+                    upgradeType: upgradeName,
+                    propertyAddress: detailedPropertyData.address,
+                    propertyPrice: detailedPropertyData.price,
+                    propertyBedrooms: detailedPropertyData.bedrooms,
+                    propertyBathrooms: detailedPropertyData.bathrooms,
+                    propertySqft: detailedPropertyData.sqft
+                }
+            });
+            
+            // Prepare image data for Supabase
+            const imageData = {
+                originalUrl: originalImg,
+                generatedUrl: upgradedImg,
+                prompt: upgradeName,
+                upgradeType: upgradeName,
+                propertyAddress: detailedPropertyData.address,
+                propertyPrice: detailedPropertyData.price,
+                propertyBedrooms: detailedPropertyData.bedrooms,
+                propertyBathrooms: detailedPropertyData.bathrooms,
+                propertySqft: detailedPropertyData.sqft
+            };
+            
+            // Save to Supabase
+            const savedImage = await window.supabaseAuth.saveGeneratedImage(imageData);
+            
+            if (savedImage) {
+                console.log('✅ Before/after image saved successfully to Supabase:', savedImage);
+                
+                // Also create a local download for convenience
+                this.downloadBeforeAfterImage();
+                
+                // Show success notification
+                window.notifications.showNotification('Image saved to My Images!', 'success');
+            } else {
+                console.error('❌ Failed to save image to Supabase');
+                window.notifications.showNotification('Failed to save image', 'error');
+            }
+            
+        } catch (error) {
+            console.error('❌ Error saving image:', error);
+            window.notifications.showNotification('Error saving image. Please try again.', 'error');
+        }
+    }
+    
+    // Get current property ID from the modal
+    getCurrentPropertyId() {
+        // Use the stored property data instead of trying to find the modal instance
+        return CONFIG.currentPropertyData?.id || null;
+    }
+    
+    // Fetch detailed property information from Realtor16 API
+    async fetchPropertyDetails(propertyId) {
+        try {
+            // Use the stored property data
+            const propertyData = CONFIG.currentPropertyData;
+            if (!propertyData) {
+                throw new Error('No current property data available');
+            }
+            
+            // Use the stored href or construct from property ID
+            const propertyUrl = propertyData.href || `https://www.realtor.com/realestateandhomes-detail/${propertyId}`;
+            
+            console.log('🔍 Fetching property details from:', propertyUrl);
+            
+            // Make request to Realtor16 property details API
+            const response = await fetch(`${CONFIG.API_BASE_URL}/api/realtor/property-details?url=${encodeURIComponent(propertyUrl)}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!data.data) {
+                throw new Error('No property data in response');
+            }
+            
+            const property = data.data;
+            
+            // Extract address components
+            const addressLine = property.location?.address?.line || '';
+            const city = property.location?.address?.city || '';
+            const state = property.location?.address?.state_code || '';
+            const zip = property.location?.address?.postal_code || '';
+            
+            // Construct full address
+            let fullAddress = '';
+            if (addressLine) {
+                fullAddress = `${addressLine}, ${city}, ${state} ${zip}`.trim();
+            } else {
+                fullAddress = `${city}, ${state} ${zip}`.trim();
+            }
+            
+            // Extract property details
+            const bedrooms = property.description?.beds || 0;
+            const bathrooms = property.description?.baths || 0;
+            const sqft = property.description?.sqft || 0;
+            const price = property.list_price || 0;
+            
+            console.log('🏠 Extracted property details:', {
+                fullAddress,
+                bedrooms,
+                bathrooms,
+                sqft,
+                price
+            });
+            
+            return {
+                address: fullAddress,
+                price: price,
+                bedrooms: bedrooms,
+                bathrooms: bathrooms,
+                sqft: sqft
+            };
+            
+        } catch (error) {
+            console.error('❌ Error fetching property details:', error);
+            throw error;
+        }
+    }
+    
+    // Get property data from modal
+    getPropertyDataFromModal() {
+        // Use the stored property data instead of trying to find the modal instance
+        const propertyData = CONFIG.currentPropertyData;
+        
+        if (!propertyData) {
+            console.log('❌ No stored property data found, using defaults');
+            return {
+                address: 'Property Address',
+                price: 0,
+                bedrooms: 0,
+                bathrooms: 0,
+                sqft: 0
+            };
+        }
+        
+        console.log('🏠 Using stored property data:', propertyData);
+        
+        return {
+            address: propertyData.address,
+            price: propertyData.price,
+            bedrooms: propertyData.bedrooms,
+            bathrooms: propertyData.bathrooms,
+            sqft: propertyData.sqft
+        };
+    }
+    
+    // Get current upgrade name
+    getCurrentUpgradeName() {
+        // Check if there's an active upgrade pill
+        const activePill = document.querySelector('.upgrade-pill.active');
+        if (activePill) {
+            return activePill.querySelector('span').textContent || 'Home Upgrade';
+        }
+        
+        // Check custom upgrade input
+        const customInput = document.getElementById('customUpgradeInput');
+        if (customInput && customInput.value.trim()) {
+            return customInput.value.trim();
+        }
+        
+        return 'Home Upgrade';
+    }
+    
+    // Download before/after image locally (for convenience)
+    downloadBeforeAfterImage() {
+        const originalImg = CONFIG.originalImageSrc;
+        const upgradedImg = CONFIG.upgradedImageSrc;
         
         try {
             // Create a canvas to combine the images side by side
@@ -377,9 +613,6 @@ class MobileView {
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
-                        
-                        // Show success message
-                        window.notifications.showNotification('Before and after image saved successfully!', 'success');
                     }, 'image/png');
                 };
                 upgradedImgElement.src = upgradedImg;
@@ -387,8 +620,7 @@ class MobileView {
             originalImgElement.src = originalImg;
             
         } catch (error) {
-            console.error('Error saving image:', error);
-            window.notifications.showNotification('Error saving image. Please try again.', 'error');
+            console.error('Error creating download:', error);
         }
     }
 }
