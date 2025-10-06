@@ -67,7 +67,7 @@ class SupabaseAuth {
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`
+                    redirectTo: `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`
                 }
             });
 
@@ -93,7 +93,7 @@ class SupabaseAuth {
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'apple',
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`
+                    redirectTo: `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`
                 }
             });
 
@@ -119,7 +119,7 @@ class SupabaseAuth {
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'discord',
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`
+                    redirectTo: `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`
                 }
             });
 
@@ -145,7 +145,7 @@ class SupabaseAuth {
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'facebook',
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`
+                    redirectTo: `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`
                 }
             });
 
@@ -171,7 +171,7 @@ class SupabaseAuth {
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'azure',
                 options: {
-                    redirectTo: `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`
+                    redirectTo: `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`
                 }
             });
 
