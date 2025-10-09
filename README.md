@@ -34,17 +34,33 @@ A web application that uses AWS Bedrock to generate AI-powered home exterior upg
 4. Start the server: `npm start`
 5. Open `http://localhost:3001/homes.html`
 
+## 📚 Documentation
+
+All project documentation is organized in the `docs/` folder:
+
+- **📋 Requirements** - Project specifications and objectives
+- **🔧 Fixes** - Bug fixes and implementation details  
+- **📊 Analysis** - Performance analysis and optimization guides
+- **🚀 Deployment** - Production deployment guides and scripts
+- **📖 Guides** - Setup guides and troubleshooting
+
+**Quick Links:**
+- [📚 Documentation Index](docs/README.md)
+- [🚀 Deployment Guide](docs/deployment/PRODUCTION_DEPLOYMENT_GUIDE.md)
+- [🔧 Troubleshooting](docs/guides/AUTHENTICATION_TROUBLESHOOTING_GUIDE.md)
+- [📊 Performance Analysis](docs/analysis/IMAGE_LOADING_OPTIMIZATION_GUIDE.md)
+
 ## Deployment
 
-### Vercel (Backend)
-1. Install Vercel CLI: `npm i -g vercel`
-2. Run `vercel` and follow the prompts
-3. Set environment variables in Vercel dashboard
+### Current Production Setup
+- **Backend**: Render (https://ai-home-upgrades-backend.onrender.com)
+- **Frontend**: GitHub Pages (https://jeremyeletto.github.io/AIHomeSearch/)
+- **Database**: Supabase (Production)
 
-### GitHub Pages (Frontend)
-1. Push code to GitHub
-2. Enable GitHub Pages in repository settings
-3. Update API endpoints to point to Vercel URL
+### Quick Deployment
+See [📚 Deployment Documentation](docs/deployment/) for detailed guides:
+- [Quick Deployment Guide](docs/deployment/QUICK_DEPLOYMENT_GUIDE.md)
+- [Render + GitHub Pages](docs/deployment/RENDER_GITHUB_DEPLOYMENT.md)
 
 ## API Endpoints
 
