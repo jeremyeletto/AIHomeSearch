@@ -1,0 +1,34 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "VITE_SUPABASE_URL": "@supabase-url",
+    "VITE_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "AWS_ACCESS_KEY_ID": "@aws-access-key",
+    "AWS_SECRET_ACCESS_KEY": "@aws-secret-key",
+    "AWS_REGION": "us-east-1",
+    "GEMINI_API_KEY": "@gemini-api-key",
+    "RAPIDAPI_KEY": "@rapidapi-key"
+  },
+  "functions": {
+    "server.js": {
+      "maxDuration": 30
+    }
+  }
+}

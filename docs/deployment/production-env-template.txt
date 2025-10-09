@@ -1,0 +1,24 @@
+# Production Environment Variables Template
+# Copy this to .env.production and fill in your production values
+
+# Supabase Production Configuration
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-production-anon-key
+
+# AWS Bedrock Configuration (Production)
+AWS_ACCESS_KEY_ID=your-production-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-production-aws-secret-key
+AWS_REGION=us-east-1
+
+# Google Gemini API (Production)
+GEMINI_API_KEY=your-production-gemini-api-key
+
+# RapidAPI Configuration (Production)
+RAPIDAPI_KEY=your-production-rapidapi-key
+
+# Production Settings
+NODE_ENV=production
+PORT=3000
+
+# Optional: Custom Domain
+DOMAIN=your-domain.com
