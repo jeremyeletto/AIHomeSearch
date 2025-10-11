@@ -58,6 +58,9 @@
             transition: all 0.3s ease;
             margin-bottom: 2rem;
             border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .before-after-card:hover {
@@ -111,6 +114,9 @@
         .card-content {
             padding: 1.5rem;
             background: white;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
         .upgrade-title {
@@ -119,6 +125,13 @@
             margin-bottom: 0.5rem;
             color: #2d3748;
             line-height: 1.3;
+            height: 3.25rem; /* Force exactly 2 lines × 1.3 line-height × 1.25rem font-size */
+            max-height: 3.25rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
         }
 
         .property-info {
@@ -132,6 +145,13 @@
             color: #4a5568;
             font-weight: 500;
             margin-bottom: 0.5rem;
+            height: 2.34rem; /* Force exactly 2 lines × 1.3 line-height × 0.9rem font-size */
+            max-height: 2.34rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
         }
 
         .property-price {
@@ -148,6 +168,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
+            margin-top: auto;
         }
 
         .view-details-btn {
@@ -376,6 +397,7 @@
 
                 console.log('✅ Authentication successful, loading images...');
                 // Load user images
+                console.log('🚀 About to call loadUserImages()...');
                 loadUserImages();
             };
 
@@ -384,16 +406,20 @@
 
         // Load user's generated images
         async function loadUserImages() {
+            console.log('🔄 loadUserImages called');
             const loadingState = document.getElementById('loadingState');
             const imagesGrid = document.getElementById('imagesGrid');
             const emptyState = document.getElementById('emptyState');
 
             try {
+                console.log('📊 Setting up loading state...');
                 loadingState.style.display = 'flex';
                 imagesGrid.style.display = 'none';
                 emptyState.style.display = 'none';
 
+                console.log('🔍 Calling window.supabaseAuth.getUserImages()...');
                 const images = await window.supabaseAuth.getUserImages();
+                console.log('📥 Received images from database:', images);
 
                 if (images.length === 0) {
                     loadingState.style.display = 'none';
@@ -424,11 +450,32 @@
             }
         }
 
+        // Function to truncate text to approximately 2 lines
+        function truncateText(text, maxLength = 60) {
+            console.log('🔍 truncateText called with:', text, 'maxLength:', maxLength);
+            if (!text) return '';
+            if (text.length <= maxLength) {
+                console.log('✅ Text is short enough, returning as-is');
+                return text;
+            }
+            const truncated = text.substring(0, maxLength).trim() + '...';
+            console.log('✂️ Text truncated from', text.length, 'to', truncated.length, ':', truncated);
+            return truncated;
+        }
+
         // Display images in grid
         function displayImages(images) {
+            console.log('🖼️ displayImages called with', images.length, 'images');
             const imagesGrid = document.getElementById('imagesGrid');
             
-            imagesGrid.innerHTML = images.map(image => `
+            imagesGrid.innerHTML = images.map(image => {
+                console.log('📝 Processing image:', image);
+                const truncatedTitle = truncateText(image.upgrade_type || 'Home Upgrade');
+                const truncatedAddress = truncateText(image.property_address || 'Property Address', 40);
+                console.log('📝 Final title:', truncatedTitle);
+                console.log('📝 Final address:', truncatedAddress);
+                
+                return `
                 <div class="col-lg-6 col-xl-4 mb-4">
                     <div class="before-after-card">
                         <div class="before-after-container">
@@ -438,9 +485,9 @@
                             <div class="after-label">AFTER</div>
                         </div>
                         <div class="card-content">
-                            <h5 class="upgrade-title">${image.upgrade_type || 'Home Upgrade'}</h5>
+                            <h5 class="upgrade-title">${truncatedTitle}</h5>
                             <div class="property-info">
-                                <div class="property-address">${image.property_address || 'Property Address'}</div>
+                                <div class="property-address">${truncatedAddress}</div>
                                 ${image.property_price ? 
                                     `<div class="property-price">$${image.property_price.toLocaleString()}</div>` : 
                                     ''
@@ -457,7 +504,8 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         // View image details (placeholder for future modal)
