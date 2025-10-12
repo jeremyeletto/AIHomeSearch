@@ -149,17 +149,20 @@ class ImageHandler {
     navigateModalImage(direction) {
         console.log(`🔍 MODAL ARROW CLICK - Direction: ${direction}`);
         
-        // Get the current modal button to access the images data
-        const modalButton = document.querySelector('[data-bs-target="#upgradeModal"]:not([style*="display: none"])');
-        if (!modalButton) {
-            console.log('❌ No modal button found');
+        // Use stored property data instead of querying DOM
+        if (!CONFIG.currentPropertyData) {
+            console.log('❌ No current property data stored');
             return;
         }
         
-        const images = JSON.parse(modalButton.getAttribute('data-images') || '[]');
-        const imageCount = parseInt(modalButton.getAttribute('data-image-count') || images.length || 1);
+        const images = CONFIG.currentPropertyData.images || [];
+        const imageCount = CONFIG.currentPropertyData.imageCount || images.length || 1;
         
-        console.log(`🔍 Modal images:`, { images: images.slice(0, 3), imageCount });
+        console.log(`🔍 Modal images from stored data:`, { 
+            propertyId: CONFIG.currentPropertyData.id,
+            imageCount: imageCount,
+            firstImage: images[0]
+        });
         
         if (imageCount <= 1) {
             console.log(`⚠️ No navigation needed for single image (imageCount: ${imageCount})`);
@@ -196,6 +199,11 @@ class ImageHandler {
         }
         
         console.log(`🔍 Modal navigation: ${currentIndex} → ${newIndex} (direction: ${direction})`);
+        
+        // Update the stored current image index
+        if (CONFIG.currentPropertyData) {
+            CONFIG.currentPropertyData.currentImageIndex = newIndex;
+        }
         
         // Update both desktop and mobile views
         const originalImage = document.getElementById('originalImage');

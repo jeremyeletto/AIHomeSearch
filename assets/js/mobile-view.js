@@ -78,7 +78,10 @@ class MobileView {
                 bedrooms: bedrooms,
                 bathrooms: bathrooms,
                 sqft: sqft,
-                href: home.href
+                href: home.href,
+                images: images,
+                imageCount: imageCount,
+                currentImageIndex: currentImageIndex
             };
             
             console.log('🏠 Stored current property data:', CONFIG.currentPropertyData);
