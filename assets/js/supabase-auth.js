@@ -64,11 +64,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
-            // Get the correct redirect URL
+            // Get the correct redirect URL based on current domain
             const currentHost = window.location.hostname;
-            const redirectUrl = currentHost.includes('github.io') 
-                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
-                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            let redirectUrl;
+            
+            if (currentHost === 'homeupgrades.xyz' || currentHost === 'www.homeupgrades.xyz') {
+                redirectUrl = 'https://homeupgrades.xyz/';
+            } else if (currentHost.includes('github.io')) {
+                redirectUrl = 'https://jeremyeletto.github.io/AIHomeSearch/';
+            } else {
+                redirectUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            }
 
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -96,11 +102,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
-            // Get the correct redirect URL
+            // Get the correct redirect URL based on current domain
             const currentHost = window.location.hostname;
-            const redirectUrl = currentHost.includes('github.io') 
-                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
-                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            let redirectUrl;
+            
+            if (currentHost === 'homeupgrades.xyz' || currentHost === 'www.homeupgrades.xyz') {
+                redirectUrl = 'https://homeupgrades.xyz/';
+            } else if (currentHost.includes('github.io')) {
+                redirectUrl = 'https://jeremyeletto.github.io/AIHomeSearch/';
+            } else {
+                redirectUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            }
 
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'apple',
@@ -128,11 +140,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
-            // Get the correct redirect URL
+            // Get the correct redirect URL based on current domain
             const currentHost = window.location.hostname;
-            const redirectUrl = currentHost.includes('github.io') 
-                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
-                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            let redirectUrl;
+            
+            if (currentHost === 'homeupgrades.xyz' || currentHost === 'www.homeupgrades.xyz') {
+                redirectUrl = 'https://homeupgrades.xyz/';
+            } else if (currentHost.includes('github.io')) {
+                redirectUrl = 'https://jeremyeletto.github.io/AIHomeSearch/';
+            } else {
+                redirectUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            }
 
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'discord',
@@ -160,11 +178,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
-            // Get the correct redirect URL
+            // Get the correct redirect URL based on current domain
             const currentHost = window.location.hostname;
-            const redirectUrl = currentHost.includes('github.io') 
-                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
-                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            let redirectUrl;
+            
+            if (currentHost === 'homeupgrades.xyz' || currentHost === 'www.homeupgrades.xyz') {
+                redirectUrl = 'https://homeupgrades.xyz/';
+            } else if (currentHost.includes('github.io')) {
+                redirectUrl = 'https://jeremyeletto.github.io/AIHomeSearch/';
+            } else {
+                redirectUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            }
 
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'facebook',
@@ -192,11 +216,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
-            // Get the correct redirect URL
+            // Get the correct redirect URL based on current domain
             const currentHost = window.location.hostname;
-            const redirectUrl = currentHost.includes('github.io') 
-                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
-                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            let redirectUrl;
+            
+            if (currentHost === 'homeupgrades.xyz' || currentHost === 'www.homeupgrades.xyz') {
+                redirectUrl = 'https://homeupgrades.xyz/';
+            } else if (currentHost.includes('github.io')) {
+                redirectUrl = 'https://jeremyeletto.github.io/AIHomeSearch/';
+            } else {
+                redirectUrl = `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+            }
 
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'azure',

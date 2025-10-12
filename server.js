@@ -55,6 +55,8 @@ const port = process.env.PORT || 3001;
 // Enable CORS for all origins with explicit GitHub Pages support
 app.use(cors({
   origin: [
+    'https://homeupgrades.xyz',
+    'https://www.homeupgrades.xyz',
     'https://jeremyeletto.github.io',
     'https://jeremyeletto.github.io/AIHomeSearch',
     'https://jeremyeletto.github.io/AIHomeSearch/',
