@@ -109,7 +109,8 @@ class UpgradeUI {
                 `;
                 pill.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.handleUpgradePillClick(pill);
+                    console.log('🔘 Pill clicked:', pill.getAttribute('data-upgrade'));
+                    window.upgradeUI.handleUpgradePillClick(pill);
                 });
                 container.appendChild(pill);
             });
@@ -205,7 +206,8 @@ class UpgradeUI {
                 `;
                 pill.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.handleUpgradePillClick(pill);
+                    console.log('🔘 Fallback pill clicked:', pill.getAttribute('data-upgrade'));
+                    window.upgradeUI.handleUpgradePillClick(pill);
                 });
                 container.appendChild(pill);
             });
