@@ -367,11 +367,12 @@
     <script src="assets/js/auth-modal-component.js"></script>
     
     <script>
-        // Smart caching system for images
+        // Smart caching system for images (optimized for large data)
         const ImageCache = {
             cacheKey: 'aihome_images_cache',
             cacheTimestamp: 'aihome_images_timestamp',
             cacheExpiry: 5 * 60 * 1000, // 5 minutes
+            maxCacheSize: 2 * 1024 * 1024, // 2MB limit
             
             // Get cached images
             getCachedImages() {
@@ -396,14 +397,31 @@
                 return null;
             },
             
-            // Save images to cache
+            // Save images to cache (with size optimization)
             setCachedImages(images) {
                 try {
-                    localStorage.setItem(this.cacheKey, JSON.stringify(images));
+                    // Try to cache full data first
+                    const dataString = JSON.stringify(images);
+                    
+                    // Check size before storing
+                    if (dataString.length > this.maxCacheSize) {
+                        console.warn('⚠️ Cache data too large, using memory cache only');
+                        // Don't cache to localStorage if too large
+                        // The images will still work, just won't persist across page reloads
+                        return;
+                    }
+                    
+                    localStorage.setItem(this.cacheKey, dataString);
                     localStorage.setItem(this.cacheTimestamp, Date.now().toString());
                     console.log('💾 Images cached successfully');
+                    
                 } catch (error) {
                     console.error('❌ Cache write error:', error);
+                    // Clear cache if quota exceeded
+                    if (error.name === 'QuotaExceededError') {
+                        this.clearCache();
+                        console.log('🧹 Cache cleared due to quota exceeded');
+                    }
                 }
             },
             
@@ -437,7 +455,14 @@
                         const images = JSON.parse(cached);
                         const index = images.findIndex(img => img.id === updatedImage.id);
                         if (index !== -1) {
-                            images[index] = updatedImage;
+                            images[index] = {
+                                id: updatedImage.id,
+                                upgrade_type: updatedImage.upgrade_type,
+                                property_address: updatedImage.property_address,
+                                property_price: updatedImage.property_price,
+                                created_at: updatedImage.created_at,
+                                _cached: true
+                            };
                             this.setCachedImages(images);
                             console.log('🔄 Image updated in cache');
                         }
@@ -500,45 +525,48 @@
                     images = ImageCache.getCachedImages();
                 }
 
-                if (images) {
+                if (images && images.length > 0) {
                     // Use cached data
                     console.log('⚡ Loading from cache - instant display');
                     loadingState.style.display = 'none';
+                    displayImages(images);
+                    imagesGrid.style.display = 'flex';
+                    emptyState.style.display = 'none';
                     
-                    if (images.length === 0) {
-                        emptyState.style.display = 'block';
-                        imagesGrid.style.display = 'none';
-                    } else {
-                        displayImages(images);
-                        imagesGrid.style.display = 'flex';
-                        emptyState.style.display = 'none';
-                    }
+                    // Update cache in background
+                    refreshCacheInBackground();
+                } else if (images && images.length === 0) {
+                    // Cached empty result
+                    console.log('📦 Using cached empty result');
+                    loadingState.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    imagesGrid.style.display = 'none';
                     
                     // Update cache in background
                     refreshCacheInBackground();
                 } else {
                     // Load from API
                     console.log('🌐 Loading from API');
-                    loadingState.style.display = 'flex';
-                    imagesGrid.style.display = 'none';
-                    emptyState.style.display = 'none';
+                loadingState.style.display = 'flex';
+                imagesGrid.style.display = 'none';
+                emptyState.style.display = 'none';
 
                     images = await window.supabaseAuth.getUserImages();
 
-                    if (images.length === 0) {
-                        loadingState.style.display = 'none';
-                        emptyState.style.display = 'block';
+                if (images.length === 0) {
+                    loadingState.style.display = 'none';
+                    emptyState.style.display = 'block';
                         // Cache empty result
                         ImageCache.setCachedImages([]);
-                        return;
-                    }
+                    return;
+                }
 
                     // Display images and cache them
-                    displayImages(images);
+                displayImages(images);
                     ImageCache.setCachedImages(images);
-                    
-                    loadingState.style.display = 'none';
-                    imagesGrid.style.display = 'flex';
+                
+                loadingState.style.display = 'none';
+                imagesGrid.style.display = 'flex';
                     emptyState.style.display = 'none';
                 }
 
@@ -553,17 +581,24 @@
                     displayImages(cachedImages);
                     imagesGrid.style.display = 'flex';
                     emptyState.style.display = 'none';
+                    
+                    // Show warning about using cached data
+                    showNotification('Showing cached data. Server may be experiencing issues.', 'warning');
                 } else {
-                    // Show error message
-                    imagesGrid.innerHTML = `
-                        <div class="col-12">
-                            <div class="alert alert-danger" role="alert">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                Failed to load your images. Please try again later.
-                            </div>
+                    // Show error message with retry option
+                imagesGrid.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                Failed to load your images. The server may be experiencing issues.
+                                <br><br>
+                                <button onclick="loadUserImages(true)" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-redo me-1"></i>Try Again
+                                </button>
                         </div>
-                    `;
-                    imagesGrid.style.display = 'flex';
+                    </div>
+                `;
+                imagesGrid.style.display = 'flex';
                     emptyState.style.display = 'none';
                 }
             }
@@ -576,8 +611,17 @@
                 const freshImages = await window.supabaseAuth.getUserImages();
                 ImageCache.setCachedImages(freshImages);
                 console.log('✅ Cache refreshed in background');
+                
+                // If we got fresh data and it's different from what's displayed, update the UI
+                const currentImages = document.querySelectorAll('.before-after-card');
+                if (freshImages.length !== currentImages.length) {
+                    console.log('🔄 Cache refresh detected changes, updating UI');
+                    displayImages(freshImages);
+                }
             } catch (error) {
                 console.warn('⚠️ Background cache refresh failed:', error);
+                // Don't show notifications for background failures
+                // They're not critical to user experience
             }
         }
 
