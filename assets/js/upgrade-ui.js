@@ -10,7 +10,14 @@ class UpgradeUI {
 
     // Render upgrade pills dynamically by category
     renderUpgradePills() {
-        if (!CONFIG.promptsConfig) return;
+        console.log('🎨 Rendering upgrade pills from config...');
+        console.log('📋 CONFIG.promptsConfig:', CONFIG.promptsConfig);
+        
+        if (!CONFIG.promptsConfig) {
+            console.log('❌ No prompts config available, using fallback');
+            this.renderFallbackPills();
+            return;
+        }
         
         // Get category containers
         const smartContainer = document.getElementById('smartPillsContainer');
@@ -106,12 +113,23 @@ class UpgradeUI {
     
     // Fallback pills if API fails
     renderFallbackPills() {
+        console.log('🔧 Rendering fallback pills...');
         const smartContainer = document.getElementById('smartPillsContainer');
         const exteriorContainer = document.getElementById('exteriorPillsContainer');
         const extensionsContainer = document.getElementById('extensionsPillsContainer');
         const interiorContainer = document.getElementById('interiorPillsContainer');
         
-        if (!smartContainer || !exteriorContainer || !extensionsContainer || !interiorContainer) return;
+        console.log('📦 Container check:', {
+            smart: !!smartContainer,
+            exterior: !!exteriorContainer,
+            extensions: !!extensionsContainer,
+            interior: !!interiorContainer
+        });
+        
+        if (!smartContainer || !exteriorContainer || !extensionsContainer || !interiorContainer) {
+            console.error('❌ Missing containers for fallback pills');
+            return;
+        }
         
         const fallbackPrompts = {
             smart: [
