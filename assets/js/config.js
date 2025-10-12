@@ -69,8 +69,37 @@ const CONFIG = {
         });
         console.log(`💾 Cached results for: ${location} (page ${page}, sort: ${sort})`);
         
+        // Store last search state in localStorage for persistence across page loads
+        try {
+            localStorage.setItem('lastSearchState', JSON.stringify({
+                location: location,
+                page: page,
+                sort: sort,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.warn('Could not save search state to localStorage:', e);
+        }
+        
         // Limit cache size to prevent memory issues
         this.cleanupCache();
+    },
+    
+    getLastSearchState: function() {
+        try {
+            const stored = localStorage.getItem('lastSearchState');
+            if (stored) {
+                const state = JSON.parse(stored);
+                // Check if state is recent (within last 24 hours)
+                if (state.timestamp && (Date.now() - state.timestamp) < 24 * 60 * 60 * 1000) {
+                    console.log('📍 Restored last search state:', state);
+                    return state;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load search state from localStorage:', e);
+        }
+        return null;
     },
     
     cleanupCache: function() {

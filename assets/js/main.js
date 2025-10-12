@@ -105,17 +105,29 @@ class MainApp {
             console.log('4. Start server: npm start');
         }
         
-        // Check if we have a location parameter
+        // Check if we have a location parameter in URL (highest priority)
         const urlParams = new URLSearchParams(window.location.search);
-        const location = urlParams.get('location');
+        const urlLocation = urlParams.get('location');
         
-        if (location) {
-            // Load homes for the specified location
-            document.getElementById('locationSearchHome').value = decodeURIComponent(location);
-            await window.apiHandler.loadHomes(decodeURIComponent(location), 1, 'relevant');
+        if (urlLocation) {
+            // URL parameter takes priority
+            const location = decodeURIComponent(urlLocation);
+            document.getElementById('locationSearchHome').value = location;
+            await window.apiHandler.loadHomes(location, 1, 'relevant');
         } else {
-            // Default to New York, NY
-            await window.apiHandler.loadHomes('New York, NY', 1, 'relevant');
+            // Check for last search state (second priority)
+            const lastSearch = CONFIG.getLastSearchState();
+            
+            if (lastSearch) {
+                // Restore last search
+                console.log(`🔄 Restoring last search: ${lastSearch.location} (page ${lastSearch.page}, sort: ${lastSearch.sort})`);
+                document.getElementById('locationSearchHome').value = lastSearch.location;
+                await window.apiHandler.loadHomes(lastSearch.location, lastSearch.page, lastSearch.sort);
+            } else {
+                // Default to New York, NY (last resort)
+                document.getElementById('locationSearchHome').value = 'New York, NY';
+                await window.apiHandler.loadHomes('New York, NY', 1, 'relevant');
+            }
         }
     }
 }
