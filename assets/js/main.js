@@ -74,9 +74,6 @@ class MainApp {
         window.switchModel = (provider) => window.apiHandler.switchModel(provider);
         window.switchModalImage = (imageIndex) => window.mobileView.switchModalImage(imageIndex);
         window.switchMobileImage = (imageIndex) => window.mobileView.switchMobileImage(imageIndex);
-
-        // Test loading states function (for debugging)
-        window.testLoadingStates = this.testLoadingStates.bind(this);
     }
 
     async initializeApp() {
@@ -84,9 +81,6 @@ class MainApp {
         
         // Load prompts configuration
         await window.apiHandler.loadPrompts();
-        
-        // Add test loading states button (for debugging)
-        this.addDebugButton();
         
         // Add Enter key event listener for search input
         const locationInput = document.getElementById('locationSearchHome');
@@ -123,33 +117,6 @@ class MainApp {
             // Default to New York, NY
             await window.apiHandler.loadHomes('New York, NY', 1, 'relevant');
         }
-    }
-
-    addDebugButton() {
-        const testButton = document.createElement('button');
-        testButton.textContent = 'Test Loading States';
-        testButton.className = 'btn btn-warning btn-sm';
-        testButton.style.position = 'fixed';
-        testButton.style.top = '10px';
-        testButton.style.right = '10px';
-        testButton.style.zIndex = '1000';
-        testButton.onclick = this.testLoadingStates;
-        document.body.appendChild(testButton);
-    }
-
-    // Test loading states function (for debugging)
-    testLoadingStates() {
-        console.log('🧪 Testing loading states...');
-        const cards = document.querySelectorAll('[data-home-id]');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                window.imageHandler.showCardLoadingState(card);
-            }, index * 500);
-            
-            setTimeout(() => {
-                window.imageHandler.hideCardLoadingState(card);
-            }, index * 500 + 3000);
-        });
     }
 }
 
