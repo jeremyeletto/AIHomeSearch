@@ -64,10 +64,16 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
+            // Get the correct redirect URL
+            const currentHost = window.location.hostname;
+            const redirectUrl = currentHost.includes('github.io') 
+                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
+                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: 'https://jeremyeletto.github.io/AIHomeSearch/'
+                    redirectTo: redirectUrl
                 }
             });
 
@@ -90,10 +96,16 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
+            // Get the correct redirect URL
+            const currentHost = window.location.hostname;
+            const redirectUrl = currentHost.includes('github.io') 
+                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
+                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'apple',
                 options: {
-                    redirectTo: 'https://jeremyeletto.github.io/AIHomeSearch/'
+                    redirectTo: redirectUrl
                 }
             });
 
@@ -116,10 +128,16 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
+            // Get the correct redirect URL
+            const currentHost = window.location.hostname;
+            const redirectUrl = currentHost.includes('github.io') 
+                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
+                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'discord',
                 options: {
-                    redirectTo: 'https://jeremyeletto.github.io/AIHomeSearch/'
+                    redirectTo: redirectUrl
                 }
             });
 
@@ -142,10 +160,16 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
+            // Get the correct redirect URL
+            const currentHost = window.location.hostname;
+            const redirectUrl = currentHost.includes('github.io') 
+                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
+                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'facebook',
                 options: {
-                    redirectTo: 'https://jeremyeletto.github.io/AIHomeSearch/'
+                    redirectTo: redirectUrl
                 }
             });
 
@@ -168,10 +192,16 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
 
+            // Get the correct redirect URL
+            const currentHost = window.location.hostname;
+            const redirectUrl = currentHost.includes('github.io') 
+                ? 'https://jeremyeletto.github.io/AIHomeSearch/'
+                : `${window.location.protocol}//${window.location.hostname}${window.location.pathname}`;
+
             const { data, error } = await this.supabase.auth.signInWithOAuth({
                 provider: 'azure',
                 options: {
-                    redirectTo: 'https://jeremyeletto.github.io/AIHomeSearch/'
+                    redirectTo: redirectUrl
                 }
             });
 
