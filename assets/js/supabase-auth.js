@@ -187,23 +187,332 @@ class SupabaseAuth {
         }
     }
 
+    // Sign in with Email and Password
+    async signInWithEmail() {
+        try {
+            console.log('📧 ===== EMAIL SIGN-IN STARTED =====');
+            
+            const emailEl = document.getElementById('emailInput');
+            const passwordEl = document.getElementById('passwordInput');
+            
+            if (!emailEl || !passwordEl) {
+                console.error('❌ Email or password input not found');
+                alert('Please refresh the page and try again.');
+                return;
+            }
+            
+            const email = emailEl.value.trim();
+            const password = passwordEl.value;
+            
+            console.log('📋 Email form values:', {
+                email: email,
+                passwordLength: password?.length,
+                emailValid: email.includes('@')
+            });
+            
+            // Validate inputs
+            if (!email) {
+                console.error('❌ Empty email');
+                alert('Please enter your email address');
+                return;
+            }
+            
+            if (!password) {
+                console.error('❌ Empty password');
+                alert('Please enter your password');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                console.error('❌ Invalid email format');
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            console.log('✅ Email validation passed');
+            
+            if (!this.supabase) {
+                console.error('❌ Supabase not initialized');
+                throw new Error('Supabase not initialized');
+            }
+            
+            console.log('📤 Sending email sign-in request...');
+            
+            const { data, error } = await this.supabase.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+            
+            console.log('📥 Supabase email sign-in response:', {
+                data: data,
+                error: error,
+                hasData: !!data,
+                hasError: !!error
+            });
+            
+            if (error) {
+                console.error('❌ Email sign-in error:', {
+                    message: error.message,
+                    status: error.status,
+                    statusText: error.statusText,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
+                throw error;
+            }
+            
+            console.log('✅ Email sign-in successful:', data);
+            console.log('🎉 User authenticated with email!');
+            
+            // Close modal
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ ===== EMAIL SIGN-IN FAILED =====');
+            console.error('❌ Email sign-in error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                status: error.status,
+                statusText: error.statusText
+            });
+            
+            // More specific error messages
+            let errorMessage = 'Failed to sign in. Please check your credentials and try again.';
+            
+            if (error.message?.includes('Invalid login credentials')) {
+                errorMessage = 'Invalid email or password. Please check your credentials and try again.';
+            } else if (error.message?.includes('Email not confirmed')) {
+                errorMessage = 'Please check your email and click the confirmation link before signing in.';
+            } else if (error.message?.includes('Too many requests')) {
+                errorMessage = 'Too many login attempts. Please wait a few minutes before trying again.';
+            } else if (error.message?.includes('network')) {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            }
+            
+            alert(errorMessage);
+            throw error;
+        }
+    }
+
+    // Sign up with Email and Password
+    async signUpWithEmail() {
+        try {
+            console.log('📧 ===== EMAIL SIGN-UP STARTED =====');
+            
+            const emailEl = document.getElementById('emailInput');
+            const passwordEl = document.getElementById('passwordInput');
+            
+            if (!emailEl || !passwordEl) {
+                console.error('❌ Email or password input not found');
+                alert('Please refresh the page and try again.');
+                return;
+            }
+            
+            const email = emailEl.value.trim();
+            const password = passwordEl.value;
+            
+            console.log('📋 Email sign-up form values:', {
+                email: email,
+                passwordLength: password?.length,
+                emailValid: email.includes('@')
+            });
+            
+            // Validate inputs
+            if (!email) {
+                console.error('❌ Empty email');
+                alert('Please enter your email address');
+                return;
+            }
+            
+            if (!password) {
+                console.error('❌ Empty password');
+                alert('Please enter a password');
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                console.error('❌ Invalid email format');
+                alert('Please enter a valid email address');
+                return;
+            }
+            
+            if (password.length < 6) {
+                console.error('❌ Password too short');
+                alert('Password must be at least 6 characters long');
+                return;
+            }
+            
+            console.log('✅ Email sign-up validation passed');
+            
+            if (!this.supabase) {
+                console.error('❌ Supabase not initialized');
+                throw new Error('Supabase not initialized');
+            }
+            
+            console.log('📤 Sending email sign-up request...');
+            
+            const { data, error } = await this.supabase.auth.signUp({
+                email: email,
+                password: password
+            });
+            
+            console.log('📥 Supabase email sign-up response:', {
+                data: data,
+                error: error,
+                hasData: !!data,
+                hasError: !!error
+            });
+            
+            if (error) {
+                console.error('❌ Email sign-up error:', {
+                    message: error.message,
+                    status: error.status,
+                    statusText: error.statusText,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
+                throw error;
+            }
+            
+            console.log('✅ Email sign-up successful:', data);
+            
+            // Check if email confirmation is required
+            if (data.user && !data.user.email_confirmed_at) {
+                console.log('📧 Email confirmation required');
+                alert('Account created! Please check your email and click the confirmation link to complete your registration.');
+            } else {
+                console.log('🎉 User account created and confirmed!');
+                alert('Account created successfully! You are now signed in.');
+            }
+            
+            // Close modal
+            const modal = document.getElementById('authModal');
+            if (modal) {
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
+            }
+            
+        } catch (error) {
+            console.error('❌ ===== EMAIL SIGN-UP FAILED =====');
+            console.error('❌ Email sign-up error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                status: error.status,
+                statusText: error.statusText
+            });
+            
+            // More specific error messages
+            let errorMessage = 'Failed to create account. Please try again.';
+            
+            if (error.message?.includes('User already registered')) {
+                errorMessage = 'An account with this email already exists. Please sign in instead.';
+            } else if (error.message?.includes('Password should be at least')) {
+                errorMessage = 'Password must be at least 6 characters long.';
+            } else if (error.message?.includes('Invalid email')) {
+                errorMessage = 'Please enter a valid email address.';
+            } else if (error.message?.includes('network')) {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            }
+            
+            alert(errorMessage);
+            throw error;
+        }
+    }
+
     // Sign in with Phone Number
     async signInWithPhone() {
         try {
-            const countryCode = document.getElementById('countryCode').value;
-            const phoneNumber = document.getElementById('phoneNumber').value;
+            console.log('🚀 ===== PHONE AUTHENTICATION STARTED =====');
             
-            if (!phoneNumber) {
+            // Get form elements
+            const countryCodeEl = document.getElementById('countryCode');
+            const phoneNumberEl = document.getElementById('phoneNumber');
+            
+            console.log('🔍 Form elements found:', {
+                countryCodeEl: !!countryCodeEl,
+                phoneNumberEl: !!phoneNumberEl
+            });
+            
+            if (!countryCodeEl || !phoneNumberEl) {
+                console.error('❌ Missing form elements');
+                alert('Phone form not found. Please refresh the page.');
+                return;
+            }
+            
+            const countryCode = countryCodeEl.value;
+            const phoneNumber = phoneNumberEl.value;
+            
+            console.log('📋 Form values:', {
+                countryCode: countryCode,
+                phoneNumber: phoneNumber,
+                countryCodeLength: countryCode?.length,
+                phoneNumberLength: phoneNumber?.length
+            });
+            
+            // Validate inputs
+            if (!phoneNumber || phoneNumber.trim() === '') {
+                console.error('❌ Empty phone number');
                 alert('Please enter your phone number');
+                return;
+            }
+            
+            if (!countryCode || countryCode.trim() === '') {
+                console.error('❌ Empty country code');
+                alert('Please select a country code');
                 return;
             }
 
             const fullPhoneNumber = `${countryCode}${phoneNumber}`;
-            console.log('📱 Starting phone sign-in for:', fullPhoneNumber);
+            console.log('📱 Full phone number constructed:', fullPhoneNumber);
             
+            // Validate phone number format
+            const phoneRegex = /^\+[1-9]\d{1,14}$/;
+            if (!phoneRegex.test(fullPhoneNumber)) {
+                console.error('❌ Invalid phone number format:', fullPhoneNumber);
+                alert('Please enter a valid phone number with country code');
+                return;
+            }
+            
+            console.log('✅ Phone number format is valid');
+            
+            // Check Supabase initialization
             if (!this.supabase) {
+                console.error('❌ Supabase not initialized');
                 throw new Error('Supabase not initialized');
             }
+            
+            console.log('✅ Supabase client is ready');
+            
+            // Check current Supabase configuration
+            console.log('🔧 Supabase configuration:', {
+                url: this.supabase.supabaseUrl,
+                key: this.supabase.supabaseKey ? 'Present' : 'Missing',
+                clientInitialized: !!this.supabase.auth
+            });
+            
+            console.log('📤 Sending OTP request to Supabase...');
+            console.log('📤 Request payload:', {
+                phone: fullPhoneNumber,
+                options: { channel: 'sms' }
+            });
 
             const { data, error } = await this.supabase.auth.signInWithOtp({
                 phone: fullPhoneNumber,
@@ -212,18 +521,59 @@ class SupabaseAuth {
                 }
             });
 
+            console.log('📥 Supabase response received:', {
+                data: data,
+                error: error,
+                hasData: !!data,
+                hasError: !!error
+            });
+
             if (error) {
+                console.error('❌ Supabase returned error:', {
+                    message: error.message,
+                    status: error.status,
+                    statusText: error.statusText,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
                 throw error;
             }
 
-            console.log('✅ SMS sent successfully');
+            console.log('✅ SMS OTP request successful:', data);
+            console.log('🎉 SMS should have been sent to:', fullPhoneNumber);
             
             // Show OTP input modal
             this.showOTPModal(fullPhoneNumber);
+            console.log('📱 OTP modal displayed');
             
         } catch (error) {
-            console.error('❌ Phone sign-in failed:', error);
-            alert('Failed to send SMS. Please check your phone number and try again.');
+            console.error('❌ ===== PHONE AUTHENTICATION FAILED =====');
+            console.error('❌ Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                status: error.status,
+                statusText: error.statusText
+            });
+            
+            // More specific error messages
+            let errorMessage = 'Failed to send SMS. Please check your phone number and try again.';
+            
+            if (error.message?.includes('Invalid phone number')) {
+                errorMessage = 'Invalid phone number format. Please check your number and country code.';
+            } else if (error.message?.includes('rate limit')) {
+                errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+            } else if (error.message?.includes('network')) {
+                errorMessage = 'Network error. Please check your internet connection and try again.';
+            } else if (error.message?.includes('configuration')) {
+                errorMessage = 'SMS service not configured. Please contact support.';
+            }
+            
+            alert(errorMessage);
             throw error;
         }
     }
@@ -266,18 +616,49 @@ class SupabaseAuth {
     // Verify OTP code
     async verifyOTP(phoneNumber) {
         try {
-            const otpCode = document.getElementById('otpInput').value;
+            console.log('🔐 ===== OTP VERIFICATION STARTED =====');
+            console.log('📱 Verifying OTP for phone:', phoneNumber);
             
-            if (!otpCode) {
+            const otpInputEl = document.getElementById('otpInput');
+            console.log('🔍 OTP input element found:', !!otpInputEl);
+            
+            if (!otpInputEl) {
+                console.error('❌ OTP input element not found');
+                alert('OTP form not found. Please try again.');
+                return;
+            }
+            
+            const otpCode = otpInputEl.value;
+            console.log('📋 OTP code entered:', otpCode ? `${otpCode.substring(0, 2)}****` : 'Empty');
+            console.log('📏 OTP code length:', otpCode?.length);
+            
+            if (!otpCode || otpCode.trim() === '') {
+                console.error('❌ Empty OTP code');
                 alert('Please enter the verification code');
                 return;
             }
+            
+            if (otpCode.length < 4) {
+                console.error('❌ OTP code too short:', otpCode.length);
+                alert('Verification code seems too short. Please check and try again.');
+                return;
+            }
 
-            console.log('🔐 Verifying OTP...');
+            console.log('✅ OTP code validation passed');
             
             if (!this.supabase) {
+                console.error('❌ Supabase not initialized');
                 throw new Error('Supabase not initialized');
             }
+            
+            console.log('✅ Supabase client is ready for verification');
+            
+            console.log('📤 Sending OTP verification request...');
+            console.log('📤 Verification payload:', {
+                phone: phoneNumber,
+                token: otpCode,
+                type: 'sms'
+            });
 
             const { data, error } = await this.supabase.auth.verifyOtp({
                 phone: phoneNumber,
@@ -285,18 +666,62 @@ class SupabaseAuth {
                 type: 'sms'
             });
 
+            console.log('📥 Supabase verification response:', {
+                data: data,
+                error: error,
+                hasData: !!data,
+                hasError: !!error
+            });
+
             if (error) {
+                console.error('❌ Supabase verification error:', {
+                    message: error.message,
+                    status: error.status,
+                    statusText: error.statusText,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
                 throw error;
             }
 
-            console.log('✅ Phone verification successful');
+            console.log('✅ Phone verification successful:', data);
+            console.log('🎉 User authenticated successfully!');
             
             // Close modal
-            document.querySelector('.modal').remove();
+            const modal = document.querySelector('.modal');
+            if (modal) {
+                modal.remove();
+                console.log('📱 OTP modal closed');
+            }
             
         } catch (error) {
-            console.error('❌ OTP verification failed:', error);
-            alert('Invalid verification code. Please try again.');
+            console.error('❌ ===== OTP VERIFICATION FAILED =====');
+            console.error('❌ Verification error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                details: error.details,
+                hint: error.hint,
+                status: error.status,
+                statusText: error.statusText
+            });
+            
+            // More specific error messages
+            let errorMessage = 'Invalid verification code. Please try again.';
+            
+            if (error.message?.includes('expired')) {
+                errorMessage = 'Verification code has expired. Please request a new code.';
+            } else if (error.message?.includes('invalid')) {
+                errorMessage = 'Invalid verification code. Please check the code and try again.';
+            } else if (error.message?.includes('rate limit')) {
+                errorMessage = 'Too many verification attempts. Please wait before trying again.';
+            } else if (error.message?.includes('network')) {
+                errorMessage = 'Network error. Please check your connection and try again.';
+            }
+            
+            alert(errorMessage);
             throw error;
         }
     }
@@ -589,5 +1014,82 @@ window.debugRedirectUrl = () => {
     console.log('🔍 Hostname:', window.location.hostname);
     console.log('🔍 Port:', window.location.port || '3001');
     return currentUrl;
+};
+
+// Debug function to check Supabase configuration
+window.debugSupabaseConfig = () => {
+    console.log('🔍 ===== SUPABASE CONFIGURATION DEBUG =====');
+    
+    if (!window.supabaseAuth) {
+        console.error('❌ SupabaseAuth instance not found');
+        return;
+    }
+    
+    const auth = window.supabaseAuth;
+    console.log('✅ SupabaseAuth instance found');
+    
+    console.log('🔧 Initialization status:', {
+        isInitialized: auth.isInitialized,
+        hasSupabaseClient: !!auth.supabase,
+        hasUser: !!auth.user,
+        isAuthenticated: auth.isAuthenticated()
+    });
+    
+    if (auth.supabase) {
+        console.log('🔧 Supabase client details:', {
+            url: auth.supabase.supabaseUrl,
+            key: auth.supabase.supabaseKey ? 'Present' : 'Missing',
+            authModule: !!auth.supabase.auth,
+            storageModule: !!auth.supabase.storage,
+            databaseModule: !!auth.supabase.from
+        });
+        
+        // Check auth configuration
+        if (auth.supabase.auth) {
+            console.log('🔧 Auth module available');
+        }
+    } else {
+        console.error('❌ Supabase client not initialized');
+    }
+    
+    console.log('🔍 ===== END SUPABASE CONFIG DEBUG =====');
+    return {
+        isInitialized: auth.isInitialized,
+        hasClient: !!auth.supabase,
+        hasUser: !!auth.user,
+        isAuthenticated: auth.isAuthenticated()
+    };
+};
+
+// Debug function to test phone number format
+window.debugPhoneFormat = (phoneNumber) => {
+    console.log('🔍 ===== PHONE NUMBER FORMAT DEBUG =====');
+    console.log('📱 Input phone number:', phoneNumber);
+    
+    if (!phoneNumber) {
+        console.error('❌ No phone number provided');
+        return false;
+    }
+    
+    const phoneRegex = /^\+[1-9]\d{1,14}$/;
+    const isValid = phoneRegex.test(phoneNumber);
+    
+    console.log('📏 Phone number length:', phoneNumber.length);
+    console.log('🔍 Regex test result:', isValid);
+    console.log('📋 Phone number breakdown:', {
+        hasPlus: phoneNumber.startsWith('+'),
+        countryCode: phoneNumber.substring(0, phoneNumber.length - 10), // Assume 10 digits for local number
+        localNumber: phoneNumber.substring(phoneNumber.length - 10)
+    });
+    
+    if (!isValid) {
+        console.error('❌ Invalid phone format');
+        console.log('💡 Expected format: +[country code][number] (e.g., +1234567890)');
+    } else {
+        console.log('✅ Phone number format is valid');
+    }
+    
+    console.log('🔍 ===== END PHONE FORMAT DEBUG =====');
+    return isValid;
 };
 

@@ -24,53 +24,37 @@ class AuthModalComponent {
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body pt-0">
-                            <!-- Social Login Options -->
-                            <div class="social-login-row d-flex gap-3 mb-4">
-                                <button class="btn btn-social" onclick="supabaseAuth.signInWithApple()" title="Sign in with Apple">
-                                    <i class="fab fa-apple"></i>
-                                </button>
-                                <button class="btn btn-social" onclick="supabaseAuth.signInWithGoogle()" title="Sign in with Google">
-                                    <i class="fab fa-google"></i>
-                                </button>
-                                <button class="btn btn-social" onclick="supabaseAuth.signInWithDiscord()" title="Sign in with Discord">
-                                    <i class="fab fa-discord"></i>
-                                </button>
-                                <button class="btn btn-social" onclick="supabaseAuth.signInWithFacebook()" title="Sign in with Facebook">
-                                    <i class="fab fa-facebook-f"></i>
-                                </button>
-                                <button class="btn btn-social" onclick="supabaseAuth.signInWithMicrosoft()" title="Sign in with Microsoft">
-                                    <i class="fab fa-microsoft"></i>
-                                </button>
-                            </div>
+                            <!-- Google Login Button -->
+                            <button class="btn btn-google w-100 mb-4" onclick="supabaseAuth.signInWithGoogle()">
+                                <i class="fab fa-google me-2"></i>
+                                Continue with Google
+                            </button>
 
                             <div class="text-center mb-3">
                                 <span class="text-muted">or</span>
                             </div>
 
-                            <!-- Phone Authentication -->
-                            <div class="phone-input-group d-flex gap-2 mb-3">
-                                <select class="form-select country-select" id="countryCode">
-                                    <option value="+1">🇺🇸 +1</option>
-                                    <option value="+44">🇬🇧 +44</option>
-                                    <option value="+33">🇫🇷 +33</option>
-                                    <option value="+49">🇩🇪 +49</option>
-                                    <option value="+81">🇯🇵 +81</option>
-                                    <option value="+86">🇨🇳 +86</option>
-                                    <option value="+91">🇮🇳 +91</option>
-                                    <option value="+61">🇦🇺 +61</option>
-                                    <option value="+55">🇧🇷 +55</option>
-                                    <option value="+52">🇲🇽 +52</option>
-                                </select>
-                                <input type="tel" class="form-control" id="phoneNumber" placeholder="Enter your phone number">
+                            <!-- Email/Password Authentication -->
+                            <div class="email-auth-form">
+                                <div class="mb-3">
+                                    <input type="email" class="form-control" id="emailInput" placeholder="Enter your email address">
+                                </div>
+                                <div class="mb-3">
+                                    <input type="password" class="form-control" id="passwordInput" placeholder="Enter your password">
+                                </div>
+                                
+                                <button class="btn btn-primary w-100 mb-3" onclick="supabaseAuth.signInWithEmail()">
+                                    Sign In with Email <i class="fas fa-arrow-right ms-2"></i>
+                                </button>
+                                
+                                <button class="btn btn-outline-primary w-100 mb-3" onclick="supabaseAuth.signUpWithEmail()">
+                                    Create Account <i class="fas fa-user-plus ms-2"></i>
+                                </button>
                             </div>
 
-                            <button class="btn btn-primary w-100 mb-3" onclick="supabaseAuth.signInWithPhone()">
-                                Continue with Phone <i class="fas fa-arrow-right ms-2"></i>
-                            </button>
-
                             <div class="signup-option text-center">
-                                <span class="text-muted">Don't have an account? </span>
-                                <button class="btn-link" onclick="this.showSignUpModal()">Sign up</button>
+                                <span class="text-muted">New to AI Home Upgrades? </span>
+                                <button class="btn-link" onclick="supabaseAuth.signUpWithEmail()">Create your account</button>
                             </div>
                         </div>
                     </div>
@@ -91,30 +75,46 @@ class AuthModalComponent {
     addModalStyles() {
         const styles = `
             <style id="auth-modal-styles">
-                /* Social Login Buttons */
-                .btn-social {
-                    width: 48px;
-                    height: 48px;
-                    border-radius: 50%;
-                    border: 2px solid #e2e8f0;
-                    background: white;
-                    color: #4a5568;
-                    font-size: 18px;
+                /* Google Login Button */
+                .btn-google {
+                    background: #4285f4;
+                    border: 2px solid #4285f4;
+                    color: white;
+                    font-weight: 500;
+                    padding: 12px 20px;
+                    border-radius: 8px;
                     transition: all 0.3s ease;
                     display: flex;
                     align-items: center;
                     justify-content: center;
+                    font-size: 16px;
                 }
 
-                .btn-social:hover {
+                .btn-google:hover {
+                    background: #3367d6;
+                    border-color: #3367d6;
+                    color: white;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+                }
+
+                .btn-google i {
+                    font-size: 18px;
+                }
+
+                /* Email Auth Form */
+                .email-auth-form .form-control {
+                    border: 2px solid #e2e8f0;
+                    border-radius: 8px;
+                    padding: 12px 16px;
+                    font-size: 16px;
+                    transition: all 0.3s ease;
+                }
+
+                .email-auth-form .form-control:focus {
                     border-color: #667eea;
-                    color: #667eea;
-                    transform: translateY(-2px);
-                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
-                }
-
-                .social-login-row {
-                    justify-content: center;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                    outline: none;
                 }
 
                 /* Signup Link */
@@ -149,24 +149,14 @@ class AuthModalComponent {
                         border-radius: 12px;
                     }
                     
-                    .social-login-row {
-                        gap: 8px;
-                        margin-bottom: 20px;
-                    }
-                    
-                    .btn-social {
-                        width: 44px;
-                        height: 44px;
+                    .btn-google {
+                        padding: 14px 20px;
                         font-size: 16px;
                     }
                     
-                    .phone-input-group {
-                        flex-direction: column;
-                        gap: 8px;
-                    }
-                    
-                    .country-select {
-                        width: 100%;
+                    .email-auth-form .form-control {
+                        padding: 14px 16px;
+                        font-size: 16px;
                     }
                     
                     .modal-header {
