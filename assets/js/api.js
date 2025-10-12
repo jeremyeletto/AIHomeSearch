@@ -4,6 +4,101 @@ class APIHandler {
         this.baseUrl = CONFIG.API_BASE_URL;
     }
 
+    // Display cached results instantly
+    displayCachedResults(cachedData) {
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const homesGrid = document.getElementById('homesGrid');
+        
+        console.log(`⚡ Displaying ${cachedData.homes.length} cached properties`);
+        
+        // Update pagination info from cache
+        CONFIG.totalPages = cachedData.totalPages;
+        
+        // Show cache indicator briefly
+        this.showCacheIndicator();
+        
+        // Display homes immediately
+        window.homeDisplay.displayHomes(cachedData.homes);
+        window.pagination.updatePaginationControls();
+        
+        // Hide loading states
+        loadingState.style.display = 'none';
+        errorState.style.display = 'none';
+        homesGrid.style.display = 'flex';
+        
+        // Handle high-quality images for cached properties
+        this.handleHighQualityImages(cachedData.homes);
+    }
+
+    // Show cache indicator to user
+    showCacheIndicator() {
+        // Create cache indicator element
+        const cacheIndicator = document.createElement('div');
+        cacheIndicator.id = 'cacheIndicator';
+        cacheIndicator.innerHTML = `
+            <div style="
+                position: fixed;
+                top: 80px;
+                right: 20px;
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                animation: slideInFromRight 0.3s ease-out;
+            ">
+                <i class="fas fa-bolt" style="font-size: 10px;"></i>
+                <span>Cached Results</span>
+            </div>
+        `;
+        
+        // Add animation CSS if not already present
+        if (!document.getElementById('cacheIndicatorStyles')) {
+            const style = document.createElement('style');
+            style.id = 'cacheIndicatorStyles';
+            style.textContent = `
+                @keyframes slideInFromRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOutToRight {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Remove any existing cache indicator
+        const existing = document.getElementById('cacheIndicator');
+        if (existing) {
+            existing.remove();
+        }
+        
+        // Add to page
+        document.body.appendChild(cacheIndicator);
+        
+        // Auto-remove after 3 seconds
+        setTimeout(() => {
+            const indicator = document.getElementById('cacheIndicator');
+            if (indicator) {
+                indicator.style.animation = 'slideOutToRight 0.3s ease-in';
+                setTimeout(() => {
+                    if (indicator.parentNode) {
+                        indicator.remove();
+                    }
+                }, 300);
+            }
+        }, 3000);
+    }
+
     // Test API connectivity
     async testAPIs() {
         try {
@@ -36,17 +131,26 @@ class APIHandler {
         const errorState = document.getElementById('errorState');
         const homesGrid = document.getElementById('homesGrid');
         
-        loadingState.style.display = 'block';
-        errorState.style.display = 'none';
-        homesGrid.style.display = 'none';
-        
         // Update global state
         CONFIG.currentPage = page;
         CONFIG.currentSort = sort;
         CONFIG.currentLocation = location;
         
+        // Check cache first
+        const cachedResults = CONFIG.getCachedResults(location, page, sort);
+        if (cachedResults) {
+            console.log('⚡ Loading cached results instantly');
+            this.displayCachedResults(cachedResults);
+            return;
+        }
+        
+        // Show loading state for fresh API call
+        loadingState.style.display = 'block';
+        errorState.style.display = 'none';
+        homesGrid.style.display = 'none';
+        
         try {
-            console.log('🚀 Optimized Property Loading - Location:', location, 'Page:', page, 'Sort:', sort);
+            console.log('🚀 Fresh API call - Location:', location, 'Page:', page, 'Sort:', sort);
             
             const encodedLocation = encodeURIComponent(location);
             const proxyUrl = `${this.baseUrl}/api/realtor/image-counts?location=${encodedLocation}&search_radius=0&page=${page}&limit=6&sort=${sort}`;
@@ -94,6 +198,14 @@ class APIHandler {
                 
                 // Process homes with optimized image handling
                 const homes = this.processProperties(recentProperties, imageCounts);
+                
+                // Cache the results for future use
+                CONFIG.setCachedResults(location, page, sort, {
+                    homes: homes,
+                    totalCount: totalCount,
+                    totalPages: Math.ceil(totalCount / 6),
+                    timestamp: Date.now()
+                });
                 
                 // Display the homes immediately with preview images
                 console.log(`✅ Displaying ${homes.length} properties with preview images`);
