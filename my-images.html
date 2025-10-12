@@ -325,6 +325,9 @@
                     <p class="page-subtitle">View and manage your AI-powered home upgrades</p>
                 </div>
                 <div class="col-md-4 text-end">
+                    <button onclick="loadUserImages(true)" class="btn btn-outline-secondary me-2" title="Refresh Images">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
                     <a href="homes.html" class="btn btn-primary">
                         <i class="fas fa-plus me-2"></i>Create New Upgrade
                     </a>
@@ -364,6 +367,87 @@
     <script src="assets/js/auth-modal-component.js"></script>
     
     <script>
+        // Smart caching system for images
+        const ImageCache = {
+            cacheKey: 'aihome_images_cache',
+            cacheTimestamp: 'aihome_images_timestamp',
+            cacheExpiry: 5 * 60 * 1000, // 5 minutes
+            
+            // Get cached images
+            getCachedImages() {
+                try {
+                    const cached = localStorage.getItem(this.cacheKey);
+                    const timestamp = localStorage.getItem(this.cacheTimestamp);
+                    
+                    if (cached && timestamp) {
+                        const age = Date.now() - parseInt(timestamp);
+                        if (age < this.cacheExpiry) {
+                            console.log('📦 Using cached images');
+                            return JSON.parse(cached);
+                        } else {
+                            console.log('⏰ Cache expired, clearing');
+                            this.clearCache();
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Cache read error:', error);
+                    this.clearCache();
+                }
+                return null;
+            },
+            
+            // Save images to cache
+            setCachedImages(images) {
+                try {
+                    localStorage.setItem(this.cacheKey, JSON.stringify(images));
+                    localStorage.setItem(this.cacheTimestamp, Date.now().toString());
+                    console.log('💾 Images cached successfully');
+                } catch (error) {
+                    console.error('❌ Cache write error:', error);
+                }
+            },
+            
+            // Remove specific image from cache
+            removeImageFromCache(imageId) {
+                try {
+                    const cached = localStorage.getItem(this.cacheKey);
+                    if (cached) {
+                        const images = JSON.parse(cached);
+                        const filtered = images.filter(img => img.id !== imageId);
+                        this.setCachedImages(filtered);
+                        console.log('🗑️ Image removed from cache');
+                    }
+                } catch (error) {
+                    console.error('❌ Cache remove error:', error);
+                }
+            },
+            
+            // Clear cache
+            clearCache() {
+                localStorage.removeItem(this.cacheKey);
+                localStorage.removeItem(this.cacheTimestamp);
+                console.log('🧹 Cache cleared');
+            },
+            
+            // Update specific image in cache
+            updateImageInCache(updatedImage) {
+                try {
+                    const cached = localStorage.getItem(this.cacheKey);
+                    if (cached) {
+                        const images = JSON.parse(cached);
+                        const index = images.findIndex(img => img.id === updatedImage.id);
+                        if (index !== -1) {
+                            images[index] = updatedImage;
+                            this.setCachedImages(images);
+                            console.log('🔄 Image updated in cache');
+                        }
+                    }
+                } catch (error) {
+                    console.error('❌ Cache update error:', error);
+                }
+            }
+        };
+
         // Check authentication on page load
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 My Images page loaded');
@@ -403,45 +487,97 @@
             waitForAuth();
         });
 
-        // Load user's generated images
-        async function loadUserImages() {
+        // Load user's generated images with smart caching
+        async function loadUserImages(forceRefresh = false) {
             const loadingState = document.getElementById('loadingState');
             const imagesGrid = document.getElementById('imagesGrid');
             const emptyState = document.getElementById('emptyState');
 
             try {
-                loadingState.style.display = 'flex';
-                imagesGrid.style.display = 'none';
-                emptyState.style.display = 'none';
-
-                const images = await window.supabaseAuth.getUserImages();
-
-                if (images.length === 0) {
-                    loadingState.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    return;
+                // Check cache first (unless force refresh)
+                let images = null;
+                if (!forceRefresh) {
+                    images = ImageCache.getCachedImages();
                 }
 
-                // Display images
-                displayImages(images);
-                
-                loadingState.style.display = 'none';
-                imagesGrid.style.display = 'flex';
+                if (images) {
+                    // Use cached data
+                    console.log('⚡ Loading from cache - instant display');
+                    loadingState.style.display = 'none';
+                    
+                    if (images.length === 0) {
+                        emptyState.style.display = 'block';
+                        imagesGrid.style.display = 'none';
+                    } else {
+                        displayImages(images);
+                        imagesGrid.style.display = 'flex';
+                        emptyState.style.display = 'none';
+                    }
+                    
+                    // Update cache in background
+                    refreshCacheInBackground();
+                } else {
+                    // Load from API
+                    console.log('🌐 Loading from API');
+                    loadingState.style.display = 'flex';
+                    imagesGrid.style.display = 'none';
+                    emptyState.style.display = 'none';
+
+                    images = await window.supabaseAuth.getUserImages();
+
+                    if (images.length === 0) {
+                        loadingState.style.display = 'none';
+                        emptyState.style.display = 'block';
+                        // Cache empty result
+                        ImageCache.setCachedImages([]);
+                        return;
+                    }
+
+                    // Display images and cache them
+                    displayImages(images);
+                    ImageCache.setCachedImages(images);
+                    
+                    loadingState.style.display = 'none';
+                    imagesGrid.style.display = 'flex';
+                    emptyState.style.display = 'none';
+                }
 
             } catch (error) {
                 console.error('Failed to load images:', error);
                 loadingState.style.display = 'none';
                 
-                // Show error message
-                imagesGrid.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-danger" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Failed to load your images. Please try again later.
+                // Try to show cached data even if API fails
+                const cachedImages = ImageCache.getCachedImages();
+                if (cachedImages && cachedImages.length > 0) {
+                    console.log('🔄 Showing cached data due to API error');
+                    displayImages(cachedImages);
+                    imagesGrid.style.display = 'flex';
+                    emptyState.style.display = 'none';
+                } else {
+                    // Show error message
+                    imagesGrid.innerHTML = `
+                        <div class="col-12">
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Failed to load your images. Please try again later.
+                            </div>
                         </div>
-                    </div>
-                `;
-                imagesGrid.style.display = 'flex';
+                    `;
+                    imagesGrid.style.display = 'flex';
+                    emptyState.style.display = 'none';
+                }
+            }
+        }
+
+        // Refresh cache in background without blocking UI
+        async function refreshCacheInBackground() {
+            try {
+                console.log('🔄 Background cache refresh');
+                const freshImages = await window.supabaseAuth.getUserImages();
+                ImageCache.setCachedImages(freshImages);
+                console.log('✅ Cache refreshed in background');
+            } catch (error) {
+                console.warn('⚠️ Background cache refresh failed:', error);
             }
         }
 
@@ -932,27 +1068,75 @@
             try {
                 console.log('🗑️ Deleting image:', imageId);
                 
-                // Delete from Supabase using the auth module
-                await window.supabaseAuth.deleteUserImage(imageId);
-
-                console.log('✅ Image deleted successfully');
+                // OPTIMISTIC UI UPDATE: Remove from DOM immediately
+                const imageCard = document.querySelector(`[onclick*="deleteImage('${imageId}')"]`)?.closest('.before-after-card')?.parentElement;
+                if (imageCard) {
+                    // Add fade out animation
+                    imageCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    imageCard.style.opacity = '0';
+                    imageCard.style.transform = 'scale(0.95)';
+                    
+                    setTimeout(() => {
+                        imageCard.remove();
+                        
+                        // Check if no images left
+                        const remainingImages = document.querySelectorAll('.before-after-card');
+                        if (remainingImages.length === 0) {
+                            document.getElementById('imagesGrid').style.display = 'none';
+                            document.getElementById('emptyState').style.display = 'block';
+                        }
+                    }, 300);
+                }
                 
-                // Show success notification
+                // Remove from cache immediately
+                ImageCache.removeImageFromCache(imageId);
+                
+                // Show immediate success notification
                 showNotification('Image deleted successfully', 'success');
                 
-                // Reload the images
-                await loadUserImages();
+                // Delete from Supabase in background (don't wait for it)
+                window.supabaseAuth.deleteUserImage(imageId)
+                    .then(() => {
+                        console.log('✅ Image deleted from server successfully');
+                    })
+                    .catch((error) => {
+                        console.error('❌ Failed to delete image from server:', error);
+                        
+                        // If server deletion fails, we could restore the image
+                        // For now, just show a warning
+                        showNotification('Image deleted locally, but server sync may have failed', 'warning');
+                    });
                 
             } catch (error) {
                 console.error('❌ Failed to delete image:', error);
                 showNotification('Failed to delete image', 'error');
+                
+                // If optimistic update failed, reload to sync state
+                await loadUserImages(true);
             }
         }
 
         // Show notification
         function showNotification(message, type = 'success') {
             const notification = document.createElement('div');
-            notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
+            let alertClass = 'alert-success';
+            let iconClass = 'check-circle';
+            
+            switch(type) {
+                case 'error':
+                    alertClass = 'alert-danger';
+                    iconClass = 'exclamation-triangle';
+                    break;
+                case 'warning':
+                    alertClass = 'alert-warning';
+                    iconClass = 'exclamation-triangle';
+                    break;
+                default:
+                    alertClass = 'alert-success';
+                    iconClass = 'check-circle';
+            }
+            
+            notification.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
             notification.style.cssText = `
                 top: 20px;
                 right: 20px;
@@ -962,7 +1146,7 @@
             `;
             
             notification.innerHTML = `
-                <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'} me-2"></i>
+                <i class="fas fa-${iconClass} me-2"></i>
                 ${message}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
