@@ -645,7 +645,7 @@
                 
                 return `
                 <div class="col-lg-6 col-xl-4 mb-4">
-                    <div class="before-after-card">
+                    <div class="before-after-card" data-image-id="${image.id}">
                         <div class="before-after-container">
                             <img src="${image.original_image_url}" alt="Before" class="before-after-image">
                             <img src="${image.generated_image_url || image.original_image_url}" alt="After" class="before-after-image">
@@ -653,11 +653,11 @@
                             <div class="after-label">AFTER</div>
                         </div>
                         <div class="card-content">
-                            <h5 class="upgrade-title">${truncatedTitle}</h5>
+                            <h5 class="upgrade-title" data-full-text="${(image.upgrade_type || 'Home Upgrade').replace(/"/g, '&quot;')}">${truncatedTitle}</h5>
                             <div class="property-info">
-                                <div class="property-address">${truncatedAddress}</div>
+                                <div class="property-address" data-full-text="${(image.property_address || 'Property Address').replace(/"/g, '&quot;')}">${truncatedAddress}</div>
                                 ${image.property_price ? 
-                                    `<div class="property-price">$${image.property_price.toLocaleString()}</div>` : 
+                                    `<div class="property-price" data-price="${image.property_price}">$${image.property_price.toLocaleString()}</div>` : 
                                     ''
                                 }
                             </div>
@@ -676,61 +676,55 @@
             }).join('');
         }
 
-        // View image details (placeholder for future modal)
-        async function viewImageDetails(imageId) {
+        // View image details - optimized to avoid API calls
+        function viewImageDetails(imageId) {
             console.log('Viewing details for image:', imageId);
             
             try {
-                // Try to find the image from the current page data first (faster)
+                // Find the image data from the current page content
                 let image = null;
                 
-                // Check if we already have the images loaded on the page
-                const imageCards = document.querySelectorAll('.before-after-card');
-                for (let card of imageCards) {
-                    const viewBtn = card.querySelector('.view-details-btn');
-                    if (viewBtn && viewBtn.onclick.toString().includes(imageId)) {
-                        // Find the image data from the card
-                        const titleEl = card.querySelector('.upgrade-title');
-                        const addressEl = card.querySelector('.property-address');
-                        const priceEl = card.querySelector('.property-price');
-                        const beforeImg = card.querySelector('.before-after-image[alt="Before"]');
-                        const afterImg = card.querySelector('.before-after-image[alt="After"]');
+                // Look for the specific card containing this image
+                const card = document.querySelector(`[data-image-id="${imageId}"]`);
+                
+                if (card) {
+                    // Extract all data from the card elements
+                    const titleEl = card.querySelector('.upgrade-title');
+                    const addressEl = card.querySelector('.property-address');
+                    const priceEl = card.querySelector('.property-price');
+                    const beforeImg = card.querySelector('.before-after-image[alt="Before"]');
+                    const afterImg = card.querySelector('.before-after-image[alt="After"]');
+                    
+                    if (beforeImg && afterImg) {
+                        // Get full text from data attributes (avoids truncation issues)
+                        const upgradeType = titleEl?.dataset.fullText || titleEl?.textContent?.trim() || 'Home Upgrade';
+                        const propertyAddress = addressEl?.dataset.fullText || addressEl?.textContent?.trim() || 'Property Address';
+                        const propertyPrice = priceEl?.dataset.price ? parseInt(priceEl.dataset.price) : null;
                         
-                        if (beforeImg && afterImg) {
-                            image = {
-                                id: imageId,
-                                upgrade_type: titleEl ? titleEl.textContent.replace('...', '') : 'Home Upgrade',
-                                property_address: addressEl ? addressEl.textContent.replace('...', '') : 'Property Address',
-                                property_price: priceEl ? parseInt(priceEl.textContent.replace(/[$,]/g, '')) : null,
-                                original_image_url: beforeImg.src,
-                                generated_image_url: afterImg.src,
-                                created_at: new Date().toISOString() // Fallback date
-                            };
-                            break;
-                        }
+                        image = {
+                            id: imageId,
+                            upgrade_type: upgradeType,
+                            property_address: propertyAddress,
+                            property_price: propertyPrice,
+                            original_image_url: beforeImg.src,
+                            generated_image_url: afterImg.src,
+                            created_at: new Date().toISOString() // Current time as fallback
+                        };
                     }
                 }
                 
-                // If not found on page, try to fetch from API (but with timeout handling)
                 if (!image) {
-                    console.log('Image not found on page, fetching from API...');
-                    const images = await window.supabaseAuth.getUserImages();
-                    image = images.find(img => img.id === imageId);
-                }
-                
-                if (!image) {
-                    alert('Image not found');
+                    console.error('Could not find image data on page for ID:', imageId);
+                    alert('Image data not found. Please refresh the page and try again.');
                     return;
                 }
                 
+                console.log('Found image data:', image);
                 showImageDetailsModal(image);
+                
             } catch (error) {
-                console.error('Error fetching image details:', error);
-                if (error.code === '57014' || error.message?.includes('timeout')) {
-                    alert('Images are loading slowly. Please try again in a moment.');
-                } else {
-                    alert('Error loading image details');
-                }
+                console.error('Error processing image details:', error);
+                alert('Error loading image details. Please try again.');
             }
         }
 
