@@ -500,9 +500,42 @@
             console.log('Viewing details for image:', imageId);
             
             try {
-                // Get all user images to find the specific one
-                const images = await window.supabaseAuth.getUserImages();
-                const image = images.find(img => img.id === imageId);
+                // Try to find the image from the current page data first (faster)
+                let image = null;
+                
+                // Check if we already have the images loaded on the page
+                const imageCards = document.querySelectorAll('.before-after-card');
+                for (let card of imageCards) {
+                    const viewBtn = card.querySelector('.view-details-btn');
+                    if (viewBtn && viewBtn.onclick.toString().includes(imageId)) {
+                        // Find the image data from the card
+                        const titleEl = card.querySelector('.upgrade-title');
+                        const addressEl = card.querySelector('.property-address');
+                        const priceEl = card.querySelector('.property-price');
+                        const beforeImg = card.querySelector('.before-after-image[alt="Before"]');
+                        const afterImg = card.querySelector('.before-after-image[alt="After"]');
+                        
+                        if (beforeImg && afterImg) {
+                            image = {
+                                id: imageId,
+                                upgrade_type: titleEl ? titleEl.textContent.replace('...', '') : 'Home Upgrade',
+                                property_address: addressEl ? addressEl.textContent.replace('...', '') : 'Property Address',
+                                property_price: priceEl ? parseInt(priceEl.textContent.replace(/[$,]/g, '')) : null,
+                                original_image_url: beforeImg.src,
+                                generated_image_url: afterImg.src,
+                                created_at: new Date().toISOString() // Fallback date
+                            };
+                            break;
+                        }
+                    }
+                }
+                
+                // If not found on page, try to fetch from API (but with timeout handling)
+                if (!image) {
+                    console.log('Image not found on page, fetching from API...');
+                    const images = await window.supabaseAuth.getUserImages();
+                    image = images.find(img => img.id === imageId);
+                }
                 
                 if (!image) {
                     alert('Image not found');
@@ -512,7 +545,11 @@
                 showImageDetailsModal(image);
             } catch (error) {
                 console.error('Error fetching image details:', error);
-                alert('Error loading image details');
+                if (error.code === '57014' || error.message?.includes('timeout')) {
+                    alert('Images are loading slowly. Please try again in a moment.');
+                } else {
+                    alert('Error loading image details');
+                }
             }
         }
 
@@ -626,9 +663,45 @@
                 </div>
             `;
 
-            // Add modal styles
+            // Add modal styles (matching existing app design)
             const modalStyles = `
                 <style>
+                    #imageDetailsModal .modal-dialog {
+                        max-width: 900px;
+                    }
+                    
+                    #imageDetailsModal .modal-content {
+                        border: none;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                    }
+                    
+                    #imageDetailsModal .modal-header {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border-bottom: none;
+                        border-radius: 12px 12px 0 0;
+                        padding: 1.5rem;
+                    }
+                    
+                    #imageDetailsModal .modal-header .btn-close {
+                        filter: invert(1);
+                        opacity: 0.8;
+                    }
+                    
+                    #imageDetailsModal .modal-header .btn-close:hover {
+                        opacity: 1;
+                    }
+                    
+                    #imageDetailsModal .modal-title {
+                        font-weight: 600;
+                        font-size: 1.25rem;
+                    }
+                    
+                    #imageDetailsModal .modal-body {
+                        padding: 2rem;
+                    }
+                    
                     .detail-section {
                         margin-bottom: 1.5rem;
                     }
@@ -649,6 +722,15 @@
                         word-break: break-word;
                     }
                     
+                    .detail-value a {
+                        color: #667eea;
+                        text-decoration: none;
+                    }
+                    
+                    .detail-value a:hover {
+                        text-decoration: underline;
+                    }
+                    
                     .image-container {
                         position: relative;
                         border-radius: 8px;
@@ -656,44 +738,72 @@
                         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                     }
                     
-                    .modal-lg {
-                        max-width: 900px;
+                    .image-container img {
+                        transition: transform 0.3s ease;
                     }
                     
-                    .modal-body {
-                        padding: 2rem;
+                    .image-container:hover img {
+                        transform: scale(1.02);
                     }
                     
-                    .modal-header {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    /* Action buttons styling */
+                    #imageDetailsModal .btn {
+                        border-radius: 8px;
+                        font-weight: 500;
+                        padding: 10px 20px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    #imageDetailsModal .btn-primary {
+                        background: #667eea;
+                        border-color: #667eea;
+                    }
+                    
+                    #imageDetailsModal .btn-primary:hover {
+                        background: #5a6fd8;
+                        border-color: #5a6fd8;
+                        transform: translateY(-1px);
+                        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                    }
+                    
+                    #imageDetailsModal .btn-outline-secondary {
+                        border-color: #e2e8f0;
+                        color: #6c757d;
+                    }
+                    
+                    #imageDetailsModal .btn-outline-secondary:hover {
+                        background: #f8f9fa;
+                        border-color: #dee2e6;
+                        color: #495057;
+                    }
+                    
+                    #imageDetailsModal .btn-outline-danger {
+                        border-color: #dc3545;
+                        color: #dc3545;
+                    }
+                    
+                    #imageDetailsModal .btn-outline-danger:hover {
+                        background: #dc3545;
+                        border-color: #dc3545;
                         color: white;
-                        border-bottom: none;
-                    }
-                    
-                    .modal-header .btn-close {
-                        filter: invert(1);
-                    }
-                    
-                    .modal-title {
-                        font-weight: 600;
                     }
                     
                     /* Mobile Optimizations */
                     @media (max-width: 768px) {
-                        .modal-lg {
+                        #imageDetailsModal .modal-dialog {
                             max-width: 95%;
                             margin: 1rem auto;
                         }
                         
-                        .modal-body {
+                        #imageDetailsModal .modal-body {
                             padding: 1rem;
                         }
                         
-                        .modal-header {
+                        #imageDetailsModal .modal-header {
                             padding: 1rem;
                         }
                         
-                        .modal-title {
+                        #imageDetailsModal .modal-title {
                             font-size: 1.1rem;
                         }
                         
@@ -725,16 +835,16 @@
                     }
                     
                     @media (max-width: 576px) {
-                        .modal-lg {
+                        #imageDetailsModal .modal-dialog {
                             max-width: 98%;
                             margin: 0.5rem auto;
                         }
                         
-                        .modal-body {
+                        #imageDetailsModal .modal-body {
                             padding: 0.75rem;
                         }
                         
-                        .modal-header {
+                        #imageDetailsModal .modal-header {
                             padding: 0.75rem;
                         }
                         
