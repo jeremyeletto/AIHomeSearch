@@ -496,9 +496,248 @@
         }
 
         // View image details (placeholder for future modal)
-        function viewImageDetails(imageId) {
+        async function viewImageDetails(imageId) {
             console.log('Viewing details for image:', imageId);
-            alert('Image details modal coming soon!');
+            
+            try {
+                // Get all user images to find the specific one
+                const images = await window.supabaseAuth.getUserImages();
+                const image = images.find(img => img.id === imageId);
+                
+                if (!image) {
+                    alert('Image not found');
+                    return;
+                }
+                
+                showImageDetailsModal(image);
+            } catch (error) {
+                console.error('Error fetching image details:', error);
+                alert('Error loading image details');
+            }
+        }
+
+        function showImageDetailsModal(image) {
+            // Create modal HTML
+            const modalHTML = `
+                <div class="modal fade" id="imageDetailsModal" tabindex="-1" aria-labelledby="imageDetailsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="imageDetailsModalLabel">
+                                    <i class="fas fa-home me-2"></i>Property Upgrade Details
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <!-- Before/After Images -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <h6 class="text-muted mb-2">
+                                            <i class="fas fa-camera me-1"></i>BEFORE
+                                        </h6>
+                                        <div class="image-container">
+                                            <img src="${image.original_image_url}" alt="Before" class="img-fluid rounded shadow-sm" style="width: 100%; height: 300px; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-muted mb-2">
+                                            <i class="fas fa-magic me-1"></i>AFTER
+                                        </h6>
+                                        <div class="image-container">
+                                            <img src="${image.generated_image_url || image.original_image_url}" alt="After" class="img-fluid rounded shadow-sm" style="width: 100%; height: 300px; object-fit: cover;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Property Details -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="detail-section">
+                                            <h6 class="detail-label">
+                                                <i class="fas fa-tools me-1"></i>Upgrade Type
+                                            </h6>
+                                            <p class="detail-value">${image.upgrade_type || 'Home Upgrade'}</p>
+                                        </div>
+                                        
+                                        <div class="detail-section">
+                                            <h6 class="detail-label">
+                                                <i class="fas fa-map-marker-alt me-1"></i>Property Address
+                                            </h6>
+                                            <p class="detail-value">
+                                                ${image.property_address ? 
+                                                    `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(image.property_address)}" target="_blank" class="text-decoration-none">
+                                                        ${image.property_address} <i class="fas fa-external-link-alt ms-1"></i>
+                                                    </a>` : 
+                                                    'Address not available'
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        ${image.property_price ? `
+                                            <div class="detail-section">
+                                                <h6 class="detail-label">
+                                                    <i class="fas fa-dollar-sign me-1"></i>Property Value
+                                                </h6>
+                                                <p class="detail-value text-success fw-bold">$${image.property_price.toLocaleString()}</p>
+                                            </div>
+                                        ` : ''}
+                                        
+                                        <div class="detail-section">
+                                            <h6 class="detail-label">
+                                                <i class="fas fa-calendar-alt me-1"></i>Created
+                                            </h6>
+                                            <p class="detail-value">
+                                                ${image.created_at ? 
+                                                    new Date(image.created_at).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    }) : 
+                                                    'Date not available'
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button class="btn btn-primary" onclick="downloadImage('${image.id}')">
+                                                <i class="fas fa-download me-1"></i>Download After Image
+                                            </button>
+                                            <button class="btn btn-outline-secondary" onclick="shareImage('${image.id}')">
+                                                <i class="fas fa-share-alt me-1"></i>Share
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="deleteImageFromModal('${image.id}')">
+                                                <i class="fas fa-trash me-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add modal styles
+            const modalStyles = `
+                <style>
+                    .detail-section {
+                        margin-bottom: 1.5rem;
+                    }
+                    
+                    .detail-label {
+                        color: #6c757d;
+                        font-size: 0.875rem;
+                        font-weight: 600;
+                        margin-bottom: 0.5rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                    }
+                    
+                    .detail-value {
+                        color: #212529;
+                        font-size: 1rem;
+                        margin-bottom: 0;
+                        word-break: break-word;
+                    }
+                    
+                    .image-container {
+                        position: relative;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    .modal-lg {
+                        max-width: 900px;
+                    }
+                    
+                    .modal-body {
+                        padding: 2rem;
+                    }
+                    
+                    .modal-header {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border-bottom: none;
+                    }
+                    
+                    .modal-header .btn-close {
+                        filter: invert(1);
+                    }
+                    
+                    .modal-title {
+                        font-weight: 600;
+                    }
+                </style>
+            `;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('imageDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add styles and modal to page
+            document.head.insertAdjacentHTML('beforeend', modalStyles);
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('imageDetailsModal'));
+            modal.show();
+
+            // Clean up when modal is hidden
+            document.getElementById('imageDetailsModal').addEventListener('hidden.bs.modal', function () {
+                this.remove();
+                // Remove the styles too
+                const styleElement = document.querySelector('style');
+                if (styleElement && styleElement.textContent.includes('.detail-section')) {
+                    styleElement.remove();
+                }
+            });
+        }
+
+        // Placeholder functions for modal actions
+        function downloadImage(imageId) {
+            console.log('Download image:', imageId);
+            // TODO: Implement download functionality
+            alert('Download functionality coming soon!');
+        }
+
+        function shareImage(imageId) {
+            console.log('Share image:', imageId);
+            // TODO: Implement share functionality
+            if (navigator.share) {
+                navigator.share({
+                    title: 'AI Home Upgrade',
+                    text: 'Check out this amazing home upgrade!',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Link copied to clipboard!');
+                });
+            }
+        }
+
+        function deleteImageFromModal(imageId) {
+            // Close modal first
+            const modal = bootstrap.Modal.getInstance(document.getElementById('imageDetailsModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Then delete
+            deleteImage(imageId);
         }
 
         // Delete image
