@@ -123,6 +123,137 @@ The image saving process was not fetching detailed property information from the
 - `server.js` - New property details API endpoint
 - `assets/js/config.js` - Fixed API base URL
 
+## 🚀 **Instant Upgrade Feature Requirements** (NEW)
+
+### Feature Overview
+The "Instant Upgrade" feature is a revolutionary smart upgrade system that automatically analyzes any property image and applies contextually appropriate modern upgrades without requiring users to select specific upgrade types.
+
+### Core Functionality Requirements
+
+#### 1. **Smart Image Analysis**
+- **Automatic Detection**: Identify image type (exterior, interior room, kitchen, bathroom, etc.)
+- **Context Awareness**: Analyze current condition, style, and upgrade opportunities
+- **Intelligent Prompting**: Generate contextually appropriate upgrade strategies
+
+#### 2. **Adaptive Upgrade Logic**
+
+##### **For Exterior Images:**
+- Modern facade with clean white siding or contemporary materials
+- Sleek black window frames and modern trim details
+- Professional landscaping with mature plants
+- Modern exterior lighting fixtures
+- Updated walkways and driveways with contemporary materials
+- Enhanced curb appeal with modern architectural details
+
+##### **For Interior Rooms:**
+- Modern flooring (hardwood, luxury vinyl, or polished concrete)
+- Contemporary lighting fixtures and smart lighting
+- Modernized fixtures, hardware, and appliances
+- Neutral, sophisticated color palettes
+- Modern furniture and minimalist arrangements
+- Built-in storage and organization solutions
+
+##### **For Kitchen Images:**
+- Sleek, modern cabinetry with handleless designs
+- Quartz or marble countertops
+- Stainless steel, smart appliances
+- Modern backsplash with contemporary tile or stone
+- Under-cabinet and pendant lighting
+- Functional, modern layouts
+
+##### **For Bathroom Images:**
+- Modern vanities with contemporary faucets
+- Large-format tiles with modern patterns
+- LED mirrors and ambient lighting
+- Floating vanities and built-in storage
+- Matte black or brushed metal hardware
+
+#### 3. **User Interface Requirements**
+
+##### **Upgrade Modal Integration:**
+- **Prominent Placement**: "Instant Upgrade" button prominently displayed
+- **Special Styling**: Distinctive visual treatment (magic wand icon, gradient background)
+- **Smart Preview**: Show expected upgrade types before generation
+- **Progress Indicators**: Real-time updates during analysis and generation
+
+##### **Visual Design:**
+- **Icon**: `fas fa-magic` (magic wand)
+- **Color**: `#00bcf2` (bright cyan accent)
+- **Category**: "Smart Upgrades" with intelligent description
+- **Priority**: 0 (highest priority, appears first)
+
+#### 4. **Technical Implementation Requirements**
+
+##### **Prompt Configuration:**
+- **ID**: `INSTANT_UPGRADE_000`
+- **Name**: "Instant Upgrade"
+- **Category**: "smart"
+- **Priority**: 0 (appears first in UI)
+- **Value Increase**: 20% (higher than most individual upgrades)
+
+##### **API Integration:**
+- **Gemini Vision API**: Enhanced with intelligent analysis capabilities
+- **Dynamic Prompt Generation**: Context-aware prompt creation
+- **Error Handling**: Graceful fallbacks for analysis failures
+- **Response Processing**: Handle various image types and conditions
+
+##### **Database Updates:**
+- **New Category**: "smart" category for intelligent upgrades
+- **Metadata Storage**: Store analysis results and upgrade decisions
+- **User Preferences**: Learn from user feedback on upgrade quality
+
+#### 5. **User Experience Requirements**
+
+##### **Simplified Workflow:**
+- **One-Click Upgrade**: Single button for any image type
+- **No Selection Required**: Users don't need to choose specific upgrade types
+- **Intelligent Results**: Contextually appropriate upgrades automatically applied
+- **Consistent Quality**: Standardized modern aesthetic across all spaces
+
+##### **Feedback System:**
+- **Quality Ratings**: Allow users to rate upgrade quality
+- **Improvement Learning**: System learns from user feedback
+- **Usage Analytics**: Track which upgrade strategies work best
+
+#### 6. **Performance Requirements**
+
+##### **Speed Optimization:**
+- **Fast Analysis**: Quick image type detection and analysis
+- **Efficient Generation**: Optimized prompts for faster processing
+- **Caching**: Cache analysis results for similar image types
+
+##### **Quality Assurance:**
+- **Consistent Results**: Reliable upgrade quality across different images
+- **Architectural Integrity**: Preserve fundamental structure and layout
+- **Professional Quality**: Maintain high visual standards
+
+#### 7. **Business Value Requirements**
+
+##### **User Engagement:**
+- **Higher Conversion**: Easier user experience increases completion rates
+- **Better Results**: More appropriate upgrades improve user satisfaction
+- **Reduced Complexity**: Simplified workflow reduces user confusion
+- **Competitive Edge**: Unique "smart upgrade" feature differentiates platform
+
+##### **Analytics and Insights:**
+- **Usage Tracking**: Monitor Instant Upgrade adoption and success rates
+- **Quality Metrics**: Measure upgrade quality and user satisfaction
+- **Performance Data**: Track processing times and success rates
+
+### Implementation Priority
+1. **High Priority**: Core Instant Upgrade functionality
+2. **Medium Priority**: Enhanced intelligence and user feedback
+3. **Low Priority**: Advanced analytics and machine learning
+
+### Success Metrics
+- **Adoption Rate**: Percentage of users trying Instant Upgrade
+- **Completion Rate**: Successful upgrade generations
+- **User Satisfaction**: Ratings and feedback on upgrade quality
+- **Processing Speed**: Time from image upload to upgrade completion
+- **Quality Consistency**: Visual quality standards maintained
+
+---
+
 ## Reference Design
 The attached image shows the target card design:
 - Vertical split showing before/after images
@@ -134,4 +265,4 @@ The attached image shows the target card design:
 
 ---
 
-**Next Steps**: Complete Google OAuth setup, then build authentication UI components.
+**Next Steps**: Implement Instant Upgrade feature, then complete Google OAuth setup and build authentication UI components.

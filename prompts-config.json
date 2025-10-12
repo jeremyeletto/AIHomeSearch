@@ -191,6 +191,18 @@
       "prompt": "You are a professional interior and exterior designer. I will provide an image of an existing home with a specific renovation request. Your job is to transform the home while preserving its fundamental architectural integrity.\n\nRENOVATION REQUEST: Create a luxury kitchen with high-end finishes.\n\nDESIGN BRIEF: Design a luxury kitchen with custom cabinetry, marble countertops, premium appliances, and sophisticated lighting. Include a large island, wine storage, and elegant finishes throughout.\n\nCRITICAL REQUIREMENTS:\n- Preserve the exact building structure, roof lines, window positions, and overall architectural footprint\n- Only modify the kitchen interior space\n- Maintain professional photography quality with bright daylight and natural blue sky\n- Ensure realistic materials and construction methods\n- Create a cohesive luxury design with high-end elements\n- Include proper lighting and premium appliances\n\nTransform this home with the requested luxury kitchen remodel.",
       "negativePrompt": "Do NOT change the building's fundamental shape, roof angles, number of stories, window count/general position, or the overall structural footprint. Avoid adding new additions, altering the porch structure, changing chimney locations, or completely redesigning the core architecture. No stylized art, cartoons, distorted perspectives, or poor quality textures. No missing elements.",
       "valueIncrease": 0.25
+    },
+    "instant-upgrade": {
+      "id": "INSTANT_UPGRADE_000",
+      "name": "Instant Upgrade",
+      "icon": "fas fa-magic",
+      "category": "smart",
+      "priority": 0,
+      "request": "Apply intelligent modern upgrades based on image analysis",
+      "definition": "Analyze the image and automatically apply the most appropriate modern upgrades for maximum visual impact and property value enhancement. This smart upgrade system adapts to any room or exterior space to create a contemporary, modern look.",
+      "prompt": "You are a professional interior and exterior designer with expertise in modern home transformations. I will provide an image of a home (interior room or exterior view) and your task is to analyze the space and apply intelligent, contextually appropriate modern upgrades that will maximize visual impact and property value.\n\nUPGRADE STRATEGY: Apply modern upgrades based on image analysis:\n\nFOR EXTERIOR IMAGES:\n- Modernize the facade with clean white siding or contemporary materials\n- Add sleek black window frames and modern trim details\n- Upgrade landscaping with professional design and mature plants\n- Add modern exterior lighting fixtures\n- Improve walkways and driveways with contemporary materials\n- Enhance curb appeal with modern architectural details\n\nFOR INTERIOR ROOMS:\n- Install modern flooring (hardwood, luxury vinyl, or polished concrete)\n- Update lighting with contemporary fixtures and smart lighting\n- Modernize fixtures, hardware, and appliances\n- Apply neutral, sophisticated color palettes\n- Add modern furniture and minimalist arrangements\n- Include built-in storage and organization solutions\n\nFOR KITCHENS SPECIFICALLY:\n- Install sleek, modern cabinetry with handleless designs\n- Add quartz or marble countertops\n- Include stainless steel, smart appliances\n- Add modern backsplash with contemporary tile or stone\n- Install under-cabinet and pendant lighting\n- Create functional, modern layouts\n\nFOR BATHROOMS SPECIFICALLY:\n- Install modern vanities with contemporary faucets\n- Add large-format tiles with modern patterns\n- Include LED mirrors and ambient lighting\n- Add floating vanities and built-in storage\n- Use matte black or brushed metal hardware\n\nCRITICAL REQUIREMENTS:\n- Preserve the fundamental architectural structure and layout\n- Maintain professional photography quality with proper lighting\n- Ensure realistic materials and construction methods\n- Apply upgrades that are contextually appropriate for the space\n- Focus on modern, contemporary design elements\n- Enhance functionality while improving aesthetics\n- Maintain the same perspective and general composition\n\nTransform this space with intelligent modern upgrades that create maximum visual impact and contemporary appeal.",
+      "negativePrompt": "Do NOT change the fundamental architectural structure, room layout, or building footprint. Avoid adding unrealistic elements, changing the perspective, or creating stylized art. No cartoons, distorted perspectives, or poor quality textures. No missing architectural elements or impossible structural changes.",
+      "valueIncrease": 0.20
     }
   },
   "categories": {
@@ -208,12 +220,17 @@
       "name": "Interior Upgrades",
       "description": "Interior renovations and room-specific improvements",
       "color": "#f093fb"
+    },
+    "smart": {
+      "name": "Smart Upgrades",
+      "description": "Intelligent, context-aware upgrades that adapt to any space",
+      "color": "#00bcf2"
     }
   },
   "metadata": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "lastUpdated": "2024-01-15",
-    "totalPrompts": 16,
-    "description": "AI Home Upgrades Prompt Configuration System with Categorized Prompts"
+    "totalPrompts": 17,
+    "description": "AI Home Upgrades Prompt Configuration System with Categorized Prompts and Smart Instant Upgrade Feature"
   }
 }

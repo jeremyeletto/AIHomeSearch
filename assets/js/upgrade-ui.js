@@ -13,19 +13,22 @@ class UpgradeUI {
         if (!CONFIG.promptsConfig) return;
         
         // Get category containers
+        const smartContainer = document.getElementById('smartPillsContainer');
         const exteriorContainer = document.getElementById('exteriorPillsContainer');
         const extensionsContainer = document.getElementById('extensionsPillsContainer');
         const interiorContainer = document.getElementById('interiorPillsContainer');
         
-        if (!exteriorContainer || !extensionsContainer || !interiorContainer) return;
+        if (!smartContainer || !exteriorContainer || !extensionsContainer || !interiorContainer) return;
         
         // Clear all containers
+        smartContainer.innerHTML = '';
         exteriorContainer.innerHTML = '';
         extensionsContainer.innerHTML = '';
         interiorContainer.innerHTML = '';
         
         // Group prompts by category
         const promptsByCategory = {
+            smart: [],
             exterior: [],
             extensions: [],
             interior: []
@@ -46,6 +49,9 @@ class UpgradeUI {
         Object.entries(promptsByCategory).forEach(([category, prompts]) => {
             let container;
             switch(category) {
+                case 'smart':
+                    container = smartContainer;
+                    break;
                 case 'exterior':
                     container = exteriorContainer;
                     break;
@@ -67,6 +73,15 @@ class UpgradeUI {
             prompts.forEach(([key, prompt]) => {
                 const pill = document.createElement('button');
                 pill.className = 'upgrade-pill';
+                
+                // Add special styling for smart upgrades
+                if (category === 'smart') {
+                    pill.style.background = 'linear-gradient(135deg, #00bcf2 0%, #667eea 100%)';
+                    pill.style.color = 'white';
+                    pill.style.fontWeight = '600';
+                    pill.style.boxShadow = '0 4px 15px rgba(0, 188, 242, 0.3)';
+                }
+                
                 pill.setAttribute('data-upgrade', key);
                 pill.setAttribute('data-prompt-id', prompt.id);
                 pill.innerHTML = `
@@ -82,6 +97,7 @@ class UpgradeUI {
         });
         
         console.log(`✅ Rendered categorized upgrade pills:`, {
+            smart: promptsByCategory.smart.length,
             exterior: promptsByCategory.exterior.length,
             extensions: promptsByCategory.extensions.length,
             interior: promptsByCategory.interior.length
@@ -90,13 +106,17 @@ class UpgradeUI {
     
     // Fallback pills if API fails
     renderFallbackPills() {
+        const smartContainer = document.getElementById('smartPillsContainer');
         const exteriorContainer = document.getElementById('exteriorPillsContainer');
         const extensionsContainer = document.getElementById('extensionsPillsContainer');
         const interiorContainer = document.getElementById('interiorPillsContainer');
         
-        if (!exteriorContainer || !extensionsContainer || !interiorContainer) return;
+        if (!smartContainer || !exteriorContainer || !extensionsContainer || !interiorContainer) return;
         
         const fallbackPrompts = {
+            smart: [
+                { key: 'instant-upgrade', icon: 'fas fa-magic', name: 'Instant Upgrade', isSmart: true }
+            ],
             exterior: [
                 { key: 'stone-walkway', icon: 'fas fa-walking', name: 'Stone Walkway' },
                 { key: 'black-windows', icon: 'fas fa-window-restore', name: 'Modern Black Windows' },
@@ -111,6 +131,7 @@ class UpgradeUI {
         };
         
         // Clear all containers
+        smartContainer.innerHTML = '';
         exteriorContainer.innerHTML = '';
         extensionsContainer.innerHTML = '';
         interiorContainer.innerHTML = '';
@@ -119,6 +140,9 @@ class UpgradeUI {
         Object.entries(fallbackPrompts).forEach(([category, prompts]) => {
             let container;
             switch(category) {
+                case 'smart':
+                    container = smartContainer;
+                    break;
                 case 'exterior':
                     container = exteriorContainer;
                     break;
@@ -135,6 +159,15 @@ class UpgradeUI {
             prompts.forEach(prompt => {
                 const pill = document.createElement('button');
                 pill.className = 'upgrade-pill';
+                
+                // Add special styling for smart upgrades
+                if (prompt.isSmart) {
+                    pill.style.background = 'linear-gradient(135deg, #00bcf2 0%, #667eea 100%)';
+                    pill.style.color = 'white';
+                    pill.style.fontWeight = '600';
+                    pill.style.boxShadow = '0 4px 15px rgba(0, 188, 242, 0.3)';
+                }
+                
                 pill.setAttribute('data-upgrade', prompt.key);
                 pill.innerHTML = `
                     <i class="${prompt.icon}"></i>
@@ -144,7 +177,7 @@ class UpgradeUI {
             });
         });
         
-        console.log('⚠️ Using fallback upgrade pills');
+        console.log('⚠️ Using fallback upgrade pills (including Instant Upgrade)');
     }
 
     // Handle upgrade pill clicks with debug information

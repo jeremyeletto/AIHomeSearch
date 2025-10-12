@@ -260,7 +260,12 @@
                         <!-- Category Tabs -->
                         <ul class="nav nav-pills nav-fill mb-3" id="upgradeCategoryTabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="exterior-tab" data-bs-toggle="pill" data-bs-target="#exterior-pills" type="button" role="tab">
+                                <button class="nav-link active" id="smart-tab" data-bs-toggle="pill" data-bs-target="#smart-pills" type="button" role="tab">
+                                    <i class="fas fa-magic me-1"></i>Smart
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="exterior-tab" data-bs-toggle="pill" data-bs-target="#exterior-pills" type="button" role="tab">
                                     <i class="fas fa-home me-1"></i>Exterior
                                 </button>
                             </li>
@@ -278,7 +283,12 @@
                         
                         <!-- Category Content -->
                         <div class="tab-content" id="upgradeCategoryContent">
-                            <div class="tab-pane fade show active" id="exterior-pills" role="tabpanel">
+                            <div class="tab-pane fade show active" id="smart-pills" role="tabpanel">
+                                <div class="upgrade-pills" id="smartPillsContainer">
+                                    <!-- Smart upgrade pills will be loaded here -->
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="exterior-pills" role="tabpanel">
                                 <div class="upgrade-pills" id="exteriorPillsContainer">
                                     <!-- Exterior upgrade pills will be loaded here -->
                                 </div>
