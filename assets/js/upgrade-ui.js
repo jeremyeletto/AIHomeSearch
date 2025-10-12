@@ -203,6 +203,10 @@ class UpgradeUI {
                     <i class="${prompt.icon}"></i>
                     <span>${prompt.name}</span>
                 `;
+                pill.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.handleUpgradePillClick(pill);
+                });
                 container.appendChild(pill);
             });
         });
