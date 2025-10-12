@@ -42,8 +42,12 @@ class UpgradeUI {
         };
         
         Object.entries(CONFIG.promptsConfig.prompts).forEach(([key, prompt]) => {
+            console.log(`📋 Processing prompt: ${key} -> category: ${prompt.category}`);
             if (promptsByCategory[prompt.category]) {
                 promptsByCategory[prompt.category].push([key, prompt]);
+                console.log(`✅ Added ${key} to ${prompt.category} category`);
+            } else {
+                console.log(`❌ Unknown category: ${prompt.category} for prompt: ${key}`);
             }
         });
         
@@ -54,6 +58,7 @@ class UpgradeUI {
         
         // Render each category
         Object.entries(promptsByCategory).forEach(([category, prompts]) => {
+            console.log(`🎯 Rendering category: ${category} with ${prompts.length} prompts`);
             let container;
             switch(category) {
                 case 'smart':
@@ -69,10 +74,17 @@ class UpgradeUI {
                     container = interiorContainer;
                     break;
                 default:
+                    console.log(`⚠️ Unknown category: ${category}`);
                     return;
             }
             
+            if (!container) {
+                console.error(`❌ No container found for category: ${category}`);
+                return;
+            }
+            
             if (prompts.length === 0) {
+                console.log(`📭 Category ${category} is empty, showing placeholder`);
                 container.innerHTML = '<div class="text-center text-muted py-3">No upgrades available in this category</div>';
                 return;
             }
