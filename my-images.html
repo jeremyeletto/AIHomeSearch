@@ -376,100 +376,114 @@
     <script src="assets/js/auth-modal-component.js?v=1760320106"></script>
     
     <script>
-        // Smart caching system for images (optimized for large data)
+        // Smart caching system using IndexedDB (no size limits!)
         const ImageCache = {
-            cacheKey: 'aihome_images_cache',
-            cacheTimestamp: 'aihome_images_timestamp',
+            dbName: 'HomeUpgradesDB',
+            storeName: 'userImages',
             cacheExpiry: 5 * 60 * 1000, // 5 minutes
-            maxCacheSize: 5 * 1024 * 1024, // 5MB limit (increased for image metadata)
-            memoryCache: null, // Fallback memory cache
-            memoryCacheTimestamp: null,
+            db: null,
             
-            // Get cached images
-            getCachedImages() {
-                try {
-                    // Try localStorage first
-                    const cached = localStorage.getItem(this.cacheKey);
-                    const timestamp = localStorage.getItem(this.cacheTimestamp);
+            // Initialize IndexedDB
+            async initDB() {
+                if (this.db) return this.db;
+                
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, 1);
                     
-                    if (cached && timestamp) {
-                        const age = Date.now() - parseInt(timestamp);
-                        if (age < this.cacheExpiry) {
-                            console.log('📦 Using localStorage cached images');
-                            return JSON.parse(cached);
-                        } else {
-                            console.log('⏰ Cache expired, clearing');
-                            this.clearCache();
-                        }
-                    }
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => {
+                        this.db = request.result;
+                        resolve(this.db);
+                    };
                     
-                    // Fallback to memory cache
-                    if (this.memoryCache && this.memoryCacheTimestamp) {
-                        const age = Date.now() - this.memoryCacheTimestamp;
-                        if (age < this.cacheExpiry) {
-                            console.log('📦 Using memory cached images');
-                            return this.memoryCache;
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(this.storeName)) {
+                            db.createObjectStore(this.storeName);
                         }
-                    }
-                } catch (error) {
-                    console.error('❌ Cache read error:', error);
-                    this.clearCache();
-                }
-                return null;
+                    };
+                });
             },
             
-            // Save images to cache (with smart compression)
-            setCachedImages(images) {
+            // Get cached images from IndexedDB
+            async getCachedImages() {
                 try {
-                    // Compress data by storing only essential fields
-                    const compressedImages = images.map(img => ({
-                        id: img.id,
-                        created_at: img.created_at,
-                        prompt_used: img.prompt_used,
-                        original_image_url: img.original_image_url,
-                        generated_image_url: img.generated_image_url,
-                        // Skip large fields like full metadata
-                    }));
+                    const db = await this.initDB();
                     
-                    const dataString = JSON.stringify(compressedImages);
+                    return new Promise((resolve, reject) => {
+                        const transaction = db.transaction(this.storeName, 'readonly');
+                        const store = transaction.objectStore(this.storeName);
+                        const request = store.get('userImagesCache');
+                        
+                        request.onsuccess = () => {
+                            const cached = request.result;
+                            
+                            if (cached && cached.timestamp) {
+                                const age = Date.now() - cached.timestamp;
+                                if (age < this.cacheExpiry) {
+                                    console.log('📦 Using IndexedDB cached images (no size limits!)');
+                                    resolve(cached.images);
+                                } else {
+                                    console.log('⏰ Cache expired, clearing');
+                                    this.clearCache();
+                                    resolve(null);
+                                }
+                            } else {
+                                resolve(null);
+                            }
+                        };
+                        
+                        request.onerror = () => {
+                            console.warn('❌ IndexedDB read error, cache miss');
+                            resolve(null);
+                        };
+                    });
+                } catch (error) {
+                    console.error('❌ Cache read error:', error);
+                    return null;
+                }
+            },
+            
+            // Save images to cache using IndexedDB (no size limits!)
+            async setCachedImages(images) {
+                try {
+                    const db = await this.initDB();
+                    const sizeKB = Math.round(JSON.stringify(images).length / 1024);
+                    console.log(`📦 Caching ${images.length} images (${sizeKB}KB) in IndexedDB`);
                     
-                    // Check size before storing
-                    if (dataString.length > this.maxCacheSize) {
-                        console.warn('⚠️ Cache data too large, using memory cache only');
-                        // Store in memory cache as fallback
-                        this.memoryCache = images;
-                        this.memoryCacheTimestamp = Date.now();
-                        console.log('💾 Images cached in memory');
-                        return;
-                    }
-                    
-                    localStorage.setItem(this.cacheKey, dataString);
-                    localStorage.setItem(this.cacheTimestamp, Date.now().toString());
-                    
-                    // Also store full images in memory cache for better performance
-                    this.memoryCache = images;
-                    this.memoryCacheTimestamp = Date.now();
-                    
-                    console.log('💾 Images cached successfully (localStorage + memory)');
-                    
+                    return new Promise((resolve, reject) => {
+                        const transaction = db.transaction(this.storeName, 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        
+                        const cacheData = {
+                            images: images,
+                            timestamp: Date.now()
+                        };
+                        
+                        const request = store.put(cacheData, 'userImagesCache');
+                        
+                        request.onsuccess = () => {
+                            console.log(`💾 Images cached in IndexedDB successfully (${sizeKB}KB - no limits!)`);
+                            resolve();
+                        };
+                        
+                        request.onerror = () => {
+                            console.error('❌ IndexedDB write error:', request.error);
+                            reject(request.error);
+                        };
+                    });
                 } catch (error) {
                     console.error('❌ Cache write error:', error);
-                    // Clear cache if quota exceeded
-                    if (error.name === 'QuotaExceededError') {
-                        this.clearCache();
-                        console.log('🧹 Cache cleared due to quota exceeded');
-                    }
                 }
             },
             
             // Remove specific image from cache
-            removeImageFromCache(imageId) {
+            async removeImageFromCache(imageId) {
                 try {
-                    const cached = localStorage.getItem(this.cacheKey);
+                    const cached = await this.getCachedImages();
                     if (cached) {
-                        const images = JSON.parse(cached);
-                        const filtered = images.filter(img => img.id !== imageId);
-                        this.setCachedImages(filtered);
+                        const filtered = cached.filter(img => img.id !== imageId);
+                        await this.setCachedImages(filtered);
                         console.log('🗑️ Image removed from cache');
                     }
                 } catch (error) {
@@ -478,30 +492,39 @@
             },
             
             // Clear cache
-            clearCache() {
-                localStorage.removeItem(this.cacheKey);
-                localStorage.removeItem(this.cacheTimestamp);
-                console.log('🧹 Cache cleared');
+            async clearCache() {
+                try {
+                    const db = await this.initDB();
+                    return new Promise((resolve) => {
+                        const transaction = db.transaction(this.storeName, 'readwrite');
+                        const store = transaction.objectStore(this.storeName);
+                        const request = store.delete('userImagesCache');
+                        
+                        request.onsuccess = () => {
+                            console.log('🗑️ IndexedDB cache cleared');
+                            resolve();
+                        };
+                        
+                        request.onerror = () => {
+                            console.error('❌ Cache clear error');
+                            resolve();
+                        };
+                    });
+                } catch (error) {
+                    console.error('❌ Cache clear error:', error);
+                }
             },
             
             // Update specific image in cache
-            updateImageInCache(updatedImage) {
+            async updateImageInCache(updatedImage) {
                 try {
-                    const cached = localStorage.getItem(this.cacheKey);
+                    const cached = await this.getCachedImages();
                     if (cached) {
-                        const images = JSON.parse(cached);
-                        const index = images.findIndex(img => img.id === updatedImage.id);
+                        const index = cached.findIndex(img => img.id === updatedImage.id);
                         if (index !== -1) {
-                            images[index] = {
-                                id: updatedImage.id,
-                                upgrade_type: updatedImage.upgrade_type,
-                                property_address: updatedImage.property_address,
-                                property_price: updatedImage.property_price,
-                                created_at: updatedImage.created_at,
-                                _cached: true
-                            };
-                            this.setCachedImages(images);
-                            console.log('🔄 Image updated in cache');
+                            cached[index] = updatedImage;
+                            await this.setCachedImages(cached);
+                            console.log('🔄 Image updated in IndexedDB cache');
                         }
                     }
                 } catch (error) {
