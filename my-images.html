@@ -374,22 +374,34 @@
             cacheKey: 'aihome_images_cache',
             cacheTimestamp: 'aihome_images_timestamp',
             cacheExpiry: 5 * 60 * 1000, // 5 minutes
-            maxCacheSize: 2 * 1024 * 1024, // 2MB limit
+            maxCacheSize: 5 * 1024 * 1024, // 5MB limit (increased for image metadata)
+            memoryCache: null, // Fallback memory cache
+            memoryCacheTimestamp: null,
             
             // Get cached images
             getCachedImages() {
                 try {
+                    // Try localStorage first
                     const cached = localStorage.getItem(this.cacheKey);
                     const timestamp = localStorage.getItem(this.cacheTimestamp);
                     
                     if (cached && timestamp) {
                         const age = Date.now() - parseInt(timestamp);
                         if (age < this.cacheExpiry) {
-                            console.log('📦 Using cached images');
+                            console.log('📦 Using localStorage cached images');
                             return JSON.parse(cached);
                         } else {
                             console.log('⏰ Cache expired, clearing');
                             this.clearCache();
+                        }
+                    }
+                    
+                    // Fallback to memory cache
+                    if (this.memoryCache && this.memoryCacheTimestamp) {
+                        const age = Date.now() - this.memoryCacheTimestamp;
+                        if (age < this.cacheExpiry) {
+                            console.log('📦 Using memory cached images');
+                            return this.memoryCache;
                         }
                     }
                 } catch (error) {
@@ -399,23 +411,39 @@
                 return null;
             },
             
-            // Save images to cache (with size optimization)
+            // Save images to cache (with smart compression)
             setCachedImages(images) {
                 try {
-                    // Try to cache full data first
-                    const dataString = JSON.stringify(images);
+                    // Compress data by storing only essential fields
+                    const compressedImages = images.map(img => ({
+                        id: img.id,
+                        created_at: img.created_at,
+                        prompt_used: img.prompt_used,
+                        original_image_url: img.original_image_url,
+                        generated_image_url: img.generated_image_url,
+                        // Skip large fields like full metadata
+                    }));
+                    
+                    const dataString = JSON.stringify(compressedImages);
                     
                     // Check size before storing
                     if (dataString.length > this.maxCacheSize) {
                         console.warn('⚠️ Cache data too large, using memory cache only');
-                        // Don't cache to localStorage if too large
-                        // The images will still work, just won't persist across page reloads
+                        // Store in memory cache as fallback
+                        this.memoryCache = images;
+                        this.memoryCacheTimestamp = Date.now();
+                        console.log('💾 Images cached in memory');
                         return;
                     }
                     
                     localStorage.setItem(this.cacheKey, dataString);
                     localStorage.setItem(this.cacheTimestamp, Date.now().toString());
-                    console.log('💾 Images cached successfully');
+                    
+                    // Also store full images in memory cache for better performance
+                    this.memoryCache = images;
+                    this.memoryCacheTimestamp = Date.now();
+                    
+                    console.log('💾 Images cached successfully (localStorage + memory)');
                     
                 } catch (error) {
                     console.error('❌ Cache write error:', error);
