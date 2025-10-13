@@ -118,6 +118,8 @@ class MainApp {
             // Check for last search state (second priority)
             const lastSearch = CONFIG.getLastSearchState();
             
+            console.log('🔍 Checking for last search state...', lastSearch);
+            
             if (lastSearch) {
                 // Restore last search
                 console.log(`🔄 Restoring last search: ${lastSearch.location} (page ${lastSearch.page}, sort: ${lastSearch.sort})`);
@@ -125,6 +127,7 @@ class MainApp {
                 await window.apiHandler.loadHomes(lastSearch.location, lastSearch.page, lastSearch.sort);
             } else {
                 // Default to New York, NY (last resort)
+                console.log('📍 No last search found, defaulting to New York, NY');
                 document.getElementById('locationSearchHome').value = 'New York, NY';
                 await window.apiHandler.loadHomes('New York, NY', 1, 'relevant');
             }

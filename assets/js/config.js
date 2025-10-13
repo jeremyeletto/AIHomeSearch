@@ -88,13 +88,21 @@ const CONFIG = {
     getLastSearchState: function() {
         try {
             const stored = localStorage.getItem('lastSearchState');
+            console.log('🔍 Raw localStorage data:', stored);
+            
             if (stored) {
                 const state = JSON.parse(stored);
+                console.log('🔍 Parsed search state:', state);
+                
                 // Check if state is recent (within last 24 hours)
                 if (state.timestamp && (Date.now() - state.timestamp) < 24 * 60 * 60 * 1000) {
-                    console.log('📍 Restored last search state:', state);
+                    console.log('✅ Valid recent search state found:', state);
                     return state;
+                } else {
+                    console.log('⏰ Search state too old or missing timestamp:', state);
                 }
+            } else {
+                console.log('❌ No search state found in localStorage');
             }
         } catch (e) {
             console.warn('Could not load search state from localStorage:', e);
