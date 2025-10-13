@@ -881,6 +881,9 @@ class SupabaseAuth {
                 throw error;
             }
 
+            // Clear cache after saving new image
+            this.clearUserImagesCache();
+
             console.log('✅ Image saved to database:', data);
             return data;
         } catch (error) {
@@ -889,27 +892,94 @@ class SupabaseAuth {
         }
     }
 
-    // Get user's generated images
-    async getUserImages() {
+    // Get user's generated images with caching
+    async getUserImages(forceRefresh = false) {
         try {
             if (!this.user) {
                 throw new Error('User must be authenticated to get images');
             }
 
+            // Check cache first (5 minute cache)
+            const cacheKey = `userImages_${this.user.id}`;
+            const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+            
+            if (!forceRefresh && CONFIG.generatedImageCache.has(cacheKey)) {
+                const cached = CONFIG.generatedImageCache.get(cacheKey);
+                if (Date.now() - cached.timestamp < cacheExpiry) {
+                    console.log('📦 Using cached user images');
+                    return cached.data;
+                } else {
+                    console.log('⏰ Cache expired for user images');
+                    CONFIG.generatedImageCache.delete(cacheKey);
+                }
+            }
+
+            console.log('🔍 Fetching fresh user images from database (with pagination)');
             const { data, error } = await this.supabase
                 .from('generated_images')
                 .select('*')
                 .eq('user_id', this.user.id)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .limit(50); // Limit to 50 most recent images to reduce IO
 
             if (error) {
                 throw error;
             }
 
-            return data || [];
+            const images = data || [];
+            
+            // Cache the results
+            CONFIG.generatedImageCache.set(cacheKey, {
+                data: images,
+                timestamp: Date.now()
+            });
+
+            // Periodic cache cleanup (every 10th request)
+            if (Math.random() < 0.1) {
+                this.cleanupImageCache();
+            }
+
+            return images;
         } catch (error) {
             console.error('❌ Failed to get user images:', error);
             throw error;
+        }
+    }
+
+    // Clear user images cache (call after add/delete operations)
+    clearUserImagesCache() {
+        if (this.user) {
+            const cacheKey = `userImages_${this.user.id}`;
+            CONFIG.generatedImageCache.delete(cacheKey);
+            console.log('🗑️ Cleared user images cache');
+        }
+    }
+
+    // Clean up old cache entries to prevent memory issues
+    cleanupImageCache() {
+        const maxCacheSize = 20; // Maximum number of cached image sets
+        const maxAge = 30 * 60 * 1000; // 30 minutes max age
+        
+        if (CONFIG.generatedImageCache.size > maxCacheSize) {
+            // Remove oldest entries
+            const entries = Array.from(CONFIG.generatedImageCache.entries());
+            entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+            
+            const toRemove = entries.slice(0, CONFIG.generatedImageCache.size - maxCacheSize);
+            toRemove.forEach(([key]) => {
+                CONFIG.generatedImageCache.delete(key);
+            });
+            
+            console.log(`🧹 Cleaned up ${toRemove.length} old image cache entries`);
+        }
+        
+        // Remove expired entries
+        const now = Date.now();
+        for (const [key, value] of CONFIG.generatedImageCache.entries()) {
+            if (now - value.timestamp > maxAge) {
+                CONFIG.generatedImageCache.delete(key);
+                console.log(`⏰ Removed expired cache entry: ${key}`);
+            }
         }
     }
 
@@ -931,6 +1001,9 @@ class SupabaseAuth {
                 throw error;
             }
 
+            // Clear cache after deletion
+            this.clearUserImagesCache();
+            
             console.log('✅ Image deleted successfully:', data);
             return data;
         } catch (error) {

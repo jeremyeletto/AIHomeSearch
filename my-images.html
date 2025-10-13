@@ -513,8 +513,30 @@
             waitForAuth();
         });
 
-        // Load user's generated images with smart caching
+        // Debouncing for loadUserImages to prevent rapid successive calls
+        let loadUserImagesDebounceTimer = null;
+        const DEBOUNCE_DELAY = 1000; // 1 second debounce
+
+        // Load user's generated images with smart caching and debouncing
         async function loadUserImages(forceRefresh = false) {
+            // Debounce rapid calls (unless force refresh)
+            if (!forceRefresh && loadUserImagesDebounceTimer) {
+                console.log('⏱️ Debouncing loadUserImages call');
+                clearTimeout(loadUserImagesDebounceTimer);
+            }
+
+            if (!forceRefresh) {
+                loadUserImagesDebounceTimer = setTimeout(() => {
+                    loadUserImagesInternal(forceRefresh);
+                }, DEBOUNCE_DELAY);
+                return;
+            }
+
+            // Force refresh bypasses debouncing
+            await loadUserImagesInternal(forceRefresh);
+        }
+
+        async function loadUserImagesInternal(forceRefresh = false) {
             const loadingState = document.getElementById('loadingState');
             const imagesGrid = document.getElementById('imagesGrid');
             const emptyState = document.getElementById('emptyState');
