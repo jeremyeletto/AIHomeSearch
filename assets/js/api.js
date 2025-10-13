@@ -119,6 +119,23 @@ class APIHandler {
             });
             
             if (!response.ok) {
+                // Handle rate limiting
+                if (response.status === 429) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const message = errorData.message || 'Search limit reached. Please try again in a few minutes.';
+                    errorState.innerHTML = `
+                        <div class="alert alert-warning" role="alert">
+                            <h4 class="alert-heading">⏱️ Rate Limit Reached</h4>
+                            <p>${message}</p>
+                            <hr>
+                            <p class="mb-0">Too many searches in a short time. Please wait ${errorData.retryAfter || '15 minutes'} before searching again.</p>
+                        </div>
+                    `;
+                    loadingState.style.display = 'none';
+                    errorState.style.display = 'block';
+                    return [];
+                }
+                
                 const errorText = await response.text();
                 console.error('❌ API Error Response:', errorText);
                 

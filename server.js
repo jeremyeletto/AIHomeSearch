@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const rateLimit = require('express-rate-limit');
 const { BedrockRuntimeClient, InvokeModelCommand } = require('@aws-sdk/client-bedrock-runtime');
 const fs = require('fs');
 const path = require('path');
@@ -70,6 +71,81 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 app.use(express.json({ limit: '50mb' }));
+
+// ============================================
+// RATE LIMITING - Prevent API Abuse
+// ============================================
+
+// General API rate limiter - applies to all /api routes
+const generalApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per 15 minutes
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  handler: (req, res) => {
+    console.log(`🚫 Rate limit exceeded for IP: ${req.ip} on ${req.path}`);
+    res.status(429).json({
+      error: 'Too many requests',
+      message: 'You have exceeded the rate limit. Please try again later.',
+      retryAfter: '15 minutes'
+    });
+  }
+});
+
+// Strict rate limiter for AI image generation (expensive!)
+const imageGenerationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // Only 10 AI generations per hour per IP
+  message: {
+    error: 'Generation limit reached',
+    retryAfter: '1 hour'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`🚫 Image generation rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Generation limit reached',
+      message: 'You have reached your hourly limit for AI image generation. Please try again in an hour or upgrade to Pro for more generations.',
+      retryAfter: '1 hour',
+      upgradeUrl: '/pricing' // TODO: Add pricing page
+    });
+  }
+});
+
+// Rate limiter for Realtor API (protect against expensive API calls)
+const realtorApiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // 50 property searches per 15 minutes
+  message: {
+    error: 'Search limit reached',
+    retryAfter: '15 minutes'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    console.log(`🚫 Realtor API rate limit exceeded for IP: ${req.ip}`);
+    res.status(429).json({
+      error: 'Search limit reached',
+      message: 'You have exceeded your search limit. Please try again in 15 minutes.',
+      retryAfter: '15 minutes'
+    });
+  }
+});
+
+// Apply rate limiters
+app.use('/api/', generalApiLimiter); // All API routes
+app.use('/api/generate-upgrade-image', imageGenerationLimiter); // AI generation
+app.use('/api/realtor/', realtorApiLimiter); // Realtor API routes
+
+console.log('🛡️ Rate limiting enabled:');
+console.log('   - General API: 100 requests/15min');
+console.log('   - AI Generation: 10 requests/hour');
+console.log('   - Realtor API: 50 requests/15min');
 
 // Environment validation for production
 function validateEnvironment() {

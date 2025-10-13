@@ -578,6 +578,14 @@ class UpgradeUI {
             logger.log('Bedrock response status:', response.status);
             
             if (!response.ok) {
+                // Handle rate limiting
+                if (response.status === 429) {
+                    const errorData = await response.json();
+                    const message = errorData.message || 'Rate limit reached. Please try again later.';
+                    const retryAfter = errorData.retryAfter || 'some time';
+                    throw new Error(`⏱️ ${message} (Retry after: ${retryAfter})`);
+                }
+                
                 const errorData = await response.text();
                 console.error('Bedrock API Error:', response.status, errorData);
                 throw new Error(`Bedrock API request failed: ${response.status} - ${errorData}`);
