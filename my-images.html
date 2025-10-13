@@ -548,9 +548,41 @@
 
         // Load user's generated images with smart caching and debouncing
         async function loadUserImages(forceRefresh = false) {
-            // Debounce rapid calls (unless force refresh)
+            // INSTANT: Check cache first and display immediately
+            if (!forceRefresh) {
+                const cachedImages = ImageCache.getCachedImages();
+                if (cachedImages !== null) {
+                    console.log('⚡ Instant cache display');
+                    const loadingState = document.getElementById('loadingState');
+                    const imagesGrid = document.getElementById('imagesGrid');
+                    const emptyState = document.getElementById('emptyState');
+                    
+                    loadingState.style.display = 'none';
+                    
+                    if (cachedImages.length > 0) {
+                        displayImages(cachedImages);
+                        imagesGrid.style.display = 'flex';
+                        emptyState.style.display = 'none';
+                    } else {
+                        imagesGrid.style.display = 'none';
+                        emptyState.style.display = 'flex';
+                    }
+                    
+                    // Update cache in background (debounced)
+                    if (loadUserImagesDebounceTimer) {
+                        clearTimeout(loadUserImagesDebounceTimer);
+                    }
+                    loadUserImagesDebounceTimer = setTimeout(() => {
+                        refreshCacheInBackground();
+                    }, DEBOUNCE_DELAY);
+                    return;
+                }
+            }
+
+            // No cache or force refresh - load from API
+            // Debounce API calls (unless force refresh)
             if (!forceRefresh && loadUserImagesDebounceTimer) {
-                console.log('⏱️ Debouncing loadUserImages call');
+                console.log('⏱️ Debouncing API call');
                 clearTimeout(loadUserImagesDebounceTimer);
             }
 
@@ -571,56 +603,29 @@
             const emptyState = document.getElementById('emptyState');
 
             try {
-                // Check cache first (unless force refresh)
-                let images = null;
-                if (!forceRefresh) {
-                    images = ImageCache.getCachedImages();
-                }
-
-                if (images && images.length > 0) {
-                    // Use cached data
-                    console.log('⚡ Loading from cache - instant display');
-                    loadingState.style.display = 'none';
-                    displayImages(images);
-                    imagesGrid.style.display = 'flex';
-                    emptyState.style.display = 'none';
-                    
-                    // Update cache in background
-                    refreshCacheInBackground();
-                } else if (images && images.length === 0) {
-                    // Cached empty result
-                    console.log('📦 Using cached empty result');
-                    loadingState.style.display = 'none';
-                    emptyState.style.display = 'block';
-                    imagesGrid.style.display = 'none';
-                    
-                    // Update cache in background
-                    refreshCacheInBackground();
-                } else {
-                    // Load from API
-                    console.log('🌐 Loading from API');
+                // Load from API
                 loadingState.style.display = 'flex';
                 imagesGrid.style.display = 'none';
                 emptyState.style.display = 'none';
+                console.log('🌐 Loading from API');
 
-                    images = await window.supabaseAuth.getUserImages();
+                const images = await window.supabaseAuth.getUserImages();
 
                 if (images.length === 0) {
                     loadingState.style.display = 'none';
                     emptyState.style.display = 'block';
-                        // Cache empty result
-                        ImageCache.setCachedImages([]);
+                    // Cache empty result
+                    ImageCache.setCachedImages([]);
                     return;
                 }
 
-                    // Display images and cache them
+                // Display images and cache them
                 displayImages(images);
-                    ImageCache.setCachedImages(images);
+                ImageCache.setCachedImages(images);
                 
                 loadingState.style.display = 'none';
                 imagesGrid.style.display = 'flex';
-                    emptyState.style.display = 'none';
-                }
+                emptyState.style.display = 'none';
 
             } catch (error) {
                 console.error('Failed to load images:', error);
