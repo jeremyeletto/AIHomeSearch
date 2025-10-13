@@ -899,19 +899,23 @@ class SupabaseAuth {
                 throw new Error('User must be authenticated to get images');
             }
 
-            // Check cache first (5 minute cache)
-            const cacheKey = `userImages_${this.user.id}`;
-            const cacheExpiry = 5 * 60 * 1000; // 5 minutes
-            
-            if (!forceRefresh && CONFIG.generatedImageCache.has(cacheKey)) {
-                const cached = CONFIG.generatedImageCache.get(cacheKey);
-                if (Date.now() - cached.timestamp < cacheExpiry) {
-                    console.log('📦 Using cached user images');
-                    return cached.data;
-                } else {
-                    console.log('⏰ Cache expired for user images');
-                    CONFIG.generatedImageCache.delete(cacheKey);
+            // Check cache first (5 minute cache) - with safety check
+            if (typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
+                const cacheKey = `userImages_${this.user.id}`;
+                const cacheExpiry = 5 * 60 * 1000; // 5 minutes
+                
+                if (!forceRefresh && CONFIG.generatedImageCache.has(cacheKey)) {
+                    const cached = CONFIG.generatedImageCache.get(cacheKey);
+                    if (Date.now() - cached.timestamp < cacheExpiry) {
+                        console.log('📦 Using cached user images');
+                        return cached.data;
+                    } else {
+                        console.log('⏰ Cache expired for user images');
+                        CONFIG.generatedImageCache.delete(cacheKey);
+                    }
                 }
+            } else {
+                console.log('⚠️ CONFIG not available, skipping cache check');
             }
 
             console.log('🔍 Fetching fresh user images from database (with pagination)');
@@ -928,15 +932,20 @@ class SupabaseAuth {
 
             const images = data || [];
             
-            // Cache the results
-            CONFIG.generatedImageCache.set(cacheKey, {
-                data: images,
-                timestamp: Date.now()
-            });
+            // Cache the results (with safety check)
+            if (typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
+                const cacheKey = `userImages_${this.user.id}`;
+                CONFIG.generatedImageCache.set(cacheKey, {
+                    data: images,
+                    timestamp: Date.now()
+                });
 
-            // Periodic cache cleanup (every 10th request)
-            if (Math.random() < 0.1) {
-                this.cleanupImageCache();
+                // Periodic cache cleanup (every 10th request)
+                if (Math.random() < 0.1) {
+                    this.cleanupImageCache();
+                }
+            } else {
+                console.log('⚠️ CONFIG not available, skipping cache storage');
             }
 
             return images;
@@ -948,15 +957,22 @@ class SupabaseAuth {
 
     // Clear user images cache (call after add/delete operations)
     clearUserImagesCache() {
-        if (this.user) {
+        if (this.user && typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
             const cacheKey = `userImages_${this.user.id}`;
             CONFIG.generatedImageCache.delete(cacheKey);
             console.log('🗑️ Cleared user images cache');
+        } else {
+            console.log('⚠️ Cannot clear cache - CONFIG not available');
         }
     }
 
     // Clean up old cache entries to prevent memory issues
     cleanupImageCache() {
+        if (typeof CONFIG === 'undefined' || !CONFIG.generatedImageCache) {
+            console.log('⚠️ Cannot cleanup cache - CONFIG not available');
+            return;
+        }
+        
         const maxCacheSize = 20; // Maximum number of cached image sets
         const maxAge = 30 * 60 * 1000; // 30 minutes max age
         
