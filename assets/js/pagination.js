@@ -6,6 +6,12 @@ class Pagination {
 
     // Pagination and sorting functions
     changePage(direction) {
+        // Safety check for CONFIG
+        if (typeof CONFIG === 'undefined') {
+            console.error('❌ CONFIG not available for pagination');
+            return;
+        }
+        
         const newPage = CONFIG.currentPage + direction;
         if (newPage >= 1 && newPage <= CONFIG.totalPages) {
             window.apiHandler.loadHomes(CONFIG.currentLocation, newPage, CONFIG.currentSort);
@@ -13,12 +19,24 @@ class Pagination {
     }
     
     changeSort() {
+        // Safety check for CONFIG
+        if (typeof CONFIG === 'undefined') {
+            console.error('❌ CONFIG not available for sort change');
+            return;
+        }
+        
         const sortSelect = document.getElementById('sortSelect');
         const newSort = sortSelect.value;
         window.apiHandler.loadHomes(CONFIG.currentLocation, 1, newSort); // Reset to page 1 when changing sort
     }
     
     updatePaginationControls() {
+        // Safety check for CONFIG
+        if (typeof CONFIG === 'undefined') {
+            console.error('❌ CONFIG not available for pagination controls update');
+            return;
+        }
+        
         const currentPageNumber = document.getElementById('currentPageNumber');
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
