@@ -10,11 +10,11 @@ class UpgradeUI {
 
     // Render upgrade pills dynamically by category
     renderUpgradePills() {
-        console.log('🎨 Rendering upgrade pills from config...');
-        console.log('📋 CONFIG.promptsConfig:', CONFIG.promptsConfig);
+        logger.log('🎨 Rendering upgrade pills from config...');
+        logger.log('📋 CONFIG.promptsConfig:', CONFIG.promptsConfig);
         
         if (!CONFIG.promptsConfig) {
-            console.log('❌ No prompts config available, using fallback');
+            logger.log('❌ No prompts config available, using fallback');
             this.renderFallbackPills();
             return;
         }
@@ -42,12 +42,12 @@ class UpgradeUI {
         };
         
         Object.entries(CONFIG.promptsConfig.prompts).forEach(([key, prompt]) => {
-            console.log(`📋 Processing prompt: ${key} -> category: ${prompt.category}`);
+            logger.log(`📋 Processing prompt: ${key} -> category: ${prompt.category}`);
             if (promptsByCategory[prompt.category]) {
                 promptsByCategory[prompt.category].push([key, prompt]);
-                console.log(`✅ Added ${key} to ${prompt.category} category`);
+                logger.log(`✅ Added ${key} to ${prompt.category} category`);
             } else {
-                console.log(`❌ Unknown category: ${prompt.category} for prompt: ${key}`);
+                logger.log(`❌ Unknown category: ${prompt.category} for prompt: ${key}`);
             }
         });
         
@@ -58,7 +58,7 @@ class UpgradeUI {
         
         // Render each category
         Object.entries(promptsByCategory).forEach(([category, prompts]) => {
-            console.log(`🎯 Rendering category: ${category} with ${prompts.length} prompts`);
+            logger.log(`🎯 Rendering category: ${category} with ${prompts.length} prompts`);
             let container;
             switch(category) {
                 case 'smart':
@@ -74,7 +74,7 @@ class UpgradeUI {
                     container = interiorContainer;
                     break;
                 default:
-                    console.log(`⚠️ Unknown category: ${category}`);
+                    logger.log(`⚠️ Unknown category: ${category}`);
                     return;
             }
             
@@ -84,7 +84,7 @@ class UpgradeUI {
             }
             
             if (prompts.length === 0) {
-                console.log(`📭 Category ${category} is empty, showing placeholder`);
+                logger.log(`📭 Category ${category} is empty, showing placeholder`);
                 container.innerHTML = '<div class="text-center text-muted py-3">No upgrades available in this category</div>';
                 return;
             }
@@ -109,14 +109,14 @@ class UpgradeUI {
                 `;
                 pill.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('🔘 Pill clicked:', pill.getAttribute('data-upgrade'));
+                    logger.log('🔘 Pill clicked:', pill.getAttribute('data-upgrade'));
                     window.upgradeUI.handleUpgradePillClick(pill);
                 });
                 container.appendChild(pill);
             });
         });
         
-        console.log(`✅ Rendered categorized upgrade pills:`, {
+        logger.log(`✅ Rendered categorized upgrade pills:`, {
             smart: promptsByCategory.smart.length,
             exterior: promptsByCategory.exterior.length,
             extensions: promptsByCategory.extensions.length,
@@ -126,13 +126,13 @@ class UpgradeUI {
     
     // Fallback pills if API fails
     renderFallbackPills() {
-        console.log('🔧 Rendering fallback pills...');
+        logger.log('🔧 Rendering fallback pills...');
         const smartContainer = document.getElementById('smartPillsContainer');
         const exteriorContainer = document.getElementById('exteriorPillsContainer');
         const extensionsContainer = document.getElementById('extensionsPillsContainer');
         const interiorContainer = document.getElementById('interiorPillsContainer');
         
-        console.log('📦 Container check:', {
+        logger.log('📦 Container check:', {
             smart: !!smartContainer,
             exterior: !!exteriorContainer,
             extensions: !!extensionsContainer,
@@ -206,14 +206,14 @@ class UpgradeUI {
                 `;
                 pill.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('🔘 Fallback pill clicked:', pill.getAttribute('data-upgrade'));
+                    logger.log('🔘 Fallback pill clicked:', pill.getAttribute('data-upgrade'));
                     window.upgradeUI.handleUpgradePillClick(pill);
                 });
                 container.appendChild(pill);
             });
         });
         
-        console.log('⚠️ Using fallback upgrade pills (including Instant Upgrade)');
+        logger.log('⚠️ Using fallback upgrade pills (including Instant Upgrade)');
     }
 
     // Handle upgrade pill clicks with debug information
@@ -225,15 +225,15 @@ class UpgradeUI {
         // Store original image src for mobile view and save functionality
         CONFIG.originalImageSrc = originalImageSrc;
         
-        console.log('=== UPGRADE PILL CLICKED ===');
-        console.log('Upgrade type:', upgradeType);
-        console.log('Original image src:', originalImageSrc);
-        console.log('Current value:', currentValue);
+        logger.log('=== UPGRADE PILL CLICKED ===');
+        logger.log('Upgrade type:', upgradeType);
+        logger.log('Original image src:', originalImageSrc);
+        logger.log('Current value:', currentValue);
         
         // Test if image URL is accessible
         try {
             const testResponse = await fetch(originalImageSrc, {method: 'HEAD'});
-            console.log('Image accessibility test:', testResponse.status, testResponse.ok);
+            logger.log('Image accessibility test:', testResponse.status, testResponse.ok);
         } catch (error) {
             console.error('Image accessibility test failed:', error);
         }
@@ -255,15 +255,15 @@ class UpgradeUI {
         this.disableImageNavigation();
         
         try {
-            console.log('Starting image generation process...');
+            logger.log('Starting image generation process...');
             
             // Generate the upgrade image using the currently displayed modal image
             const currentImageSrc = this.getCurrentModalImage();
-            console.log('🎯 Using currently displayed modal image for AI generation:', currentImageSrc);
+            logger.log('🎯 Using currently displayed modal image for AI generation:', currentImageSrc);
             const generatedImageUrl = await this.generateUpgradeImage(currentImageSrc, upgradeType);
             
             if (!generatedImageUrl) {
-                console.log('❌ Image generation failed - no URL returned');
+                logger.log('❌ Image generation failed - no URL returned');
                 // Hide loading state on failure
                 this.showGenerationLoading(false);
                 // Error is already displayed by generateUpgradeImage function
@@ -278,7 +278,7 @@ class UpgradeUI {
                 return;
             }
             
-            console.log('✅ Upgrade analysis successful, updating UI...');
+            logger.log('✅ Upgrade analysis successful, updating UI...');
             
             // Display the generated image from AWS Bedrock
             const upgradedImage = document.getElementById('upgradedImage');
@@ -298,12 +298,12 @@ class UpgradeUI {
             
             // Set a timeout to hide loading state if image doesn't load within 30 seconds
             const loadingTimeout = setTimeout(() => {
-                console.log('⏰ Loading timeout reached, hiding loading state');
+                logger.log('⏰ Loading timeout reached, hiding loading state');
                 this.showGenerationLoading(false);
             }, 30000);
             
             upgradedImage.onload = () => {
-                console.log('✅ Generated image loaded successfully');
+                logger.log('✅ Generated image loaded successfully');
                 
                 // Clear the timeout since image loaded successfully
                 clearTimeout(loadingTimeout);
@@ -349,7 +349,7 @@ class UpgradeUI {
                 pill.disabled = false;
             });
             
-            console.log('🎉 Upgrade generation completed successfully');
+            logger.log('🎉 Upgrade generation completed successfully');
             
             // Show success message with view options
             this.showGenerationSuccess(upgradeType, generatedImageUrl);
@@ -398,10 +398,10 @@ class UpgradeUI {
         // Store original image src for mobile view and save functionality
         CONFIG.originalImageSrc = originalImageSrc;
         
-        console.log('=== CUSTOM UPGRADE REQUESTED ===');
-        console.log('Custom text:', customText);
-        console.log('Original image src:', originalImageSrc);
-        console.log('Current value:', currentValue);
+        logger.log('=== CUSTOM UPGRADE REQUESTED ===');
+        logger.log('Custom text:', customText);
+        logger.log('Original image src:', originalImageSrc);
+        logger.log('Current value:', currentValue);
         
         // Disable custom input and button during generation
         customInput.disabled = true;
@@ -416,15 +416,15 @@ class UpgradeUI {
         this.disableImageNavigation();
         
         try {
-            console.log('Starting custom upgrade generation...');
+            logger.log('Starting custom upgrade generation...');
             
             // Generate the upgrade image using the currently displayed modal image
             const currentImageSrc = this.getCurrentModalImage();
-            console.log('🎯 Using currently displayed modal image for custom AI generation:', currentImageSrc);
+            logger.log('🎯 Using currently displayed modal image for custom AI generation:', currentImageSrc);
             const generatedImageUrl = await this.generateCustomUpgradeImage(currentImageSrc, customText);
             
             if (!generatedImageUrl) {
-                console.log('❌ Custom upgrade generation failed - no URL returned');
+                logger.log('❌ Custom upgrade generation failed - no URL returned');
                 // Hide loading state on failure
                 this.showGenerationLoading(false);
                 // Reset UI
@@ -440,7 +440,7 @@ class UpgradeUI {
                 return;
             }
             
-            console.log('✅ Custom upgrade successful, updating UI...');
+            logger.log('✅ Custom upgrade successful, updating UI...');
             
             // Display the generated image
             const upgradedImage = document.getElementById('upgradedImage');
@@ -460,12 +460,12 @@ class UpgradeUI {
             
             // Set a timeout to hide loading state if image doesn't load within 30 seconds
             const customLoadingTimeout = setTimeout(() => {
-                console.log('⏰ Custom loading timeout reached, hiding loading state');
+                logger.log('⏰ Custom loading timeout reached, hiding loading state');
                 this.showGenerationLoading(false);
             }, 30000);
             
             upgradedImage.onload = () => {
-                console.log('✅ Custom upgrade image loaded successfully');
+                logger.log('✅ Custom upgrade image loaded successfully');
                 
                 // Clear the timeout since image loaded successfully
                 clearTimeout(customLoadingTimeout);
@@ -507,7 +507,7 @@ class UpgradeUI {
                 pill.disabled = false;
             });
             
-            console.log('🎉 Custom upgrade generation completed successfully');
+            logger.log('🎉 Custom upgrade generation completed successfully');
             
             // Show success message with view options
             this.showGenerationSuccess('custom-upgrade', generatedImageUrl, customText);
@@ -548,12 +548,12 @@ class UpgradeUI {
         
         // Check cache first
         if (CONFIG.generatedImageCache.has(cacheKey)) {
-            console.log('Using cached generated image');
+            logger.log('Using cached generated image');
             return CONFIG.generatedImageCache.get(cacheKey);
         }
         
         try {
-            console.log('Generating upgrade image with AWS Bedrock for:', upgradeType);
+            logger.log('Generating upgrade image with AWS Bedrock for:', upgradeType);
             
             // Show loading state
             this.showGenerationLoading(true);
@@ -561,7 +561,7 @@ class UpgradeUI {
             
             // Convert original image to base64
             const base64Image = await window.imageHandler.imageUrlToBase64(originalImageUrl);
-            console.log('Image converted to base64, length:', base64Image.length);
+            logger.log('Image converted to base64, length:', base64Image.length);
             
             // Make request to our server's Bedrock endpoint
             const response = await fetch(`${CONFIG.API_BASE_URL}/api/generate-upgrade-image`, {
@@ -575,7 +575,7 @@ class UpgradeUI {
                 })
             });
             
-            console.log('Bedrock response status:', response.status);
+            logger.log('Bedrock response status:', response.status);
             
             if (!response.ok) {
                 const errorData = await response.text();
@@ -584,10 +584,10 @@ class UpgradeUI {
             }
             
             const result = await response.json();
-            console.log('Bedrock API Response:', result);
+            logger.log('Bedrock API Response:', result);
             
             if (result.success && result.imageUrl) {
-                console.log('✅ Image generated successfully with AWS Bedrock');
+                logger.log('✅ Image generated successfully with AWS Bedrock');
                 
                 // Cache the result
                 CONFIG.generatedImageCache.set(cacheKey, result.imageUrl);
@@ -603,7 +603,7 @@ class UpgradeUI {
             this.showGenerationError(errorMessage);
             
             // Don't re-throw, just show error in UI
-            console.log('Showing error in UI instead of throwing');
+            logger.log('Showing error in UI instead of throwing');
             return null;
         }
     }
@@ -614,12 +614,12 @@ class UpgradeUI {
         
         // Check cache first
         if (CONFIG.generatedImageCache.has(cacheKey)) {
-            console.log('Using cached custom generated image');
+            logger.log('Using cached custom generated image');
             return CONFIG.generatedImageCache.get(cacheKey);
         }
         
         try {
-            console.log('Generating custom upgrade image with AWS Bedrock for:', customText);
+            logger.log('Generating custom upgrade image with AWS Bedrock for:', customText);
             
             // Show loading state
             this.showGenerationLoading(true);
@@ -627,7 +627,7 @@ class UpgradeUI {
             
             // Convert original image to base64
             const base64Image = await window.imageHandler.imageUrlToBase64(originalImageUrl);
-            console.log('Image converted to base64, length:', base64Image.length);
+            logger.log('Image converted to base64, length:', base64Image.length);
             
             // Make request to our server's custom upgrade endpoint
             const response = await fetch(`${CONFIG.API_BASE_URL}/api/generate-custom-upgrade`, {
@@ -641,7 +641,7 @@ class UpgradeUI {
                 })
             });
             
-            console.log('Custom upgrade response status:', response.status);
+            logger.log('Custom upgrade response status:', response.status);
             
             if (!response.ok) {
                 const errorData = await response.text();
@@ -650,10 +650,10 @@ class UpgradeUI {
             }
             
             const result = await response.json();
-            console.log('Custom upgrade API Response:', result);
+            logger.log('Custom upgrade API Response:', result);
             
             if (result.success && result.imageUrl) {
-                console.log('✅ Custom upgrade image generated successfully');
+                logger.log('✅ Custom upgrade image generated successfully');
                 
                 // Cache the result
                 CONFIG.generatedImageCache.set(cacheKey, result.imageUrl);
@@ -669,7 +669,7 @@ class UpgradeUI {
             this.showGenerationError(errorMessage);
             
             // Don't re-throw, just show error in UI
-            console.log('Showing error in UI instead of throwing');
+            logger.log('Showing error in UI instead of throwing');
             return null;
         }
     }
@@ -678,19 +678,19 @@ class UpgradeUI {
     getCurrentModalImage() {
         const modalImg = document.getElementById('originalImage');
         if (modalImg && modalImg.src) {
-            console.log('📷 Current modal image URL:', modalImg.src);
+            logger.log('📷 Current modal image URL:', modalImg.src);
             return modalImg.src;
         }
         
         // Fallback to stored original image
         const fallback = CONFIG.originalImageSrc;
-        console.log('📷 Fallback image URL:', fallback);
+        logger.log('📷 Fallback image URL:', fallback);
         return fallback;
     }
 
     // Reset modal for new generation (called by "Generate New Image" button)
     resetModalForNewGeneration() {
-        console.log('🔄 Modal reset for new generation');
+        logger.log('🔄 Modal reset for new generation');
         
         // Re-enable image navigation
         this.enableImageNavigation();
@@ -733,7 +733,7 @@ class UpgradeUI {
         // Reset mobile view
         window.mobileView.showMobileView('before');
         
-        console.log('✅ Modal reset complete - ready for new generation');
+        logger.log('✅ Modal reset complete - ready for new generation');
     }
 
     // Show/hide generation loading state
@@ -797,7 +797,7 @@ class UpgradeUI {
         // Disable keyboard navigation
         document.removeEventListener('keydown', window.imageHandler.handleKeyboardNavigation);
         
-        console.log('🔒 Modal image navigation hidden during generation');
+        logger.log('🔒 Modal image navigation hidden during generation');
     }
     
     // Re-enable image navigation after generation (modal-only)
@@ -824,7 +824,7 @@ class UpgradeUI {
         // Re-enable keyboard navigation
         document.addEventListener('keydown', window.imageHandler.handleKeyboardNavigation);
         
-        console.log('🔓 Modal image navigation re-enabled');
+        logger.log('🔓 Modal image navigation re-enabled');
     }
 
     // Show generation error with specific message
@@ -856,11 +856,11 @@ class UpgradeUI {
     // Save generated image to Supabase
     async saveGeneratedImageToSupabase(upgradeType, generatedImageUrl, customText = null) {
         try {
-            console.log('💾 Saving generated image to Supabase...');
+            logger.log('💾 Saving generated image to Supabase...');
             
             // Check if user is authenticated
             if (!window.supabaseAuth || !window.supabaseAuth.isAuthenticated()) {
-                console.log('⚠️ User not authenticated, skipping save');
+                logger.log('⚠️ User not authenticated, skipping save');
                 return;
             }
 
@@ -871,15 +871,15 @@ class UpgradeUI {
             try {
                 const propertyId = propertyData?.id;
                 if (propertyId) {
-                    console.log('🔍 Fetching detailed property data for:', propertyId);
+                    logger.log('🔍 Fetching detailed property data for:', propertyId);
                     const detailedData = await this.fetchPropertyDetails(propertyId);
                     if (detailedData) {
                         propertyData = detailedData;
-                        console.log('✅ Got detailed property data:', detailedData);
+                        logger.log('✅ Got detailed property data:', detailedData);
                     }
                 }
             } catch (error) {
-                console.warn('⚠️ Failed to fetch detailed property data, using stored data:', error);
+                logger.warn('⚠️ Failed to fetch detailed property data, using stored data:', error);
                 // Continue with stored data as fallback
             }
             
@@ -904,13 +904,13 @@ class UpgradeUI {
                 propertySqft: propertyData.sqft
             };
 
-            console.log('📊 Image data to save:', imageData);
+            logger.log('📊 Image data to save:', imageData);
 
             // Save to Supabase
             const savedImage = await window.supabaseAuth.saveGeneratedImage(imageData);
             
             if (savedImage) {
-                console.log('✅ Image saved successfully to Supabase:', savedImage);
+                logger.log('✅ Image saved successfully to Supabase:', savedImage);
                 
                 // Show success notification
                 this.showSaveNotification('Image saved to My Images!');
@@ -1048,7 +1048,7 @@ class UpgradeUI {
             // Use the stored href or construct from property ID
             const propertyUrl = propertyData.href || `https://www.realtor.com/realestateandhomes-detail/${propertyId}`;
             
-            console.log('🔍 Fetching property details from:', propertyUrl);
+            logger.log('🔍 Fetching property details from:', propertyUrl);
             
             // Make request to Realtor16 property details API
             const response = await fetch(`${CONFIG.API_BASE_URL}/api/realtor/property-details?url=${encodeURIComponent(propertyUrl)}`);
@@ -1085,7 +1085,7 @@ class UpgradeUI {
             const sqft = property.description?.sqft || 0;
             const price = property.list_price || 0;
             
-            console.log('🏠 Extracted property details:', {
+            logger.log('🏠 Extracted property details:', {
                 fullAddress,
                 bedrooms,
                 bathrooms,

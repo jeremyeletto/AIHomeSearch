@@ -1,5 +1,8 @@
 // Configuration and constants
 const CONFIG = {
+    // Debug mode - only enable console logs in development
+    DEBUG: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+    
     API_BASE_URL: window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://ai-home-upgrades-backend.onrender.com',
     CORS_PROXY: 'https://corsproxy.io/?',
     GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
@@ -51,10 +54,10 @@ const CONFIG = {
         const cached = this.searchResultsCache.get(cacheKey);
         
         if (cached && (Date.now() - cached.timestamp) < this.cacheExpirationTime) {
-            console.log(`📦 Using cached results for: ${location} (page ${page}, sort: ${sort})`);
+            if (this.DEBUG) console.log(`📦 Using cached results for: ${location} (page ${page}, sort: ${sort})`);
             return cached.data;
         } else if (cached) {
-            console.log(`⏰ Cache expired for: ${location} (page ${page}, sort: ${sort})`);
+            if (this.DEBUG) console.log(`⏰ Cache expired for: ${location} (page ${page}, sort: ${sort})`);
             this.searchResultsCache.delete(cacheKey);
         }
         
@@ -67,7 +70,7 @@ const CONFIG = {
             data: data,
             timestamp: Date.now()
         });
-        console.log(`💾 Cached results for: ${location} (page ${page}, sort: ${sort})`);
+        if (this.DEBUG) console.log(`💾 Cached results for: ${location} (page ${page}, sort: ${sort})`);
         
         // Store last search state in localStorage for persistence across page loads
         try {
@@ -78,7 +81,7 @@ const CONFIG = {
                 timestamp: Date.now()
             }));
         } catch (e) {
-            console.warn('Could not save search state to localStorage:', e);
+            if (this.DEBUG) console.warn('Could not save search state to localStorage:', e);
         }
         
         // Limit cache size to prevent memory issues
@@ -88,24 +91,24 @@ const CONFIG = {
     getLastSearchState: function() {
         try {
             const stored = localStorage.getItem('lastSearchState');
-            console.log('🔍 Raw localStorage data:', stored);
+            if (this.DEBUG) console.log('🔍 Raw localStorage data:', stored);
             
             if (stored) {
                 const state = JSON.parse(stored);
-                console.log('🔍 Parsed search state:', state);
+                if (this.DEBUG) console.log('🔍 Parsed search state:', state);
                 
                 // Check if state is recent (within last 24 hours)
                 if (state.timestamp && (Date.now() - state.timestamp) < 24 * 60 * 60 * 1000) {
-                    console.log('✅ Valid recent search state found:', state);
+                    if (this.DEBUG) console.log('✅ Valid recent search state found:', state);
                     return state;
                 } else {
-                    console.log('⏰ Search state too old or missing timestamp:', state);
+                    if (this.DEBUG) console.log('⏰ Search state too old or missing timestamp:', state);
                 }
             } else {
-                console.log('❌ No search state found in localStorage');
+                if (this.DEBUG) console.log('❌ No search state found in localStorage');
             }
         } catch (e) {
-            console.warn('Could not load search state from localStorage:', e);
+            if (this.DEBUG) console.warn('Could not load search state from localStorage:', e);
         }
         return null;
     },
@@ -113,20 +116,58 @@ const CONFIG = {
     cleanupCache: function() {
         const maxCacheSize = 50; // Maximum number of cached searches
         
-        if (this.searchResultsCache.size > maxCacheSize) {
-            // Remove oldest entries
-            const entries = Array.from(this.searchResultsCache.entries());
-            entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+        // Optimized: Only cleanup when significantly over limit
+        if (this.searchResultsCache.size > maxCacheSize + 10) {
+            // Find and remove oldest entry (O(n) instead of O(n log n))
+            let oldestKey = null;
+            let oldestTime = Infinity;
+            let removed = 0;
             
-            const toRemove = entries.slice(0, this.searchResultsCache.size - maxCacheSize);
-            toRemove.forEach(([key]) => {
-                this.searchResultsCache.delete(key);
-            });
+            // Need to remove multiple entries to get back under limit
+            const toRemove = this.searchResultsCache.size - maxCacheSize;
             
-            console.log(`🧹 Cleaned up ${toRemove.length} expired cache entries`);
+            // Simple approach: remove entries until under limit
+            for (let i = 0; i < toRemove; i++) {
+                oldestKey = null;
+                oldestTime = Infinity;
+                
+                // Find oldest entry
+                for (const [key, value] of this.searchResultsCache) {
+                    if (value.timestamp < oldestTime) {
+                        oldestTime = value.timestamp;
+                        oldestKey = key;
+                    }
+                }
+                
+                // Remove oldest
+                if (oldestKey) {
+                    this.searchResultsCache.delete(oldestKey);
+                    removed++;
+                }
+            }
+            
+            if (this.DEBUG) logger.log(`🧹 Cleaned up ${removed} old cache entries`);
         }
+    }
+};
+
+// Logger utility - only logs in development
+const logger = {
+    log: function(...args) {
+        if (CONFIG.DEBUG) console.log(...args);
+    },
+    info: function(...args) {
+        if (CONFIG.DEBUG) console.info(...args);
+    },
+    warn: function(...args) {
+        if (CONFIG.DEBUG) console.warn(...args);
+    },
+    error: function(...args) {
+        // Always log errors, even in production
+        console.error(...args);
     }
 };
 
 // Export for use in other modules
 window.CONFIG = CONFIG;
+window.logger = logger;

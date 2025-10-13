@@ -35,7 +35,7 @@ class HomeDisplay {
 
     // Create a home card
     createHomeCard(home, index) {
-        console.log(`🏠 Creating card for home:`, {
+        logger.log(`🏠 Creating card for home:`, {
             id: home.id,
             address: home.address,
             images: home.images,
@@ -50,7 +50,7 @@ class HomeDisplay {
         const currentImage = images[0] || 'https://via.placeholder.com/400x250?text=No+Image';
         const totalImages = home.imageCount || images.length || 1;
         
-        console.log(`🏠 Card creation details:`, {
+        logger.log(`🏠 Card creation details:`, {
             imagesArray: images,
             currentImage: currentImage,
             totalImages: totalImages,
@@ -63,10 +63,10 @@ class HomeDisplay {
                     <img src="${currentImage}" class="card-img-top" alt="${home.address}" loading="lazy">
                     
                     <!-- Navigation arrows -->
-                    <button class="image-nav-arrow prev" onclick="console.log('🖱️ PREV ARROW CLICKED for homeId: ${home.id}'); window.imageHandler.navigateImage('${home.id}', 'prev')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Previous image" title="Previous image">
+                    <button class="image-nav-arrow prev" onclick="logger.log('🖱️ PREV ARROW CLICKED for homeId: ${home.id}'); window.imageHandler.navigateImage('${home.id}', 'prev')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Previous image" title="Previous image">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <button class="image-nav-arrow next" onclick="console.log('🖱️ NEXT ARROW CLICKED for homeId: ${home.id}'); window.imageHandler.navigateImage('${home.id}', 'next')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Next image" title="Next image">
+                    <button class="image-nav-arrow next" onclick="logger.log('🖱️ NEXT ARROW CLICKED for homeId: ${home.id}'); window.imageHandler.navigateImage('${home.id}', 'next')" style="display: ${images.length > 1 ? 'flex' : 'none'};" aria-label="Next image" title="Next image">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                     

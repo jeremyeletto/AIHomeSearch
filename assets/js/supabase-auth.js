@@ -30,7 +30,7 @@ class SupabaseAuth {
 
             // Listen for auth state changes
             this.supabase.auth.onAuthStateChange((event, session) => {
-                console.log('🔄 SupabaseAuth: Auth state change event:', event, session?.user?.email);
+                logger.log('🔄 SupabaseAuth: Auth state change event:', event, session?.user?.email);
                 if (event === 'SIGNED_IN') {
                     this.user = session.user;
                     this.onAuthStateChange(this.user);
@@ -44,7 +44,7 @@ class SupabaseAuth {
             });
 
             this.isInitialized = true;
-            console.log('✅ Supabase Auth initialized successfully');
+            logger.log('✅ Supabase Auth initialized successfully');
             
             // Dispatch ready event
             const readyEvent = new CustomEvent('supabaseAuthReady', { 
@@ -87,7 +87,7 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('🔐 Google sign-in initiated');
+            logger.log('🔐 Google sign-in initiated');
             return data;
         } catch (error) {
             console.error('❌ Google sign-in failed:', error);
@@ -125,7 +125,7 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('🍎 Apple sign-in initiated');
+            logger.log('🍎 Apple sign-in initiated');
             return data;
         } catch (error) {
             console.error('❌ Apple sign-in failed:', error);
@@ -163,7 +163,7 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('🎮 Discord sign-in initiated');
+            logger.log('🎮 Discord sign-in initiated');
             return data;
         } catch (error) {
             console.error('❌ Discord sign-in failed:', error);
@@ -201,7 +201,7 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('📘 Facebook sign-in initiated');
+            logger.log('📘 Facebook sign-in initiated');
             return data;
         } catch (error) {
             console.error('❌ Facebook sign-in failed:', error);
@@ -239,7 +239,7 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('🏢 Microsoft sign-in initiated');
+            logger.log('🏢 Microsoft sign-in initiated');
             return data;
         } catch (error) {
             console.error('❌ Microsoft sign-in failed:', error);
@@ -250,7 +250,7 @@ class SupabaseAuth {
     // Sign in with Email and Password
     async signInWithEmail() {
         try {
-            console.log('📧 ===== EMAIL SIGN-IN STARTED =====');
+            logger.log('📧 ===== EMAIL SIGN-IN STARTED =====');
             
             const emailEl = document.getElementById('emailInput');
             const passwordEl = document.getElementById('passwordInput');
@@ -264,7 +264,7 @@ class SupabaseAuth {
             const email = emailEl.value.trim();
             const password = passwordEl.value;
             
-            console.log('📋 Email form values:', {
+            logger.log('📋 Email form values:', {
                 email: email,
                 passwordLength: password?.length,
                 emailValid: email.includes('@')
@@ -289,21 +289,21 @@ class SupabaseAuth {
                 return;
             }
             
-            console.log('✅ Email validation passed');
+            logger.log('✅ Email validation passed');
             
             if (!this.supabase) {
                 console.error('❌ Supabase not initialized');
                 throw new Error('Supabase not initialized');
             }
             
-            console.log('📤 Sending email sign-in request...');
+            logger.log('📤 Sending email sign-in request...');
             
             const { data, error } = await this.supabase.auth.signInWithPassword({
                 email: email,
                 password: password
             });
             
-            console.log('📥 Supabase email sign-in response:', {
+            logger.log('📥 Supabase email sign-in response:', {
                 data: data,
                 error: error,
                 hasData: !!data,
@@ -322,8 +322,8 @@ class SupabaseAuth {
                 throw error;
             }
             
-            console.log('✅ Email sign-in successful:', data);
-            console.log('🎉 User authenticated with email!');
+            logger.log('✅ Email sign-in successful:', data);
+            logger.log('🎉 User authenticated with email!');
             
             // Close modal
             const modal = document.getElementById('authModal');
@@ -368,7 +368,7 @@ class SupabaseAuth {
     // Sign up with Email and Password
     async signUpWithEmail() {
         try {
-            console.log('📧 ===== EMAIL SIGN-UP STARTED =====');
+            logger.log('📧 ===== EMAIL SIGN-UP STARTED =====');
             
             const emailEl = document.getElementById('emailInput');
             const passwordEl = document.getElementById('passwordInput');
@@ -382,7 +382,7 @@ class SupabaseAuth {
             const email = emailEl.value.trim();
             const password = passwordEl.value;
             
-            console.log('📋 Email sign-up form values:', {
+            logger.log('📋 Email sign-up form values:', {
                 email: email,
                 passwordLength: password?.length,
                 emailValid: email.includes('@')
@@ -413,21 +413,21 @@ class SupabaseAuth {
                 return;
             }
             
-            console.log('✅ Email sign-up validation passed');
+            logger.log('✅ Email sign-up validation passed');
             
             if (!this.supabase) {
                 console.error('❌ Supabase not initialized');
                 throw new Error('Supabase not initialized');
             }
             
-            console.log('📤 Sending email sign-up request...');
+            logger.log('📤 Sending email sign-up request...');
             
             const { data, error } = await this.supabase.auth.signUp({
                 email: email,
                 password: password
             });
             
-            console.log('📥 Supabase email sign-up response:', {
+            logger.log('📥 Supabase email sign-up response:', {
                 data: data,
                 error: error,
                 hasData: !!data,
@@ -446,14 +446,14 @@ class SupabaseAuth {
                 throw error;
             }
             
-            console.log('✅ Email sign-up successful:', data);
+            logger.log('✅ Email sign-up successful:', data);
             
             // Check if email confirmation is required
             if (data.user && !data.user.email_confirmed_at) {
-                console.log('📧 Email confirmation required');
+                logger.log('📧 Email confirmation required');
                 alert('Account created! Please check your email and click the confirmation link to complete your registration.');
             } else {
-                console.log('🎉 User account created and confirmed!');
+                logger.log('🎉 User account created and confirmed!');
                 alert('Account created successfully! You are now signed in.');
             }
             
@@ -500,13 +500,13 @@ class SupabaseAuth {
     // Sign in with Phone Number
     async signInWithPhone() {
         try {
-            console.log('🚀 ===== PHONE AUTHENTICATION STARTED =====');
+            logger.log('🚀 ===== PHONE AUTHENTICATION STARTED =====');
             
             // Get form elements
             const countryCodeEl = document.getElementById('countryCode');
             const phoneNumberEl = document.getElementById('phoneNumber');
             
-            console.log('🔍 Form elements found:', {
+            logger.log('🔍 Form elements found:', {
                 countryCodeEl: !!countryCodeEl,
                 phoneNumberEl: !!phoneNumberEl
             });
@@ -520,7 +520,7 @@ class SupabaseAuth {
             const countryCode = countryCodeEl.value;
             const phoneNumber = phoneNumberEl.value;
             
-            console.log('📋 Form values:', {
+            logger.log('📋 Form values:', {
                 countryCode: countryCode,
                 phoneNumber: phoneNumber,
                 countryCodeLength: countryCode?.length,
@@ -541,7 +541,7 @@ class SupabaseAuth {
             }
 
             const fullPhoneNumber = `${countryCode}${phoneNumber}`;
-            console.log('📱 Full phone number constructed:', fullPhoneNumber);
+            logger.log('📱 Full phone number constructed:', fullPhoneNumber);
             
             // Validate phone number format
             const phoneRegex = /^\+[1-9]\d{1,14}$/;
@@ -551,7 +551,7 @@ class SupabaseAuth {
                 return;
             }
             
-            console.log('✅ Phone number format is valid');
+            logger.log('✅ Phone number format is valid');
             
             // Check Supabase initialization
             if (!this.supabase) {
@@ -559,17 +559,17 @@ class SupabaseAuth {
                 throw new Error('Supabase not initialized');
             }
             
-            console.log('✅ Supabase client is ready');
+            logger.log('✅ Supabase client is ready');
             
             // Check current Supabase configuration
-            console.log('🔧 Supabase configuration:', {
+            logger.log('🔧 Supabase configuration:', {
                 url: this.supabase.supabaseUrl,
                 key: this.supabase.supabaseKey ? 'Present' : 'Missing',
                 clientInitialized: !!this.supabase.auth
             });
             
-            console.log('📤 Sending OTP request to Supabase...');
-            console.log('📤 Request payload:', {
+            logger.log('📤 Sending OTP request to Supabase...');
+            logger.log('📤 Request payload:', {
                 phone: fullPhoneNumber,
                 options: { channel: 'sms' }
             });
@@ -581,7 +581,7 @@ class SupabaseAuth {
                 }
             });
 
-            console.log('📥 Supabase response received:', {
+            logger.log('📥 Supabase response received:', {
                 data: data,
                 error: error,
                 hasData: !!data,
@@ -600,12 +600,12 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('✅ SMS OTP request successful:', data);
-            console.log('🎉 SMS should have been sent to:', fullPhoneNumber);
+            logger.log('✅ SMS OTP request successful:', data);
+            logger.log('🎉 SMS should have been sent to:', fullPhoneNumber);
             
             // Show OTP input modal
             this.showOTPModal(fullPhoneNumber);
-            console.log('📱 OTP modal displayed');
+            logger.log('📱 OTP modal displayed');
             
         } catch (error) {
             console.error('❌ ===== PHONE AUTHENTICATION FAILED =====');
@@ -676,11 +676,11 @@ class SupabaseAuth {
     // Verify OTP code
     async verifyOTP(phoneNumber) {
         try {
-            console.log('🔐 ===== OTP VERIFICATION STARTED =====');
-            console.log('📱 Verifying OTP for phone:', phoneNumber);
+            logger.log('🔐 ===== OTP VERIFICATION STARTED =====');
+            logger.log('📱 Verifying OTP for phone:', phoneNumber);
             
             const otpInputEl = document.getElementById('otpInput');
-            console.log('🔍 OTP input element found:', !!otpInputEl);
+            logger.log('🔍 OTP input element found:', !!otpInputEl);
             
             if (!otpInputEl) {
                 console.error('❌ OTP input element not found');
@@ -689,8 +689,8 @@ class SupabaseAuth {
             }
             
             const otpCode = otpInputEl.value;
-            console.log('📋 OTP code entered:', otpCode ? `${otpCode.substring(0, 2)}****` : 'Empty');
-            console.log('📏 OTP code length:', otpCode?.length);
+            logger.log('📋 OTP code entered:', otpCode ? `${otpCode.substring(0, 2)}****` : 'Empty');
+            logger.log('📏 OTP code length:', otpCode?.length);
             
             if (!otpCode || otpCode.trim() === '') {
                 console.error('❌ Empty OTP code');
@@ -704,17 +704,17 @@ class SupabaseAuth {
                 return;
             }
 
-            console.log('✅ OTP code validation passed');
+            logger.log('✅ OTP code validation passed');
             
             if (!this.supabase) {
                 console.error('❌ Supabase not initialized');
                 throw new Error('Supabase not initialized');
             }
             
-            console.log('✅ Supabase client is ready for verification');
+            logger.log('✅ Supabase client is ready for verification');
             
-            console.log('📤 Sending OTP verification request...');
-            console.log('📤 Verification payload:', {
+            logger.log('📤 Sending OTP verification request...');
+            logger.log('📤 Verification payload:', {
                 phone: phoneNumber,
                 token: otpCode,
                 type: 'sms'
@@ -726,7 +726,7 @@ class SupabaseAuth {
                 type: 'sms'
             });
 
-            console.log('📥 Supabase verification response:', {
+            logger.log('📥 Supabase verification response:', {
                 data: data,
                 error: error,
                 hasData: !!data,
@@ -745,14 +745,14 @@ class SupabaseAuth {
                 throw error;
             }
 
-            console.log('✅ Phone verification successful:', data);
-            console.log('🎉 User authenticated successfully!');
+            logger.log('✅ Phone verification successful:', data);
+            logger.log('🎉 User authenticated successfully!');
             
             // Close modal
             const modal = document.querySelector('.modal');
             if (modal) {
                 modal.remove();
-                console.log('📱 OTP modal closed');
+                logger.log('📱 OTP modal closed');
             }
             
         } catch (error) {
@@ -805,7 +805,7 @@ class SupabaseAuth {
             // Dispatch auth state change event
             this.onAuthStateChange(null);
             
-            console.log('👋 User signed out successfully');
+            logger.log('👋 User signed out successfully');
         } catch (error) {
             console.error('❌ Sign-out failed:', error);
             throw error;
@@ -868,7 +868,7 @@ class SupabaseAuth {
                 generation_status: 'completed'
             };
 
-            console.log('💾 Supabase insert data:', insertData);
+            logger.log('💾 Supabase insert data:', insertData);
 
             const { data, error } = await this.supabase
                 .from('generated_images')
@@ -884,7 +884,7 @@ class SupabaseAuth {
             // Clear cache after saving new image
             this.clearUserImagesCache();
 
-            console.log('✅ Image saved to database:', data);
+            logger.log('✅ Image saved to database:', data);
             return data;
         } catch (error) {
             console.error('❌ Failed to save image:', error);
@@ -907,18 +907,18 @@ class SupabaseAuth {
                 if (!forceRefresh && CONFIG.generatedImageCache.has(cacheKey)) {
                     const cached = CONFIG.generatedImageCache.get(cacheKey);
                     if (Date.now() - cached.timestamp < cacheExpiry) {
-                        console.log('📦 Using cached user images');
+                        logger.log('📦 Using cached user images');
                         return cached.data;
                     } else {
-                        console.log('⏰ Cache expired for user images');
+                        logger.log('⏰ Cache expired for user images');
                         CONFIG.generatedImageCache.delete(cacheKey);
                     }
                 }
             } else {
-                console.log('⚠️ CONFIG not available, skipping cache check');
+                logger.log('⚠️ CONFIG not available, skipping cache check');
             }
 
-            console.log('🔍 Fetching fresh user images from database (with pagination)');
+            logger.log('🔍 Fetching fresh user images from database (with pagination)');
             const { data, error } = await this.supabase
                 .from('generated_images')
                 .select('*')
@@ -945,7 +945,7 @@ class SupabaseAuth {
                     this.cleanupImageCache();
                 }
             } else {
-                console.log('⚠️ CONFIG not available, skipping cache storage');
+                logger.log('⚠️ CONFIG not available, skipping cache storage');
             }
 
             return images;
@@ -960,16 +960,16 @@ class SupabaseAuth {
         if (this.user && typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
             const cacheKey = `userImages_${this.user.id}`;
             CONFIG.generatedImageCache.delete(cacheKey);
-            console.log('🗑️ Cleared user images cache');
+            logger.log('🗑️ Cleared user images cache');
         } else {
-            console.log('⚠️ Cannot clear cache - CONFIG not available');
+            logger.log('⚠️ Cannot clear cache - CONFIG not available');
         }
     }
 
     // Clean up old cache entries to prevent memory issues
     cleanupImageCache() {
         if (typeof CONFIG === 'undefined' || !CONFIG.generatedImageCache) {
-            console.log('⚠️ Cannot cleanup cache - CONFIG not available');
+            logger.log('⚠️ Cannot cleanup cache - CONFIG not available');
             return;
         }
         
@@ -986,7 +986,7 @@ class SupabaseAuth {
                 CONFIG.generatedImageCache.delete(key);
             });
             
-            console.log(`🧹 Cleaned up ${toRemove.length} old image cache entries`);
+            logger.log(`🧹 Cleaned up ${toRemove.length} old image cache entries`);
         }
         
         // Remove expired entries
@@ -994,7 +994,7 @@ class SupabaseAuth {
         for (const [key, value] of CONFIG.generatedImageCache.entries()) {
             if (now - value.timestamp > maxAge) {
                 CONFIG.generatedImageCache.delete(key);
-                console.log(`⏰ Removed expired cache entry: ${key}`);
+                logger.log(`⏰ Removed expired cache entry: ${key}`);
             }
         }
     }
@@ -1020,7 +1020,7 @@ class SupabaseAuth {
             // Clear cache after deletion
             this.clearUserImagesCache();
             
-            console.log('✅ Image deleted successfully:', data);
+            logger.log('✅ Image deleted successfully:', data);
             return data;
         } catch (error) {
             console.error('❌ Failed to delete image:', error);
@@ -1051,7 +1051,7 @@ class SupabaseAuth {
                 .from('generated-images')
                 .getPublicUrl(filePath);
 
-            console.log('✅ Image uploaded successfully:', urlData.publicUrl);
+            logger.log('✅ Image uploaded successfully:', urlData.publicUrl);
             return urlData.publicUrl;
         } catch (error) {
             console.error('❌ Failed to upload image:', error);
@@ -1131,18 +1131,18 @@ class SupabaseAuth {
     requireAuth() {
         // Wait for initialization if not ready
         if (!this.isInitialized) {
-            console.log('⏳ Auth not initialized yet, waiting...');
+            logger.log('⏳ Auth not initialized yet, waiting...');
             return false;
         }
 
         if (!this.isAuthenticated()) {
-            console.log('❌ User not authenticated, redirecting to index...');
+            logger.log('❌ User not authenticated, redirecting to index...');
             // Redirect to landing page if not authenticated
             window.location.href = 'index.html';
             return false;
         }
         
-        console.log('✅ User authenticated successfully');
+        logger.log('✅ User authenticated successfully');
         return true;
     }
 }
@@ -1158,16 +1158,16 @@ if (typeof module !== 'undefined' && module.exports) {
 // Debug function to check redirect URL
 window.debugRedirectUrl = () => {
     const currentUrl = `${window.location.protocol}//${window.location.hostname}:${window.location.port || '3001'}`;
-    console.log('🔍 Current URL:', window.location.href);
-    console.log('🔍 Redirect URL will be:', currentUrl);
-    console.log('🔍 Hostname:', window.location.hostname);
-    console.log('🔍 Port:', window.location.port || '3001');
+    logger.log('🔍 Current URL:', window.location.href);
+    logger.log('🔍 Redirect URL will be:', currentUrl);
+    logger.log('🔍 Hostname:', window.location.hostname);
+    logger.log('🔍 Port:', window.location.port || '3001');
     return currentUrl;
 };
 
 // Debug function to check Supabase configuration
 window.debugSupabaseConfig = () => {
-    console.log('🔍 ===== SUPABASE CONFIGURATION DEBUG =====');
+    logger.log('🔍 ===== SUPABASE CONFIGURATION DEBUG =====');
     
     if (!window.supabaseAuth) {
         console.error('❌ SupabaseAuth instance not found');
@@ -1175,9 +1175,9 @@ window.debugSupabaseConfig = () => {
     }
     
     const auth = window.supabaseAuth;
-    console.log('✅ SupabaseAuth instance found');
+    logger.log('✅ SupabaseAuth instance found');
     
-    console.log('🔧 Initialization status:', {
+    logger.log('🔧 Initialization status:', {
         isInitialized: auth.isInitialized,
         hasSupabaseClient: !!auth.supabase,
         hasUser: !!auth.user,
@@ -1185,7 +1185,7 @@ window.debugSupabaseConfig = () => {
     });
     
     if (auth.supabase) {
-        console.log('🔧 Supabase client details:', {
+        logger.log('🔧 Supabase client details:', {
             url: auth.supabase.supabaseUrl,
             key: auth.supabase.supabaseKey ? 'Present' : 'Missing',
             authModule: !!auth.supabase.auth,
@@ -1195,13 +1195,13 @@ window.debugSupabaseConfig = () => {
         
         // Check auth configuration
         if (auth.supabase.auth) {
-            console.log('🔧 Auth module available');
+            logger.log('🔧 Auth module available');
         }
     } else {
         console.error('❌ Supabase client not initialized');
     }
     
-    console.log('🔍 ===== END SUPABASE CONFIG DEBUG =====');
+    logger.log('🔍 ===== END SUPABASE CONFIG DEBUG =====');
     return {
         isInitialized: auth.isInitialized,
         hasClient: !!auth.supabase,
@@ -1212,8 +1212,8 @@ window.debugSupabaseConfig = () => {
 
 // Debug function to test phone number format
 window.debugPhoneFormat = (phoneNumber) => {
-    console.log('🔍 ===== PHONE NUMBER FORMAT DEBUG =====');
-    console.log('📱 Input phone number:', phoneNumber);
+    logger.log('🔍 ===== PHONE NUMBER FORMAT DEBUG =====');
+    logger.log('📱 Input phone number:', phoneNumber);
     
     if (!phoneNumber) {
         console.error('❌ No phone number provided');
@@ -1223,9 +1223,9 @@ window.debugPhoneFormat = (phoneNumber) => {
     const phoneRegex = /^\+[1-9]\d{1,14}$/;
     const isValid = phoneRegex.test(phoneNumber);
     
-    console.log('📏 Phone number length:', phoneNumber.length);
-    console.log('🔍 Regex test result:', isValid);
-    console.log('📋 Phone number breakdown:', {
+    logger.log('📏 Phone number length:', phoneNumber.length);
+    logger.log('🔍 Regex test result:', isValid);
+    logger.log('📋 Phone number breakdown:', {
         hasPlus: phoneNumber.startsWith('+'),
         countryCode: phoneNumber.substring(0, phoneNumber.length - 10), // Assume 10 digits for local number
         localNumber: phoneNumber.substring(phoneNumber.length - 10)
@@ -1233,12 +1233,12 @@ window.debugPhoneFormat = (phoneNumber) => {
     
     if (!isValid) {
         console.error('❌ Invalid phone format');
-        console.log('💡 Expected format: +[country code][number] (e.g., +1234567890)');
+        logger.log('💡 Expected format: +[country code][number] (e.g., +1234567890)');
     } else {
-        console.log('✅ Phone number format is valid');
+        logger.log('✅ Phone number format is valid');
     }
     
-    console.log('🔍 ===== END PHONE FORMAT DEBUG =====');
+    logger.log('🔍 ===== END PHONE FORMAT DEBUG =====');
     return isValid;
 };
 

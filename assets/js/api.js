@@ -10,7 +10,7 @@ class APIHandler {
         const errorState = document.getElementById('errorState');
         const homesGrid = document.getElementById('homesGrid');
         
-        console.log(`⚡ Displaying ${cachedData.homes.length} cached properties`);
+        logger.log(`⚡ Displaying ${cachedData.homes.length} cached properties`);
         
         // Update pagination info from cache
         CONFIG.totalPages = cachedData.totalPages;
@@ -31,96 +31,50 @@ class APIHandler {
         this.handleHighQualityImages(cachedData.homes);
     }
 
-    // Show cache indicator to user
+    // Show cache indicator to user (optimized - uses CSS class)
     showCacheIndicator() {
-        // Create cache indicator element
-        const cacheIndicator = document.createElement('div');
-        cacheIndicator.id = 'cacheIndicator';
-        cacheIndicator.innerHTML = `
-            <div style="
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                background: linear-gradient(135deg, #10b981, #059669);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                animation: slideInFromRight 0.3s ease-out;
-            ">
-                <i class="fas fa-bolt" style="font-size: 10px;"></i>
-                <span>Cached Results</span>
-            </div>
-        `;
+        let indicator = document.getElementById('cacheIndicator');
         
-        // Add animation CSS if not already present
-        if (!document.getElementById('cacheIndicatorStyles')) {
-            const style = document.createElement('style');
-            style.id = 'cacheIndicatorStyles';
-            style.textContent = `
-                @keyframes slideInFromRight {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOutToRight {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
+        // Create indicator if it doesn't exist
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'cacheIndicator';
+            indicator.className = 'cache-indicator';
+            indicator.innerHTML = '<i class="fas fa-bolt"></i><span>Cached Results</span>';
+            document.body.appendChild(indicator);
         }
         
-        // Remove any existing cache indicator
-        const existing = document.getElementById('cacheIndicator');
-        if (existing) {
-            existing.remove();
-        }
+        // Show the indicator
+        indicator.classList.add('show');
         
-        // Add to page
-        document.body.appendChild(cacheIndicator);
-        
-        // Auto-remove after 3 seconds
+        // Auto-hide after 3 seconds
         setTimeout(() => {
-            const indicator = document.getElementById('cacheIndicator');
-            if (indicator) {
-                indicator.style.animation = 'slideOutToRight 0.3s ease-in';
-                setTimeout(() => {
-                    if (indicator.parentNode) {
-                        indicator.remove();
-                    }
-                }, 300);
-            }
+            indicator.classList.remove('show');
         }, 3000);
     }
 
     // Test API connectivity
     async testAPIs() {
         try {
-            console.log('Testing API connectivity...');
+            logger.log('Testing API connectivity...');
             
             // Test Gemini first (primary service)
-            console.log('Testing Gemini connectivity...');
+            logger.log('Testing Gemini connectivity...');
             const response = await fetch(`${this.baseUrl}/api/test-gemini`);
             const result = await response.json();
             
             if (result.success) {
-                console.log('✅ Gemini API is accessible');
-                console.log('Model:', result.result?.modelVersion || 'gemini-2.5-flash');
-                console.log('Region:', result.region);
+                logger.log('✅ Gemini API is accessible');
+                logger.log('Model:', result.result?.modelVersion || 'gemini-2.5-flash');
+                logger.log('Region:', result.region);
                 return true;
             } else {
-                console.log('❌ Gemini API test failed:', result.error);
+                logger.log('❌ Gemini API test failed:', result.error);
                 return false;
             }
         } catch (error) {
             console.error('API test failed:', error);
-            console.log('💡 Make sure to start the server: npm start');
+            logger.log('💡 Make sure to start the server: npm start');
             return false;
         }
     }
@@ -139,7 +93,7 @@ class APIHandler {
         // Check cache first
         const cachedResults = CONFIG.getCachedResults(location, page, sort);
         if (cachedResults) {
-            console.log('⚡ Loading cached results instantly');
+            logger.log('⚡ Loading cached results instantly');
             this.displayCachedResults(cachedResults);
             return;
         }
@@ -150,12 +104,12 @@ class APIHandler {
         homesGrid.style.display = 'none';
         
         try {
-            console.log('🚀 Fresh API call - Location:', location, 'Page:', page, 'Sort:', sort);
+            logger.log('🚀 Fresh API call - Location:', location, 'Page:', page, 'Sort:', sort);
             
             const encodedLocation = encodeURIComponent(location);
             const proxyUrl = `${this.baseUrl}/api/realtor/image-counts?location=${encodedLocation}&search_radius=0&page=${page}&limit=6&sort=${sort}`;
             
-            console.log('📡 Fetching properties with preview images from:', proxyUrl);
+            logger.log('📡 Fetching properties with preview images from:', proxyUrl);
             
             const response = await fetch(proxyUrl, {
                 method: 'GET',
@@ -176,7 +130,7 @@ class APIHandler {
             }
             
             const proxyResponse = await response.json();
-            console.log('✅ Properties response received:', proxyResponse);
+            logger.log('✅ Properties response received:', proxyResponse);
             
             if (!proxyResponse.success) {
                 throw new Error(`Proxy API error: ${proxyResponse.error}`);
@@ -185,7 +139,7 @@ class APIHandler {
             const properties = proxyResponse.properties || [];
             const imageCounts = proxyResponse.imageCounts || [];
             
-            console.log(`📊 Received ${properties.length} properties with ${imageCounts.length} image counts`);
+            logger.log(`📊 Received ${properties.length} properties with ${imageCounts.length} image counts`);
             
             if (properties && Array.isArray(properties) && properties.length > 0) {
                 const recentProperties = properties;
@@ -194,7 +148,7 @@ class APIHandler {
                 const totalCount = properties.total || properties.count || properties.length || 0;
                 CONFIG.totalPages = Math.ceil(totalCount / 6);
                 
-                console.log(`✅ Properties found: ${recentProperties.length}, Total pages: ${CONFIG.totalPages}`);
+                logger.log(`✅ Properties found: ${recentProperties.length}, Total pages: ${CONFIG.totalPages}`);
                 
                 // Process homes with optimized image handling
                 const homes = this.processProperties(recentProperties, imageCounts);
@@ -208,7 +162,7 @@ class APIHandler {
                 });
                 
                 // Display the homes immediately with preview images
-                console.log(`✅ Displaying ${homes.length} properties with preview images`);
+                logger.log(`✅ Displaying ${homes.length} properties with preview images`);
                 window.homeDisplay.displayHomes(homes);
                 window.pagination.updatePaginationControls();
                 
@@ -217,7 +171,7 @@ class APIHandler {
                 
                 return homes;
             } else {
-                console.log('⚠️ No properties array found in response');
+                logger.log('⚠️ No properties array found in response');
                 errorState.style.display = 'block';
                 loadingState.style.display = 'none';
                 return [];
@@ -275,7 +229,7 @@ class APIHandler {
             const previewImages = imageData.previewImages || property.preview_images || [];
             const estimatedCount = imageData.estimatedCount || 1;
             
-            console.log(`🏠 Property ${index + 1}: ${address} - ${previewImages.length} preview images, estimated ${estimatedCount} total`);
+            logger.log(`🏠 Property ${index + 1}: ${address} - ${previewImages.length} preview images, estimated ${estimatedCount} total`);
             
             return {
                 id: property.property_id || property.id || index + 1,
@@ -303,7 +257,7 @@ class APIHandler {
         const propertiesNeedingHighQuality = homes.filter(home => home.hasHighQualityPhotos);
         
         if (propertiesNeedingHighQuality.length > 0) {
-            console.log(`🚀 Phase 2: Fetching high-quality images for ${propertiesNeedingHighQuality.length} properties (delayed to avoid rate limits)`);
+            logger.log(`🚀 Phase 2: Fetching high-quality images for ${propertiesNeedingHighQuality.length} properties (delayed to avoid rate limits)`);
             
             // Show loading states immediately for properties that need high-quality images
             propertiesNeedingHighQuality.forEach(home => {
@@ -313,8 +267,8 @@ class APIHandler {
                 }
             });
             
-            // Add delay before fetching high-quality images to avoid overwhelming the API
-            setTimeout(async () => {
+            // Optimized: Use requestIdleCallback for better performance
+            const fetchHighQualityImages = async () => {
                 try {
                     const batchResponse = await fetch(`${this.baseUrl}/api/realtor/batch-high-quality-images`, {
                         method: 'POST',
@@ -326,28 +280,41 @@ class APIHandler {
                     
                     if (batchResponse.ok) {
                         const batchData = await batchResponse.json();
-                        console.log('✅ Batch high-quality images response:', batchData);
+                        logger.log('✅ Batch high-quality images response:', batchData);
                         
                         if (batchData.success && batchData.results) {
                             this.updateHomesWithHighQualityImages(batchData.results, propertiesNeedingHighQuality, homes);
                         }
                     } else {
-                        console.log('⚠️ Failed to fetch high-quality images, using preview images');
+                        logger.log('⚠️ Failed to fetch high-quality images, using preview images');
                     }
                 } catch (error) {
-                    console.error('❌ Error fetching high-quality images:', error);
+                    logger.error('❌ Error fetching high-quality images:', error);
                     
                     // Check if it's a CORS or network error
                     if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
-                        console.log('🌐 CORS/Network issue - backend may need redeployment');
-                        console.log('💡 Backend needs to be redeployed on Render with updated CORS config');
+                        logger.log('🌐 CORS/Network issue - backend may need redeployment');
+                        logger.log('💡 Backend needs to be redeployed on Render with updated CORS config');
                     } else {
-                        console.log('⚠️ Backend service issue - continuing with preview images');
+                        logger.log('⚠️ Backend service issue - continuing with preview images');
                     }
                 }
-            }, 3000); // Wait 3 seconds before starting high-quality image fetch to respect rate limits
+            };
+            
+            // Use requestIdleCallback for better timing (fallback to setTimeout)
+            if ('requestIdleCallback' in window) {
+                requestIdleCallback(() => {
+                    // Only fetch if page is still visible
+                    if (document.visibilityState === 'visible') {
+                        fetchHighQualityImages();
+                    }
+                }, { timeout: 2000 }); // Max 2 second wait
+            } else {
+                // Fallback for browsers without requestIdleCallback
+                setTimeout(fetchHighQualityImages, 1000);
+            }
         } else {
-            console.log('ℹ️ No properties need high-quality image fetching');
+            logger.log('ℹ️ No properties need high-quality image fetching');
         }
     }
 
@@ -356,7 +323,7 @@ class APIHandler {
         results.forEach((result, index) => {
             const home = propertiesNeedingHighQuality.find(h => h.id == result.propertyId);
             if (home && result.images && result.images.length > 0 && !result.rateLimited) {
-                console.log(`🖼️ Updating ${home.address} with ${result.images.length} high-quality images`);
+                logger.log(`🖼️ Updating ${home.address} with ${result.images.length} high-quality images`);
                 home.images = result.images;
                 home.imageCount = result.imageCount;
                 home.lazyLoaded = true;
@@ -364,7 +331,7 @@ class APIHandler {
                 // Update the displayed card
                 window.imageHandler.updateHomeCardImages(home, homes.indexOf(home));
             } else if (result.rateLimited) {
-                console.log(`⏳ Property ${home.address} was rate limited, keeping preview images`);
+                logger.log(`⏳ Property ${home.address} was rate limited, keeping preview images`);
                 // Hide loading state for rate-limited properties
                 const card = document.querySelector(`[data-home-id="${home.id}"]`);
                 if (card) {
@@ -377,7 +344,7 @@ class APIHandler {
         const rateLimited = results.filter(r => r.rateLimited).length;
         const needsRetry = results.filter(r => r.needsRetry).length;
         
-        console.log(`✅ Successfully updated ${successful} properties with high-quality images (${rateLimited} rate limited, ${needsRetry} need retry)`);
+        logger.log(`✅ Successfully updated ${successful} properties with high-quality images (${rateLimited} rate limited, ${needsRetry} need retry)`);
         
         // Mark homes as rate limited for tracking
         results.forEach((result, index) => {
@@ -390,11 +357,11 @@ class APIHandler {
         
         // If there are properties that need retry, schedule a retry attempt
         if (needsRetry > 0) {
-            console.log(`🔄 Scheduling retry for ${needsRetry} rate-limited properties in 15 seconds...`);
+            logger.log(`🔄 Scheduling retry for ${needsRetry} rate-limited properties in 15 seconds...`);
             setTimeout(async () => {
                 const propertiesNeedingRetry = homes.filter(h => h.rateLimited && h.needsRetry);
                 if (propertiesNeedingRetry.length > 0) {
-                    console.log(`🔄 Starting retry for ${propertiesNeedingRetry.length} properties`);
+                    logger.log(`🔄 Starting retry for ${propertiesNeedingRetry.length} properties`);
                     await this.retryFailedHighQualityImages(propertiesNeedingRetry);
                 }
             }, 15000); // Retry after 15 seconds
@@ -410,11 +377,11 @@ class APIHandler {
         );
 
         if (propertiesNeedingRetry.length === 0) {
-            console.log('ℹ️ No properties need retry for high-quality images');
+            logger.log('ℹ️ No properties need retry for high-quality images');
             return;
         }
 
-        console.log(`🔄 Retrying high-quality images for ${propertiesNeedingRetry.length} properties`);
+        logger.log(`🔄 Retrying high-quality images for ${propertiesNeedingRetry.length} properties`);
         
         try {
             const response = await fetch(`${this.baseUrl}/api/realtor/retry-high-quality-images`, {
@@ -427,7 +394,7 @@ class APIHandler {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ Retry high-quality images response:', data);
+                logger.log('✅ Retry high-quality images response:', data);
 
                 if (data.success && data.results) {
                     // Show loading states for retry attempts
@@ -441,7 +408,7 @@ class APIHandler {
                     data.results.forEach((result, index) => {
                         const home = propertiesNeedingRetry.find(h => h.id == result.propertyId);
                         if (home && result.images && result.images.length > 0 && result.retrySuccess) {
-                            console.log(`🖼️ Retry successful: Updating ${home.address} with ${result.images.length} high-quality images`);
+                            logger.log(`🖼️ Retry successful: Updating ${home.address} with ${result.images.length} high-quality images`);
                             home.images = result.images;
                             home.imageCount = result.imageCount;
                             home.lazyLoaded = true;
@@ -451,7 +418,7 @@ class APIHandler {
                             const cardIndex = CONFIG.homesList.indexOf(home);
                             window.imageHandler.updateHomeCardImages(home, cardIndex);
                         } else if (result.rateLimited) {
-                            console.log(`⏳ Property ${home.address} still rate limited after retry`);
+                            logger.log(`⏳ Property ${home.address} still rate limited after retry`);
                             // Hide loading state for still rate-limited properties
                             const card = document.querySelector(`[data-home-id="${home.id}"]`);
                             if (card) {
@@ -462,10 +429,10 @@ class APIHandler {
                     
                     const retrySuccesses = data.results.filter(r => r.retrySuccess).length;
                     const stillRateLimited = data.results.filter(r => r.rateLimited).length;
-                    console.log(`✅ Retry complete: ${retrySuccesses} successful, ${stillRateLimited} still rate limited`);
+                    logger.log(`✅ Retry complete: ${retrySuccesses} successful, ${stillRateLimited} still rate limited`);
                 }
             } else {
-                console.log('⚠️ Failed to retry high-quality images');
+                logger.log('⚠️ Failed to retry high-quality images');
             }
         } catch (error) {
             console.error('❌ Error retrying high-quality images:', error);
@@ -475,13 +442,13 @@ class APIHandler {
     // Load prompts from API
     async loadPrompts() {
         try {
-            console.log('Loading prompts from API...');
+            logger.log('Loading prompts from API...');
             const response = await fetch(`${this.baseUrl}/api/prompts`);
             const data = await response.json();
             
             if (data.success) {
                 CONFIG.promptsConfig = data;
-                console.log(`✅ Loaded ${data.metadata.totalPrompts} prompts from configuration`);
+                logger.log(`✅ Loaded ${data.metadata.totalPrompts} prompts from configuration`);
                 window.upgradeUI.renderUpgradePills();
             } else {
                 console.error('Failed to load prompts:', data.error);
@@ -533,3 +500,4 @@ class APIHandler {
 
 // Create and export API handler instance
 window.apiHandler = new APIHandler();
+

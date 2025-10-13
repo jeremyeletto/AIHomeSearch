@@ -625,3 +625,34 @@ body {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* Cache Indicator - Optimized for Performance */
+.cache-indicator {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+}
+
+.cache-indicator.show {
+    display: flex;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.cache-indicator i {
+    font-size: 10px;
+}

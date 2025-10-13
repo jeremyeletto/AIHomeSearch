@@ -11,12 +11,12 @@ class ImageHandler {
 
     // Navigate images using arrow buttons
     navigateImage(homeId, direction) {
-        console.log(`🔍 ARROW CLICK DEBUG - Starting navigation for homeId: ${homeId}, direction: ${direction}`);
+        logger.log(`🔍 ARROW CLICK DEBUG - Starting navigation for homeId: ${homeId}, direction: ${direction}`);
         
         const card = document.querySelector(`[data-home-id="${homeId}"]`);
-        console.log(`🔍 Card found:`, card);
+        logger.log(`🔍 Card found:`, card);
         if (!card) {
-            console.log(`❌ No card found with data-home-id="${homeId}"`);
+            logger.log(`❌ No card found with data-home-id="${homeId}"`);
             return;
         }
             
@@ -24,7 +24,7 @@ class ImageHandler {
         const counter = card.querySelector('.image-counter');
         const swipeArea = card.querySelector('.swipe-area');
         
-        console.log(`🔍 Elements found:`, {
+        logger.log(`🔍 Elements found:`, {
             img: img,
             counter: counter,
             swipeArea: swipeArea,
@@ -33,7 +33,7 @@ class ImageHandler {
         });
         
         if (!img || !counter || !swipeArea) {
-            console.log(`❌ Missing required elements:`, {
+            logger.log(`❌ Missing required elements:`, {
                 hasImg: !!img,
                 hasCounter: !!counter,
                 hasSwipeArea: !!swipeArea
@@ -45,7 +45,7 @@ class ImageHandler {
         const currentIndex = parseInt(counter.getAttribute('data-image-index')) || 0;
         const totalImages = parseInt(counter.getAttribute('data-total')) || 1;
         
-        console.log(`🔍 Current state:`, {
+        logger.log(`🔍 Current state:`, {
             currentIndex: currentIndex,
             totalImages: totalImages,
             counterAttributes: {
@@ -55,7 +55,7 @@ class ImageHandler {
         });
         
         if (totalImages <= 1) {
-            console.log(`⚠️ Only ${totalImages} image(s), no navigation needed`);
+            logger.log(`⚠️ Only ${totalImages} image(s), no navigation needed`);
             return; // No navigation needed for single image
         }
         
@@ -66,16 +66,16 @@ class ImageHandler {
         } else if (direction === 'next') {
             newIndex = currentIndex < totalImages - 1 ? currentIndex + 1 : 0; // Loop to first image
         } else {
-            console.log(`❌ Invalid direction: ${direction}`);
+            logger.log(`❌ Invalid direction: ${direction}`);
             return;
         }
         
-        console.log(`🔍 Calculated new index: ${newIndex} (from ${currentIndex} with direction ${direction})`);
+        logger.log(`🔍 Calculated new index: ${newIndex} (from ${currentIndex} with direction ${direction})`);
         
         // Find the processed home object that has the high-quality images
         const home = CONFIG.homesList.find(h => h.id == homeId);
         
-        console.log(`🔍 Found processed home structure:`, {
+        logger.log(`🔍 Found processed home structure:`, {
             id: home?.id,
             address: home?.address,
             images: home?.images,
@@ -89,20 +89,20 @@ class ImageHandler {
         let images = home?.images || [];
         let imageCount = home?.imageCount || images.length;
         
-        console.log(`🔍 Extracted images:`, {
+        logger.log(`🔍 Extracted images:`, {
             images: images.slice(0, 3), // Show first 3 images
             imageCount: imageCount,
             hasImages: imageCount > 0
         });
         
         if (!home || imageCount === 0) {
-            console.log(`❌ No home object or images found for homeId: ${homeId}`);
+            logger.log(`❌ No home object or images found for homeId: ${homeId}`);
             return;
         }
         
         // Update image source
         const newImageSrc = images[newIndex] || images[0];
-        console.log(`🔍 Updating image source:`, {
+        logger.log(`🔍 Updating image source:`, {
             oldSrc: img.src,
             newSrc: newImageSrc,
             newIndex: newIndex,
@@ -113,7 +113,7 @@ class ImageHandler {
         
         // Update counter
         const newCounterText = `${newIndex + 1} of ${imageCount}`;
-        console.log(`🔍 Updating counter:`, {
+        logger.log(`🔍 Updating counter:`, {
             oldText: counter.textContent,
             newText: newCounterText,
             newIndex: newIndex,
@@ -125,18 +125,18 @@ class ImageHandler {
         counter.setAttribute('data-total', imageCount);
         
         // Update swipe area
-        console.log(`🔍 Updating swipe area data-image-index to: ${newIndex}`);
+        logger.log(`🔍 Updating swipe area data-image-index to: ${newIndex}`);
         swipeArea.setAttribute('data-image-index', newIndex);
         
         // Update modal data attributes for when user opens the modal
-        console.log(`🔍 Updating card data-current-image to: ${newIndex}`);
+        logger.log(`🔍 Updating card data-current-image to: ${newIndex}`);
         card.setAttribute('data-current-image', newIndex);
         
         // Update modal data attributes with current image
         this.updateModalDataAttributes(card, home);
         
-        console.log(`✅ Successfully navigated to image ${newIndex + 1}/${totalImages} for property ${homeId}`);
-        console.log(`🔍 Final state:`, {
+        logger.log(`✅ Successfully navigated to image ${newIndex + 1}/${totalImages} for property ${homeId}`);
+        logger.log(`🔍 Final state:`, {
             imgSrc: img.src,
             counterText: counter.textContent,
             counterDataIndex: counter.getAttribute('data-image-index'),
@@ -147,25 +147,25 @@ class ImageHandler {
 
     // Navigate images in modal using arrow buttons
     navigateModalImage(direction) {
-        console.log(`🔍 MODAL ARROW CLICK - Direction: ${direction}`);
+        logger.log(`🔍 MODAL ARROW CLICK - Direction: ${direction}`);
         
         // Use stored property data instead of querying DOM
         if (!CONFIG.currentPropertyData) {
-            console.log('❌ No current property data stored');
+            logger.log('❌ No current property data stored');
             return;
         }
         
         const images = CONFIG.currentPropertyData.images || [];
         const imageCount = CONFIG.currentPropertyData.imageCount || images.length || 1;
         
-        console.log(`🔍 Modal images from stored data:`, { 
+        logger.log(`🔍 Modal images from stored data:`, { 
             propertyId: CONFIG.currentPropertyData.id,
             imageCount: imageCount,
             firstImage: images[0]
         });
         
         if (imageCount <= 1) {
-            console.log(`⚠️ No navigation needed for single image (imageCount: ${imageCount})`);
+            logger.log(`⚠️ No navigation needed for single image (imageCount: ${imageCount})`);
             return;
         }
         
@@ -175,13 +175,13 @@ class ImageHandler {
         const counter = desktopCounter || mobileCounter;
         
         if (!counter) {
-            console.log('❌ No image counter found in modal');
+            logger.log('❌ No image counter found in modal');
             return;
         }
         
         const currentIndex = parseInt(counter.getAttribute('data-image-index')) || 0;
         
-        console.log(`🔍 Current modal state:`, {
+        logger.log(`🔍 Current modal state:`, {
             currentIndex: currentIndex,
             imageCount: imageCount,
             counterElement: counter.id
@@ -194,11 +194,11 @@ class ImageHandler {
         } else if (direction === 'next') {
             newIndex = currentIndex < imageCount - 1 ? currentIndex + 1 : 0; // Loop to first image
         } else {
-            console.log(`❌ Invalid modal navigation direction: ${direction}`);
+            logger.log(`❌ Invalid modal navigation direction: ${direction}`);
             return;
         }
         
-        console.log(`🔍 Modal navigation: ${currentIndex} → ${newIndex} (direction: ${direction})`);
+        logger.log(`🔍 Modal navigation: ${currentIndex} → ${newIndex} (direction: ${direction})`);
         
         // Update the stored current image index
         if (CONFIG.currentPropertyData) {
@@ -216,13 +216,13 @@ class ImageHandler {
         // Update desktop view
         if (originalImage) {
             originalImage.src = newImageSrc;
-            console.log(`🖥️ Updated desktop image: ${newImageSrc}`);
+            logger.log(`🖥️ Updated desktop image: ${newImageSrc}`);
         }
         
         // Update mobile view
         if (mobileImage) {
             mobileImage.src = newImageSrc;
-            console.log(`📱 Updated mobile image: ${newImageSrc}`);
+            logger.log(`📱 Updated mobile image: ${newImageSrc}`);
         }
         
         // Update counters
@@ -249,7 +249,7 @@ class ImageHandler {
             mobileSwipeArea.setAttribute('data-image-index', newIndex);
         }
         
-        console.log(`✅ Modal navigation complete: ${newIndex + 1}/${imageCount}`);
+        logger.log(`✅ Modal navigation complete: ${newIndex + 1}/${imageCount}`);
     }
 
     // Shared function to get current image index from a card
@@ -274,7 +274,7 @@ class ImageHandler {
             modalButton.setAttribute('data-image-count', home.imageCount);
             modalButton.setAttribute('data-current-image-index', currentIndex);
             
-            console.log(`🔄 Updated modal data for ${home.address}: image ${currentIndex + 1}/${home.imageCount}`);
+            logger.log(`🔄 Updated modal data for ${home.address}: image ${currentIndex + 1}/${home.imageCount}`);
         }
     }
 
@@ -324,7 +324,7 @@ class ImageHandler {
             // Hide loading state
             this.hideCardLoadingState(card);
             
-            console.log(`✅ Updated card for ${home.address} with ${home.images.length} images`);
+            logger.log(`✅ Updated card for ${home.address} with ${home.images.length} images`);
         }
     }
 
@@ -333,7 +333,7 @@ class ImageHandler {
         const img = card.querySelector('.card-img-top');
         const counter = card.querySelector('.image-counter');
         
-        console.log('🔄 Showing loading state for card:', card.getAttribute('data-home-id'));
+        logger.log('🔄 Showing loading state for card:', card.getAttribute('data-home-id'));
         
         if (img) {
             // Add loading class for styling
@@ -375,7 +375,7 @@ class ImageHandler {
             // Show overlay with smooth transition
             loadingOverlay.style.display = 'flex';
             
-            console.log('✅ Loading overlay displayed for card');
+            logger.log('✅ Loading overlay displayed for card');
         }
         
         if (counter) {
@@ -389,7 +389,7 @@ class ImageHandler {
         const counter = card.querySelector('.image-counter');
         const loadingOverlay = card.querySelector('.loading-overlay');
         
-        console.log('✅ Hiding loading state for card:', card.getAttribute('data-home-id'));
+        logger.log('✅ Hiding loading state for card:', card.getAttribute('data-home-id'));
         
         if (loadingOverlay) {
             // Smooth fade out transition
@@ -419,7 +419,7 @@ class ImageHandler {
         
         // Trigger lazy loading on first interaction if not already loaded
         if (home && !home.lazyLoaded) {
-            console.log('🗂️ First interaction detected, triggering lazy load...');
+            logger.log('🗂️ First interaction detected, triggering lazy load...');
             this.lazyLoadImagesForCard(card, home);
         }
         
@@ -520,7 +520,7 @@ class ImageHandler {
             return; // Already loaded, no property data, or no high-quality photos available
         }
         
-        console.log('🔄 Lazy loading high-quality images for property:', home.id);
+        logger.log('🔄 Lazy loading high-quality images for property:', home.id);
         
         try {
             // Use the optimized batch endpoint for single property
@@ -552,11 +552,11 @@ class ImageHandler {
                             modalButton.setAttribute('data-image-count', result.imageCount);
                         }
                         
-                        console.log('✅ Lazy loaded high-quality images for property:', home.id, result.images.length);
+                        logger.log('✅ Lazy loaded high-quality images for property:', home.id, result.images.length);
                     }
                 }
             } else {
-                console.log('⚠️ Failed to lazy load high-quality images for property:', home.id);
+                logger.log('⚠️ Failed to lazy load high-quality images for property:', home.id);
             }
         } catch (error) {
             console.error('❌ Failed to lazy load images for property:', home.id, error);
@@ -585,7 +585,7 @@ class ImageHandler {
     // Convert image URL to base64
     async imageUrlToBase64(imageUrl) {
         try {
-            console.log('Converting image to base64:', imageUrl);
+            logger.log('Converting image to base64:', imageUrl);
             
             // Handle CORS issues by creating a canvas
             const response = await fetch(imageUrl, {
@@ -597,14 +597,14 @@ class ImageHandler {
             }
             
             const blob = await response.blob();
-            console.log('Image blob size:', blob.size, 'bytes');
-            console.log('Image blob type:', blob.type);
+            logger.log('Image blob size:', blob.size, 'bytes');
+            logger.log('Image blob type:', blob.type);
             
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     const result = reader.result.split(',')[1]; // Remove data:image/... prefix
-                    console.log('Base64 conversion completed, length:', result.length);
+                    logger.log('Base64 conversion completed, length:', result.length);
                     resolve(result);
                 };
                 reader.onerror = (error) => {

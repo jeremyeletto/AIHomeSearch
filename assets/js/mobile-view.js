@@ -43,7 +43,7 @@ class MobileView {
         // Use the currently displayed image instead of always the first image
         const originalImage = images[currentImageIndex] || images[0] || button.getAttribute('data-original-image');
         
-        console.log(`📸 Modal opening with current image ${currentImageIndex + 1}/${imageCount} for property`);
+        logger.log(`📸 Modal opening with current image ${currentImageIndex + 1}/${imageCount} for property`);
         
         // Trigger lazy loading when modal opens
         const homeId = card.getAttribute('data-home-id');
@@ -84,17 +84,17 @@ class MobileView {
                 currentImageIndex: currentImageIndex
             };
             
-            console.log('🏠 Stored current property data:', CONFIG.currentPropertyData);
+            logger.log('🏠 Stored current property data:', CONFIG.currentPropertyData);
         }
         
         if (home && !home.lazyLoaded) {
-            console.log('📸 Modal opened, triggering lazy load...');
+            logger.log('📸 Modal opened, triggering lazy load...');
             window.imageHandler.lazyLoadImagesForCard(card, home);
         }
         
         // If this property doesn't have high-quality images yet, try to retry
         if (home && home.hasHighQualityPhotos && (!home.lazyLoaded || home.rateLimited)) {
-            console.log('🔄 Property needs high-quality images, triggering retry...');
+            logger.log('🔄 Property needs high-quality images, triggering retry...');
             setTimeout(async () => {
                 await window.apiHandler.retryFailedHighQualityImages([home]);
             }, 1000); // Small delay to let lazy load complete first
@@ -196,9 +196,9 @@ class MobileView {
         document.getElementById('generationLoading').style.display = 'none';
         
         // Add debug info to modal
-        console.log('Modal opened with original image:', originalImage);
-        console.log('Modal opened with current value:', currentValue);
-        console.log('Modal opened with images:', images);
+        logger.log('Modal opened with original image:', originalImage);
+        logger.log('Modal opened with current value:', currentValue);
+        logger.log('Modal opened with images:', images);
     }
 
     // Setup swipe functionality for modal images
@@ -302,7 +302,7 @@ class MobileView {
             
             // Update global modal context for AI generation
             window.currentModalImageSrc = images[imageIndex];
-            console.log('🖼️ Modal image switched to:', images[imageIndex]);
+            logger.log('🖼️ Modal image switched to:', images[imageIndex]);
         }
     }
     
@@ -338,7 +338,7 @@ class MobileView {
             
             // Update global modal context for AI generation  
             window.currentModalImageSrc = images[imageIndex];
-            console.log('📱 Mobile image switched to:', images[imageIndex]);
+            logger.log('📱 Mobile image switched to:', images[imageIndex]);
         
             // Update mobile view if currently showing before
             if (CONFIG.currentMobileView === 'before') {
@@ -369,16 +369,16 @@ class MobileView {
             try {
                 const homeId = this.getCurrentPropertyId();
                 if (homeId) {
-                    console.log('🔍 Fetching detailed property data for:', homeId);
+                    logger.log('🔍 Fetching detailed property data for:', homeId);
                     detailedPropertyData = await this.fetchPropertyDetails(homeId);
-                    console.log('✅ Got detailed property data:', detailedPropertyData);
+                    logger.log('✅ Got detailed property data:', detailedPropertyData);
                 }
             } catch (error) {
-                console.warn('⚠️ Failed to fetch detailed property data, using modal data:', error);
+                logger.warn('⚠️ Failed to fetch detailed property data, using modal data:', error);
                 // Continue with modal data as fallback
             }
             
-            console.log('💾 Saving before/after image to Supabase:', {
+            logger.log('💾 Saving before/after image to Supabase:', {
                 originalImg,
                 upgradedImg,
                 propertyData: detailedPropertyData,
@@ -413,7 +413,7 @@ class MobileView {
             const savedImage = await window.supabaseAuth.saveGeneratedImage(imageData);
             
             if (savedImage) {
-                console.log('✅ Before/after image saved successfully to Supabase:', savedImage);
+                logger.log('✅ Before/after image saved successfully to Supabase:', savedImage);
                 
                 // Also create a local download for convenience
                 this.downloadBeforeAfterImage();
@@ -449,7 +449,7 @@ class MobileView {
             // Use the stored href or construct from property ID
             const propertyUrl = propertyData.href || `https://www.realtor.com/realestateandhomes-detail/${propertyId}`;
             
-            console.log('🔍 Fetching property details from:', propertyUrl);
+            logger.log('🔍 Fetching property details from:', propertyUrl);
             
             // Make request to Realtor16 property details API
             const response = await fetch(`${CONFIG.API_BASE_URL}/api/realtor/property-details?url=${encodeURIComponent(propertyUrl)}`);
@@ -486,7 +486,7 @@ class MobileView {
             const sqft = property.description?.sqft || 0;
             const price = property.list_price || 0;
             
-            console.log('🏠 Extracted property details:', {
+            logger.log('🏠 Extracted property details:', {
                 fullAddress,
                 bedrooms,
                 bathrooms,
@@ -514,7 +514,7 @@ class MobileView {
         const propertyData = CONFIG.currentPropertyData;
         
         if (!propertyData) {
-            console.log('❌ No stored property data found, using defaults');
+            logger.log('❌ No stored property data found, using defaults');
             return {
                 address: 'Property Address',
                 price: 0,
@@ -524,7 +524,7 @@ class MobileView {
             };
         }
         
-        console.log('🏠 Using stored property data:', propertyData);
+        logger.log('🏠 Using stored property data:', propertyData);
         
         return {
             address: propertyData.address,

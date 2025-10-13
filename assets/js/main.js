@@ -54,7 +54,7 @@ class MainApp {
             const location = locationInput.value.trim();
             
             if (location) {
-                console.log('Searching for homes in:', location);
+                logger.log('Searching for homes in:', location);
                 // Load homes directly without redirect
                 window.apiHandler.loadHomes(location, 1, 'relevant');
             } else {
@@ -77,7 +77,7 @@ class MainApp {
     }
 
     async initializeApp() {
-        console.log('Page loaded, testing APIs...');
+        logger.log('Page loaded, testing APIs...');
         
         // Load prompts configuration
         await window.apiHandler.loadPrompts();
@@ -95,14 +95,14 @@ class MainApp {
         // Test APIs first
         const apiSuccess = await window.apiHandler.testAPIs();
         if (apiSuccess) {
-            console.log('✅ AWS Bedrock is working correctly');
+            logger.log('✅ AWS Bedrock is working correctly');
         } else {
-            console.log('❌ API tests failed - check console for details');
-            console.log('💡 Setup Instructions:');
-            console.log('1. Sign up for AWS Bedrock');
-            console.log('2. Configure AWS credentials');
-            console.log('3. Enable Titan Image Generator model access');
-            console.log('4. Start server: npm start');
+            logger.log('❌ API tests failed - check console for details');
+            logger.log('💡 Setup Instructions:');
+            logger.log('1. Sign up for AWS Bedrock');
+            logger.log('2. Configure AWS credentials');
+            logger.log('3. Enable Titan Image Generator model access');
+            logger.log('4. Start server: npm start');
         }
         
         // Check if we have a location parameter in URL (highest priority)
@@ -118,16 +118,16 @@ class MainApp {
             // Check for last search state (second priority)
             const lastSearch = CONFIG.getLastSearchState();
             
-            console.log('🔍 Checking for last search state...', lastSearch);
+            logger.log('🔍 Checking for last search state...', lastSearch);
             
             if (lastSearch) {
                 // Restore last search
-                console.log(`🔄 Restoring last search: ${lastSearch.location} (page ${lastSearch.page}, sort: ${lastSearch.sort})`);
+                logger.log(`🔄 Restoring last search: ${lastSearch.location} (page ${lastSearch.page}, sort: ${lastSearch.sort})`);
                 document.getElementById('locationSearchHome').value = lastSearch.location;
                 await window.apiHandler.loadHomes(lastSearch.location, lastSearch.page, lastSearch.sort);
             } else {
                 // Default to New York, NY (last resort)
-                console.log('📍 No last search found, defaulting to New York, NY');
+                logger.log('📍 No last search found, defaulting to New York, NY');
                 document.getElementById('locationSearchHome').value = 'New York, NY';
                 await window.apiHandler.loadHomes('New York, NY', 1, 'relevant');
             }
@@ -144,10 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add debug console commands
     window.debugSwitchModel = (provider) => window.apiHandler.switchModel(provider);
     window.debugShowModelInfo = () => window.apiHandler.loadModelInfo();
-    console.log('Debug commands available:');
-    console.log('- debugSwitchModel("gemini") or debugSwitchModel("aws")');
-    console.log('- debugShowModelInfo()');
-    console.log('- Add ?debug=1 to URL to show debug UI');
+    logger.log('Debug commands available:');
+    logger.log('- debugSwitchModel("gemini") or debugSwitchModel("aws")');
+    logger.log('- debugShowModelInfo()');
+    logger.log('- Add ?debug=1 to URL to show debug UI');
     
     // Initialize main application
     window.mainApp = new MainApp();

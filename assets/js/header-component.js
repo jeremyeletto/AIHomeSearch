@@ -117,7 +117,7 @@ class HeaderComponent {
             }
         });
         
-        console.log('🧹 Header: Cleaned up existing navigation elements', {
+        logger.log('🧹 Header: Cleaned up existing navigation elements', {
             signedOutNav: existingSignedOutNav.length,
             signedInNav: existingSignedInNav.length,
             navbar: existingNavbar.length
@@ -322,21 +322,21 @@ class HeaderComponent {
     setupEventListeners() {
         // Listen for authentication state changes
         document.addEventListener('authStateChanged', (event) => {
-            console.log('🔄 Header: Auth state changed', event.detail);
+            logger.log('🔄 Header: Auth state changed', event.detail);
             this.updateAuthState(event.detail.user, event.detail.isAuthenticated);
         });
 
         // Also listen for when supabaseAuth is ready
         document.addEventListener('supabaseAuthReady', () => {
-            console.log('🔄 Header: SupabaseAuth ready, updating state');
+            logger.log('🔄 Header: SupabaseAuth ready, updating state');
             this.updateAuthState();
         });
 
         // Add logout button event listener
         document.addEventListener('click', (event) => {
-            console.log('🖱️ Click event detected:', event.target);
+            logger.log('🖱️ Click event detected:', event.target);
             if (event.target.id === 'signOutBtn' || event.target.closest('#signOutBtn')) {
-                console.log('🚪 Sign out button clicked!');
+                logger.log('🚪 Sign out button clicked!');
                 event.preventDefault();
                 this.handleSignOut();
             }
@@ -349,19 +349,19 @@ class HeaderComponent {
         
         attempts.forEach((delay, index) => {
             setTimeout(() => {
-                console.log(`🔄 Header: Attempt ${index + 1} to update auth state (${delay}ms delay)`);
+                logger.log(`🔄 Header: Attempt ${index + 1} to update auth state (${delay}ms delay)`);
                 this.updateAuthState();
             }, delay);
         });
     }
 
     updateAuthState(user = null, isAuthenticated = null) {
-        console.log('🔄 Header: Updating auth state', { user, isAuthenticated });
+        logger.log('🔄 Header: Updating auth state', { user, isAuthenticated });
         
         const signedOutNav = document.getElementById('signedOutNav');
         const signedInNav = document.getElementById('signedInNav');
 
-        console.log('🔍 Header: Found elements', { 
+        logger.log('🔍 Header: Found elements', { 
             signedOutNav: !!signedOutNav, 
             signedInNav: !!signedInNav,
             supabaseAuthExists: typeof supabaseAuth !== 'undefined',
@@ -372,7 +372,7 @@ class HeaderComponent {
         if (user === null && typeof supabaseAuth !== 'undefined') {
             user = supabaseAuth.user;
             isAuthenticated = !!user;
-            console.log('🔄 Header: Got auth state from supabaseAuth', { user: user?.email, isAuthenticated });
+            logger.log('🔄 Header: Got auth state from supabaseAuth', { user: user?.email, isAuthenticated });
         }
 
         // If still no auth state, try to get from session storage
@@ -384,32 +384,32 @@ class HeaderComponent {
                     if (session && session.user) {
                         user = session.user;
                         isAuthenticated = true;
-                        console.log('🔄 Header: Got auth state from localStorage', { user: user?.email, isAuthenticated });
+                        logger.log('🔄 Header: Got auth state from localStorage', { user: user?.email, isAuthenticated });
                     }
                 }
             } catch (error) {
-                console.log('🔄 Header: Could not parse session from localStorage:', error);
+                logger.log('🔄 Header: Could not parse session from localStorage:', error);
             }
         }
 
-        console.log('🔄 Header: Final auth state', { user: user?.email, isAuthenticated, signedOutNav: !!signedOutNav, signedInNav: !!signedInNav });
+        logger.log('🔄 Header: Final auth state', { user: user?.email, isAuthenticated, signedOutNav: !!signedOutNav, signedInNav: !!signedInNav });
 
         if (isAuthenticated && user) {
             // User is signed in - show navigation tabs and user avatar
-            console.log('✅ Header: User is signed in, showing navigation');
+            logger.log('✅ Header: User is signed in, showing navigation');
             if (signedOutNav) {
                 signedOutNav.style.display = 'none !important';
                 signedOutNav.style.visibility = 'hidden';
                 signedOutNav.classList.add('auth-hidden');
                 signedOutNav.classList.remove('auth-visible');
-                console.log('✅ Header: Hidden signed out nav');
+                logger.log('✅ Header: Hidden signed out nav');
             }
             if (signedInNav) {
                 signedInNav.style.display = 'flex !important';
                 signedInNav.style.visibility = 'visible';
                 signedInNav.classList.add('auth-visible');
                 signedInNav.classList.remove('auth-hidden');
-                console.log('✅ Header: Showing signed in nav');
+                logger.log('✅ Header: Showing signed in nav');
                 
                 // Update user info
                 const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
@@ -420,31 +420,31 @@ class HeaderComponent {
                 
                 if (userNameEl) {
                     userNameEl.textContent = fullName;
-                    console.log('✅ Header: Updated userName element');
+                    logger.log('✅ Header: Updated userName element');
                 }
                 if (userInitialsEl) {
                     userInitialsEl.textContent = initials;
-                    console.log('✅ Header: Updated userInitials element');
+                    logger.log('✅ Header: Updated userInitials element');
                 }
                 
-                console.log('✅ Header: Updated user info', { fullName, initials });
+                logger.log('✅ Header: Updated user info', { fullName, initials });
             }
         } else {
             // User is signed out - show Sign In and Sign Up buttons
-            console.log('❌ Header: User is signed out, showing auth buttons');
+            logger.log('❌ Header: User is signed out, showing auth buttons');
             if (signedOutNav) {
                 signedOutNav.style.display = 'flex !important';
                 signedOutNav.style.visibility = 'visible';
                 signedOutNav.classList.add('auth-visible');
                 signedOutNav.classList.remove('auth-hidden');
-                console.log('✅ Header: Showing signed out nav');
+                logger.log('✅ Header: Showing signed out nav');
             }
             if (signedInNav) {
                 signedInNav.style.display = 'none !important';
                 signedInNav.style.visibility = 'hidden';
                 signedInNav.classList.add('auth-hidden');
                 signedInNav.classList.remove('auth-visible');
-                console.log('✅ Header: Hidden signed in nav');
+                logger.log('✅ Header: Hidden signed in nav');
             }
         }
     }
@@ -463,28 +463,28 @@ class HeaderComponent {
 
     async handleSignOut() {
         try {
-            console.log('🚪 Header: Initiating sign out...');
-            console.log('🔍 SupabaseAuth available:', typeof supabaseAuth !== 'undefined');
-            console.log('🔍 SupabaseAuth.signOut available:', typeof supabaseAuth !== 'undefined' && typeof supabaseAuth.signOut === 'function');
+            logger.log('🚪 Header: Initiating sign out...');
+            logger.log('🔍 SupabaseAuth available:', typeof supabaseAuth !== 'undefined');
+            logger.log('🔍 SupabaseAuth.signOut available:', typeof supabaseAuth !== 'undefined' && typeof supabaseAuth.signOut === 'function');
             
             if (typeof supabaseAuth !== 'undefined' && supabaseAuth.signOut) {
-                console.log('🔄 Calling supabaseAuth.signOut()...');
+                logger.log('🔄 Calling supabaseAuth.signOut()...');
                 await supabaseAuth.signOut();
-                console.log('✅ Header: Sign out successful');
+                logger.log('✅ Header: Sign out successful');
                 
                 // Force a full page reload to clear authentication state
-                console.log('🔄 Reloading page to clear authentication state...');
+                logger.log('🔄 Reloading page to clear authentication state...');
                 window.location.reload();
             } else {
                 console.error('❌ Header: supabaseAuth not available');
                 // Fallback: force page reload
-                console.log('🔄 Fallback: reloading page...');
+                logger.log('🔄 Fallback: reloading page...');
                 window.location.reload();
             }
         } catch (error) {
             console.error('❌ Header: Sign out failed:', error);
             // Still reload page even if sign out fails
-            console.log('🔄 Error fallback: reloading page...');
+            logger.log('🔄 Error fallback: reloading page...');
             window.location.reload();
         }
     }
@@ -497,11 +497,11 @@ window.headerComponentInitialized = false;
 document.addEventListener('DOMContentLoaded', () => {
     // Prevent multiple initializations
     if (window.headerComponentInitialized || window.headerComponent) {
-        console.log('🚀 Header Component: Already initialized, skipping...');
+        logger.log('🚀 Header Component: Already initialized, skipping...');
         return;
     }
     
-    console.log('🚀 Header Component: DOM ready, initializing...');
+    logger.log('🚀 Header Component: DOM ready, initializing...');
     window.headerComponentInitialized = true;
     window.headerComponent = new HeaderComponent();
     
@@ -510,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     delays.forEach((delay, index) => {
         setTimeout(() => {
             if (window.headerComponent) {
-                console.log(`🔄 Header Component: Delayed auth state update ${index + 1} (${delay}ms)`);
+                logger.log(`🔄 Header Component: Delayed auth state update ${index + 1} (${delay}ms)`);
                 window.headerComponent.updateAuthState();
             }
         }, delay);
@@ -523,16 +523,16 @@ window.HeaderComponent = HeaderComponent;
 // Add manual trigger for testing
 window.testHeaderState = () => {
     if (window.headerComponent) {
-        console.log('🧪 Manual header state test triggered');
+        logger.log('🧪 Manual header state test triggered');
         window.headerComponent.updateAuthState();
     } else {
-        console.log('❌ Header component not available');
+        logger.log('❌ Header component not available');
     }
 };
 
 // Add method to force refresh header
 window.refreshHeader = () => {
-    console.log('🔄 Force refreshing header...');
+    logger.log('🔄 Force refreshing header...');
     
     // Reset initialization flag
     window.headerComponentInitialized = false;
@@ -550,15 +550,15 @@ window.refreshHeader = () => {
     window.headerComponent = new HeaderComponent();
     window.headerComponentInitialized = true;
     
-    console.log('✅ Header refreshed successfully');
+    logger.log('✅ Header refreshed successfully');
 };
 
 // Add manual sign out test function
 window.testSignOut = () => {
-    console.log('🧪 Manual sign out test triggered');
+    logger.log('🧪 Manual sign out test triggered');
     if (window.headerComponent) {
         window.headerComponent.handleSignOut();
     } else {
-        console.log('❌ Header component not available');
+        logger.log('❌ Header component not available');
     }
 };
