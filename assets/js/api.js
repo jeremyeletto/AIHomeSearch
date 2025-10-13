@@ -336,7 +336,14 @@ class APIHandler {
                     }
                 } catch (error) {
                     console.error('❌ Error fetching high-quality images:', error);
-                    console.log('⚠️ Continuing with preview images');
+                    
+                    // Check if it's a CORS or network error
+                    if (error.message.includes('CORS') || error.message.includes('Failed to fetch')) {
+                        console.log('🌐 CORS/Network issue - backend may need redeployment');
+                        console.log('💡 Backend needs to be redeployed on Render with updated CORS config');
+                    } else {
+                        console.log('⚠️ Backend service issue - continuing with preview images');
+                    }
                 }
             }, 3000); // Wait 3 seconds before starting high-quality image fetch to respect rate limits
         } else {
