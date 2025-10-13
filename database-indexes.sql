@@ -58,13 +58,14 @@ ON generated_images(user_id, original_image_url);
 -- Impact: Fast duplicate detection
 -- Use case: "You already generated this upgrade!"
 
--- 5. Prompt Type Index (for analytics)
+-- 5. Upgrade Type Index (for analytics)
 -- Used by: Analytics queries to see popular upgrades
-CREATE INDEX IF NOT EXISTS idx_prompt_usage 
-ON generated_images(prompt_used);
+CREATE INDEX IF NOT EXISTS idx_upgrade_type 
+ON generated_images(upgrade_type);
 
 -- Impact: Fast analytics queries
 -- Use case: "Which upgrades are most popular?"
+-- Note: Column is 'upgrade_type' not 'prompt_used'
 
 -- ============================================
 -- VERIFICATION QUERIES
