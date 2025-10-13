@@ -580,7 +580,7 @@
         async function loadUserImages(forceRefresh = false) {
             // INSTANT: Check cache first and display immediately
             if (!forceRefresh) {
-                const cachedImages = ImageCache.getCachedImages();
+                const cachedImages = await ImageCache.getCachedImages(); // AWAIT for async IndexedDB
                 if (cachedImages !== null) {
                     console.log('⚡ Instant cache display');
                     const loadingState = document.getElementById('loadingState');
