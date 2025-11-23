@@ -920,7 +920,14 @@ class SupabaseAuth {
 
             logger.log('🔍 Fetching fresh user images from database (with pagination)');
             logger.log('👤 User ID:', this.user.id);
-            logger.log('🔐 Auth token present:', !!this.supabase.auth.session());
+            
+            // Check session for logging (using correct API)
+            try {
+                const { data: { session } } = await this.supabase.auth.getSession();
+                logger.log('🔐 Auth token present:', !!session);
+            } catch (e) {
+                logger.log('🔐 Auth session check failed:', e);
+            }
             
             const { data, error } = await this.supabase
                 .from('generated_images')
