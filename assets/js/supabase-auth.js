@@ -850,18 +850,87 @@ class SupabaseAuth {
         }
     }
 
-    // Save generated image to database
+    // Convert base64 data URL to Blob
+    async base64ToBlob(base64DataUrl) {
+        try {
+            const response = await fetch(base64DataUrl);
+            const blob = await response.blob();
+            return blob;
+        } catch (error) {
+            console.error('❌ Error converting base64 to blob:', error);
+            throw error;
+        }
+    }
+
+    // Upload image to Supabase Storage and return public URL
+    async uploadImageToStorage(blob, fileName, folder = 'generated-images') {
+        try {
+            if (!this.user) {
+                throw new Error('User must be authenticated to upload images');
+            }
+
+            // Create file path: user_id/timestamp_filename
+            const timestamp = Date.now();
+            const filePath = `${this.user.id}/${timestamp}_${fileName}`;
+
+            logger.log(`📤 Uploading image to storage: ${filePath}`);
+
+            // Upload to Supabase Storage
+            const { data: uploadData, error: uploadError } = await this.supabase.storage
+                .from(folder)
+                .upload(filePath, blob, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error('❌ Storage upload error:', uploadError);
+                throw uploadError;
+            }
+
+            // Get public URL
+            const { data: urlData } = this.supabase.storage
+                .from(folder)
+                .getPublicUrl(filePath);
+
+            logger.log('✅ Image uploaded to storage:', urlData.publicUrl);
+            return urlData.publicUrl;
+        } catch (error) {
+            console.error('❌ Failed to upload image to storage:', error);
+            throw error;
+        }
+    }
+
+    // Save generated image to database (using Supabase Storage)
     async saveGeneratedImage(imageData) {
         try {
             if (!this.user) {
                 throw new Error('User must be authenticated to save images');
             }
 
+            logger.log('💾 Saving image with Supabase Storage...');
+
+            // Upload original image to storage if it's base64
+            let originalImageUrl = imageData.originalUrl || '';
+            if (originalImageUrl.startsWith('data:image')) {
+                logger.log('📤 Uploading original image to storage...');
+                const originalBlob = await this.base64ToBlob(originalImageUrl);
+                originalImageUrl = await this.uploadImageToStorage(originalBlob, 'original.jpg', 'generated-images');
+            }
+
+            // Upload generated image to storage if it's base64
+            let generatedImageUrl = imageData.generatedUrl || '';
+            if (generatedImageUrl.startsWith('data:image')) {
+                logger.log('📤 Uploading generated image to storage...');
+                const generatedBlob = await this.base64ToBlob(generatedImageUrl);
+                generatedImageUrl = await this.uploadImageToStorage(generatedBlob, 'generated.jpg', 'generated-images');
+            }
+
             // Validate and clean data before sending to Supabase
             const insertData = {
                 user_id: this.user.id,
-                original_image_url: imageData.originalUrl || '',
-                generated_image_url: imageData.generatedUrl || '',
+                original_image_url: originalImageUrl,
+                generated_image_url: generatedImageUrl,
                 prompt: imageData.prompt || 'Home Upgrade',
                 upgrade_type: imageData.upgradeType || 'Home Upgrade',
                 property_address: imageData.propertyAddress || 'Property Address',
@@ -872,7 +941,11 @@ class SupabaseAuth {
                 generation_status: 'completed'
             };
 
-            logger.log('💾 Supabase insert data:', insertData);
+            logger.log('💾 Supabase insert data (with storage URLs):', {
+                ...insertData,
+                original_image_url: originalImageUrl.substring(0, 100) + '...',
+                generated_image_url: generatedImageUrl.substring(0, 100) + '...'
+            });
 
             const { data, error } = await this.supabase
                 .from('generated_images')
@@ -888,7 +961,7 @@ class SupabaseAuth {
             // Clear cache after saving new image
             this.clearUserImagesCache();
 
-            logger.log('✅ Image saved to database:', data);
+            logger.log('✅ Image saved to database with storage URLs');
             return data;
         } catch (error) {
             console.error('❌ Failed to save image:', error);
@@ -1051,13 +1124,53 @@ class SupabaseAuth {
         }
     }
 
-    // Delete user's generated image
+    // Delete user's generated image (and from storage)
     async deleteUserImage(imageId) {
         try {
             if (!this.user) {
                 throw new Error('User must be authenticated to delete images');
             }
 
+            // First, get the image to find storage paths
+            const { data: imageData, error: fetchError } = await this.supabase
+                .from('generated_images')
+                .select('original_image_url, generated_image_url')
+                .eq('id', imageId)
+                .eq('user_id', this.user.id)
+                .single();
+
+            if (fetchError) {
+                throw fetchError;
+            }
+
+            // Delete from storage if URLs are from Supabase Storage
+            const storageBaseUrl = 'https://blreysdjzzildmekblfj.supabase.co/storage/v1/object/public/generated-images/';
+            
+            if (imageData.original_image_url && imageData.original_image_url.startsWith(storageBaseUrl)) {
+                const originalPath = imageData.original_image_url.replace(storageBaseUrl, '');
+                try {
+                    await this.supabase.storage
+                        .from('generated-images')
+                        .remove([originalPath]);
+                    logger.log('🗑️ Deleted original image from storage');
+                } catch (storageError) {
+                    logger.log('⚠️ Could not delete original from storage (may not exist):', storageError);
+                }
+            }
+
+            if (imageData.generated_image_url && imageData.generated_image_url.startsWith(storageBaseUrl)) {
+                const generatedPath = imageData.generated_image_url.replace(storageBaseUrl, '');
+                try {
+                    await this.supabase.storage
+                        .from('generated-images')
+                        .remove([generatedPath]);
+                    logger.log('🗑️ Deleted generated image from storage');
+                } catch (storageError) {
+                    logger.log('⚠️ Could not delete generated from storage (may not exist):', storageError);
+                }
+            }
+
+            // Delete from database
             const { data, error } = await this.supabase
                 .from('generated_images')
                 .delete()
@@ -1072,7 +1185,7 @@ class SupabaseAuth {
             // Clear cache after deletion
             this.clearUserImagesCache();
             
-            logger.log('✅ Image deleted successfully:', data);
+            logger.log('✅ Image deleted successfully from database and storage');
             return data;
         } catch (error) {
             console.error('❌ Failed to delete image:', error);
