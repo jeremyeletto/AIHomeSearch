@@ -962,6 +962,13 @@ class SupabaseAuth {
             this.clearUserImagesCache();
 
             logger.log('✅ Image saved to database with storage URLs');
+            
+            // Dispatch event to notify My Images page
+            const imageSavedEvent = new CustomEvent('imageSaved', {
+                detail: { image: data, user: this.user }
+            });
+            document.dispatchEvent(imageSavedEvent);
+            
             return data;
         } catch (error) {
             console.error('❌ Failed to save image:', error);

@@ -412,6 +412,25 @@ class MobileView {
             // Save to Supabase
             const savedImage = await window.supabaseAuth.saveGeneratedImage(imageData);
             
+            // Dispatch event to notify My Images page (if open)
+            if (savedImage) {
+                const imageSavedEvent = new CustomEvent('imageSaved', {
+                    detail: { image: savedImage }
+                });
+                document.dispatchEvent(imageSavedEvent);
+                
+                // Also use localStorage for cross-tab communication
+                try {
+                    localStorage.setItem('imageSaved', JSON.stringify({
+                        timestamp: Date.now(),
+                        imageId: savedImage.id
+                    }));
+                    setTimeout(() => localStorage.removeItem('imageSaved'), 1000);
+                } catch (e) {
+                    console.log('⚠️ Could not set localStorage:', e);
+                }
+            }
+            
             if (savedImage) {
                 logger.log('✅ Before/after image saved successfully to Supabase:', savedImage);
                 

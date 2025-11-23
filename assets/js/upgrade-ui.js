@@ -920,6 +920,24 @@ class UpgradeUI {
             if (savedImage) {
                 logger.log('✅ Image saved successfully to Supabase:', savedImage);
                 
+                // Dispatch event to notify My Images page (if open)
+                const imageSavedEvent = new CustomEvent('imageSaved', {
+                    detail: { image: savedImage }
+                });
+                document.dispatchEvent(imageSavedEvent);
+                
+                // Also use localStorage for cross-tab communication
+                try {
+                    localStorage.setItem('imageSaved', JSON.stringify({
+                        timestamp: Date.now(),
+                        imageId: savedImage.id
+                    }));
+                    // Remove after a short delay to allow other tabs to pick it up
+                    setTimeout(() => localStorage.removeItem('imageSaved'), 1000);
+                } catch (e) {
+                    logger.log('⚠️ Could not set localStorage:', e);
+                }
+                
                 // Show success notification
                 this.showSaveNotification('Image saved to My Images!');
             } else {

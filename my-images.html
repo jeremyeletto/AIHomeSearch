@@ -1437,6 +1437,34 @@
                 window.location.href = 'index.html';
             }
         });
+        
+        // Listen for new image saved events (from other pages)
+        document.addEventListener('imageSaved', function(event) {
+            console.log('🆕 New image saved event received:', event.detail);
+            
+            // Reset pagination and reload images
+            currentImagesPage = 0;
+            allLoadedImages = [];
+            hasMoreImages = true;
+            
+            // Clear cache to force fresh load
+            ImageCache.clearCache();
+            window.supabaseAuth?.clearUserImagesCache();
+            
+            // Reload images
+            loadUserImages(true);
+            
+            // Show notification
+            showNotification('New image added! Refreshing...', 'success');
+        });
+        
+        // Also listen for storage events (if user has My Images open in another tab)
+        window.addEventListener('storage', function(event) {
+            if (event.key === 'imageSaved' && event.newValue) {
+                console.log('🆕 Image saved in another tab, refreshing...');
+                loadUserImages(true);
+            }
+        });
     </script>
 </body>
 </html>
