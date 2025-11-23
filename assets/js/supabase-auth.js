@@ -1009,14 +1009,23 @@ class SupabaseAuth {
             // Optimized query: Select only needed columns and use efficient ordering
             // The composite index (user_id, created_at DESC) makes this fast
             // Reduced limit for faster initial load - pagination can load more
+            // Note: Existing base64 images may still cause slow queries
             const limit = 12; // Load 12 images initially for faster response (reduced from 20)
-            const { data, error } = await this.supabase
+            
+            // Create timeout promise
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('Query timeout after 15 seconds')), 15000);
+            });
+            
+            // Race between query and timeout
+            const queryPromise = this.supabase
                 .from('generated_images')
                 .select('id, user_id, original_image_url, generated_image_url, prompt, upgrade_type, property_address, property_price, property_bedrooms, property_bathrooms, property_sqft, generation_status, created_at, updated_at')
                 .eq('user_id', this.user.id)
                 .order('created_at', { ascending: false })
-                .limit(limit)
-                .abortSignal(AbortSignal.timeout(10000)); // 10 second timeout
+                .limit(limit);
+            
+            const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
             if (error) {
                 // Enhanced error logging for RLS issues
