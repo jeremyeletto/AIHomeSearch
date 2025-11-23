@@ -31,15 +31,19 @@ class SupabaseAuth {
             // Listen for auth state changes
             this.supabase.auth.onAuthStateChange((event, session) => {
                 logger.log('🔄 SupabaseAuth: Auth state change event:', event, session?.user?.email);
-                if (event === 'SIGNED_IN') {
-                    this.user = session.user;
-                    this.onAuthStateChange(this.user);
+                if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                    if (session && session.user) {
+                        this.user = session.user;
+                        this.onAuthStateChange(this.user);
+                    }
                 } else if (event === 'SIGNED_OUT') {
                     this.user = null;
                     this.onAuthStateChange(null);
                 } else if (event === 'TOKEN_REFRESHED') {
-                    this.user = session.user;
-                    this.onAuthStateChange(this.user);
+                    if (session && session.user) {
+                        this.user = session.user;
+                        this.onAuthStateChange(this.user);
+                    }
                 }
             });
 
