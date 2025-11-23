@@ -736,8 +736,8 @@
                 <div class="col-lg-6 col-xl-4 mb-4">
                     <div class="before-after-card" data-image-id="${image.id}">
                         <div class="before-after-container">
-                            <img src="${image.original_image_url}" alt="Before" class="before-after-image">
-                            <img src="${image.generated_image_url || image.original_image_url}" alt="After" class="before-after-image">
+                            <img src="${image.original_image_url}" alt="Before" class="before-after-image" loading="lazy">
+                            <img src="${image.generated_image_url || image.original_image_url}" alt="After" class="before-after-image" loading="lazy">
                             <div class="before-label">BEFORE</div>
                             <div class="after-label">AFTER</div>
                         </div>
