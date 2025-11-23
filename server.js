@@ -1449,15 +1449,32 @@ app.get('/api/realtor/image-counts', async (req, res) => {
 
     console.log('📊 Processed properties with image estimates:', properties.length);
 
+    // Extract pagination info from API response if available
+    const totalCount = listingsData.total || listingsData.count || listingsData.total_results || null;
+    const currentPage = parseInt(page) || 1;
+    const limitPerPage = parseInt(limit) || 6;
+    
     const responseData = {
       success: true,
       properties: listingsData.properties,
       imageCounts: properties,
       metadata: {
         totalProperties: listingsData.properties.length,
-        hasHighQualityPhotos: properties.some(p => p.hasHighQualityPhotos)
+        hasHighQualityPhotos: properties.some(p => p.hasHighQualityPhotos),
+        total: totalCount, // Pass through total count if available
+        currentPage: currentPage,
+        limit: limitPerPage,
+        totalPages: totalCount ? Math.ceil(totalCount / limitPerPage) : null
       }
     };
+    
+    console.log('📊 Pagination info:', {
+      total: totalCount,
+      currentPage: currentPage,
+      limit: limitPerPage,
+      totalPages: responseData.metadata.totalPages,
+      propertiesReturned: listingsData.properties.length
+    });
 
     // Cache the response
     setCachedData('properties', cacheKey, responseData);

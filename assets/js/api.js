@@ -157,15 +157,45 @@ class APIHandler {
             const imageCounts = proxyResponse.imageCounts || [];
             
             logger.log(`📊 Received ${properties.length} properties with ${imageCounts.length} image counts`);
+            logger.log('📊 Full API response structure:', {
+                hasProperties: !!properties,
+                propertiesLength: properties.length,
+                hasMetadata: !!proxyResponse.metadata,
+                metadata: proxyResponse.metadata,
+                responseKeys: Object.keys(proxyResponse)
+            });
             
             if (properties && Array.isArray(properties) && properties.length > 0) {
                 const recentProperties = properties;
                 
-                // Calculate total pages based on total count  
-                const totalCount = properties.total || properties.count || properties.length || 0;
-                CONFIG.totalPages = Math.ceil(totalCount / 6);
+                // Calculate total pages - check multiple possible locations for total count
+                // The API might return total in metadata, or we estimate based on current results
+                let totalCount = 0;
                 
-                logger.log(`✅ Properties found: ${recentProperties.length}, Total pages: ${CONFIG.totalPages}`);
+                // Try to get total from metadata first
+                if (proxyResponse.metadata && proxyResponse.metadata.total) {
+                    totalCount = proxyResponse.metadata.total;
+                } else if (proxyResponse.total) {
+                    totalCount = proxyResponse.total;
+                } else if (proxyResponse.count) {
+                    totalCount = proxyResponse.count;
+                } else {
+                    // If we got a full page (6 properties), assume there are more pages
+                    // Otherwise, this is likely the last page
+                    if (properties.length >= 6) {
+                        // Estimate: assume at least current page + 1 more page
+                        totalCount = (CONFIG.currentPage * 6) + 1; // Conservative estimate
+                        logger.log('⚠️ No total count in response, estimating based on current page');
+                    } else {
+                        // Less than 6 properties = likely last page
+                        totalCount = ((CONFIG.currentPage - 1) * 6) + properties.length;
+                        logger.log('ℹ️ Less than 6 properties returned, assuming last page');
+                    }
+                }
+                
+                CONFIG.totalPages = Math.max(1, Math.ceil(totalCount / 6));
+                
+                logger.log(`✅ Properties found: ${recentProperties.length}, Total count: ${totalCount}, Total pages: ${CONFIG.totalPages}, Current page: ${CONFIG.currentPage}`);
                 
                 // Process homes with optimized image handling
                 const homes = this.processProperties(recentProperties, imageCounts);

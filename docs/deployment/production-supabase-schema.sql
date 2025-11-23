@@ -33,6 +33,9 @@ CREATE TABLE IF NOT EXISTS generated_images (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Enable Row Level Security on generated_images (CRITICAL - must be done before creating policies)
+ALTER TABLE generated_images ENABLE ROW LEVEL SECURITY;
+
 -- Create property_data table for property information
 CREATE TABLE IF NOT EXISTS property_data (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,

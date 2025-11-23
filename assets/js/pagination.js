@@ -13,8 +13,13 @@ class Pagination {
         }
         
         const newPage = CONFIG.currentPage + direction;
+        console.log(`🔄 Pagination: Current page: ${CONFIG.currentPage}, Direction: ${direction}, New page: ${newPage}, Total pages: ${CONFIG.totalPages}`);
+        
         if (newPage >= 1 && newPage <= CONFIG.totalPages) {
+            console.log(`✅ Loading page ${newPage}...`);
             window.apiHandler.loadHomes(CONFIG.currentLocation, newPage, CONFIG.currentSort);
+        } else {
+            console.warn(`⚠️ Cannot navigate to page ${newPage} - out of bounds (1-${CONFIG.totalPages})`);
         }
     }
     
@@ -41,16 +46,33 @@ class Pagination {
         const prevPageBtn = document.getElementById('prevPageBtn');
         const nextPageBtn = document.getElementById('nextPageBtn');
         
+        console.log(`🔄 Updating pagination controls: Page ${CONFIG.currentPage} of ${CONFIG.totalPages}`);
+        
         if (currentPageNumber) {
             currentPageNumber.textContent = CONFIG.currentPage;
         }
         
         // Enable/disable pagination buttons
         if (prevPageBtn) {
-            prevPageBtn.disabled = CONFIG.currentPage <= 1;
+            const isFirstPage = CONFIG.currentPage <= 1;
+            prevPageBtn.disabled = isFirstPage;
+            if (isFirstPage) {
+                prevPageBtn.classList.add('disabled');
+            } else {
+                prevPageBtn.classList.remove('disabled');
+            }
+            console.log(`   Previous button: ${isFirstPage ? 'disabled' : 'enabled'}`);
         }
+        
         if (nextPageBtn) {
-            nextPageBtn.disabled = CONFIG.currentPage >= CONFIG.totalPages;
+            const isLastPage = CONFIG.currentPage >= CONFIG.totalPages;
+            nextPageBtn.disabled = isLastPage;
+            if (isLastPage) {
+                nextPageBtn.classList.add('disabled');
+            } else {
+                nextPageBtn.classList.remove('disabled');
+            }
+            console.log(`   Next button: ${isLastPage ? 'disabled' : 'enabled'}`);
         }
         
         // Update sort select to match current sort

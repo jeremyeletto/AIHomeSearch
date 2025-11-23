@@ -919,6 +919,9 @@ class SupabaseAuth {
             }
 
             logger.log('🔍 Fetching fresh user images from database (with pagination)');
+            logger.log('👤 User ID:', this.user.id);
+            logger.log('🔐 Auth token present:', !!this.supabase.auth.session());
+            
             const { data, error } = await this.supabase
                 .from('generated_images')
                 .select('*')
@@ -927,6 +930,30 @@ class SupabaseAuth {
                 .limit(50); // Limit to 50 most recent images to reduce IO
 
             if (error) {
+                // Enhanced error logging for RLS issues
+                console.error('❌ Supabase query error details:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code,
+                    status: error.status || 'N/A'
+                });
+                
+                // Provide helpful error messages for common issues
+                if (error.code === 'PGRST301' || error.message?.includes('permission denied') || error.message?.includes('row-level security')) {
+                    console.error('🚨 RLS POLICY ERROR: Row Level Security is blocking this query');
+                    console.error('💡 Solution: Run the RLS fix script in Supabase SQL Editor');
+                    console.error('📄 Script location: supabase-rls-fix.sql');
+                    throw new Error('Database security policy error. Please contact support if this persists.');
+                } else if (error.code === '42P01' || error.message?.includes('does not exist')) {
+                    console.error('🚨 TABLE ERROR: generated_images table may not exist');
+                    throw new Error('Database table not found. Please contact support.');
+                } else if (error.status === 500) {
+                    console.error('🚨 SERVER ERROR: Supabase returned 500 - likely RLS policy issue');
+                    console.error('💡 Solution: Check RLS policies in Supabase dashboard');
+                    throw new Error('Database server error. This is usually a security policy configuration issue.');
+                }
+                
                 throw error;
             }
 
