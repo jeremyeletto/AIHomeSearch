@@ -933,9 +933,11 @@ class SupabaseAuth {
                 logger.log('🔐 Auth session check failed:', e);
             }
             
+            // Optimized query: Select only needed columns and use efficient ordering
+            // The composite index (user_id, created_at DESC) makes this fast
             const { data, error } = await this.supabase
                 .from('generated_images')
-                .select('*')
+                .select('id, user_id, original_image_url, generated_image_url, prompt, upgrade_type, property_address, property_price, property_bedrooms, property_bathrooms, property_sqft, generation_status, created_at, updated_at')
                 .eq('user_id', this.user.id)
                 .order('created_at', { ascending: false })
                 .limit(50); // Limit to 50 most recent images to reduce IO
@@ -951,7 +953,13 @@ class SupabaseAuth {
                 });
                 
                 // Provide helpful error messages for common issues
-                if (error.code === 'PGRST301' || error.message?.includes('permission denied') || error.message?.includes('row-level security')) {
+                if (error.code === '57014' || error.message?.includes('statement timeout') || error.message?.includes('canceling statement')) {
+                    console.error('⏱️ QUERY TIMEOUT: Database query took too long');
+                    console.error('💡 Solution: Run the performance fix script in Supabase SQL Editor');
+                    console.error('📄 Script location: supabase-performance-fix.sql');
+                    console.error('🔧 This creates optimized indexes to speed up queries');
+                    throw new Error('Query timeout - database is taking too long to respond. Please try again in a moment, or contact support if this persists.');
+                } else if (error.code === 'PGRST301' || error.message?.includes('permission denied') || error.message?.includes('row-level security')) {
                     console.error('🚨 RLS POLICY ERROR: Row Level Security is blocking this query');
                     console.error('💡 Solution: Run the RLS fix script in Supabase SQL Editor');
                     console.error('📄 Script location: supabase-rls-fix.sql');
@@ -960,9 +968,13 @@ class SupabaseAuth {
                     console.error('🚨 TABLE ERROR: generated_images table may not exist');
                     throw new Error('Database table not found. Please contact support.');
                 } else if (error.status === 500) {
-                    console.error('🚨 SERVER ERROR: Supabase returned 500 - likely RLS policy issue');
-                    console.error('💡 Solution: Check RLS policies in Supabase dashboard');
-                    throw new Error('Database server error. This is usually a security policy configuration issue.');
+                    console.error('🚨 SERVER ERROR: Supabase returned 500');
+                    if (error.message?.includes('timeout')) {
+                        console.error('💡 This is a timeout error - run supabase-performance-fix.sql');
+                    } else {
+                        console.error('💡 Solution: Check RLS policies in Supabase dashboard');
+                    }
+                    throw new Error('Database server error. Please try again or contact support.');
                 }
                 
                 throw error;
