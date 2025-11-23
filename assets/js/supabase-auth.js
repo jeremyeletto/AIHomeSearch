@@ -969,15 +969,16 @@ class SupabaseAuth {
         }
     }
 
-    // Get user's generated images with caching
-    async getUserImages(forceRefresh = false) {
+    // Get user's generated images with caching and pagination
+    async getUserImages(forceRefresh = false, offset = 0, limit = 12) {
         try {
             if (!this.user) {
                 throw new Error('User must be authenticated to get images');
             }
 
             // Check cache first (5 minute cache) - with safety check
-            if (typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
+            // Only use cache for first page (offset = 0)
+            if (offset === 0 && typeof CONFIG !== 'undefined' && CONFIG.generatedImageCache) {
                 const cacheKey = `userImages_${this.user.id}`;
                 const cacheExpiry = 5 * 60 * 1000; // 5 minutes
                 
@@ -992,10 +993,10 @@ class SupabaseAuth {
                     }
                 }
             } else {
-                logger.log('⚠️ CONFIG not available, skipping cache check');
+                logger.log('⚠️ CONFIG not available or pagination, skipping cache check');
             }
 
-            logger.log('🔍 Fetching fresh user images from database (with pagination)');
+            logger.log(`🔍 Fetching user images from database (offset: ${offset}, limit: ${limit})`);
             logger.log('👤 User ID:', this.user.id);
             
             // Check session for logging (using correct API)
@@ -1008,9 +1009,7 @@ class SupabaseAuth {
             
             // Optimized query: Select only needed columns and use efficient ordering
             // The composite index (user_id, created_at DESC) makes this fast
-            // Reduced limit for faster initial load - pagination can load more
             // Note: Existing base64 images may still cause slow queries
-            const limit = 12; // Load 12 images initially for faster response (reduced from 20)
             
             // Create timeout promise
             const timeoutPromise = new Promise((_, reject) => {
@@ -1023,7 +1022,7 @@ class SupabaseAuth {
                 .select('id, user_id, original_image_url, generated_image_url, prompt, upgrade_type, property_address, property_price, property_bedrooms, property_bathrooms, property_sqft, generation_status, created_at, updated_at')
                 .eq('user_id', this.user.id)
                 .order('created_at', { ascending: false })
-                .limit(limit);
+                .range(offset, offset + limit - 1); // Use range for pagination
             
             const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
 
