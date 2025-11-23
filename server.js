@@ -54,22 +54,47 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Enable CORS for all origins with explicit GitHub Pages support
-app.use(cors({
-  origin: [
-    'https://homeupgrades.xyz',
-    'https://www.homeupgrades.xyz',
-    'https://jeremyeletto.github.io',
-    'https://jeremyeletto.github.io/AIHomeSearch',
-    'https://jeremyeletto.github.io/AIHomeSearch/',
-    'http://localhost:3000',
-    'http://localhost:8080',
-    'http://localhost:3001'
-  ],
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://homeupgrades.xyz',
+      'https://www.homeupgrades.xyz',
+      'http://homeupgrades.xyz',
+      'http://www.homeupgrades.xyz',
+      'https://jeremyeletto.github.io',
+      'https://jeremyeletto.github.io/AIHomeSearch',
+      'https://jeremyeletto.github.io/AIHomeSearch/',
+      'http://localhost:3000',
+      'http://localhost:8080',
+      'http://localhost:3001'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('🚫 CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-goog-api-key'],
   optionsSuccessStatus: 200
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Log CORS requests for debugging
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    console.log(`🌐 CORS request from origin: ${origin}`);
+  }
+  next();
+});
 app.use(express.json({ limit: '50mb' }));
 
 // ============================================
