@@ -22,33 +22,29 @@ This will add:
 
 The migration also creates a public policy that allows anyone to view featured images (even without authentication), which is necessary for the home page carousel.
 
-## Using the Admin UI
+## Managing Featured Images
 
-### Access the Admin Page
+### Using Supabase UI
 
-Navigate to `admin-featured.html` in your browser. You must be logged in to access this page.
+Featured images are managed directly in the Supabase dashboard:
 
-### Features
-
-1. **View All Images**: See all your generated images with before/after previews
-2. **Filter Images**: 
-   - By category (Interior/Exterior/Other)
-   - By featured status
-   - By search term (address or upgrade type)
-3. **Feature Images**: Click the "Feature" button on any image to add it to the carousel
-4. **Edit Image Details**: 
-   - Set category (interior/exterior/other)
-   - Set display order (lower numbers appear first)
-5. **Statistics**: View counts of total, featured, interior, and exterior images
+1. **Go to Supabase Dashboard**: Navigate to your project's Table Editor
+2. **Open `generated_images` table**: Find the image you want to feature
+3. **Set `is_featured` to `true`**: Toggle the boolean field
+4. **Optional Settings**:
+   - Set `image_category` to 'interior', 'exterior', or 'other'
+   - Set `display_order` (lower numbers appear first)
 
 ### How to Feature an Image
 
-1. Go to `admin-featured.html`
-2. Find the image you want to feature
-3. Click the "Feature" button
-4. Optionally, click the edit button (pencil icon) to:
-   - Set the category (interior/exterior/other)
-   - Set the display order (1 = first, 2 = second, etc.)
+1. Open Supabase Dashboard → Table Editor → `generated_images`
+2. Find the image row you want to feature
+3. Click to edit the row
+4. Set `is_featured` = `true`
+5. Optionally set:
+   - `image_category` = 'interior' or 'exterior' or 'other'
+   - `display_order` = 1, 2, 3, etc. (lower numbers appear first)
+6. Save the changes
 
 ### Display Order
 
@@ -118,11 +114,11 @@ ORDER BY display_order, created_at DESC;
 3. **Check browser console**: Look for JavaScript errors
 4. **Verify Supabase connection**: Check that Supabase client is initialized
 
-### Admin page not loading
+### Can't update featured status in Supabase
 
-1. **Check authentication**: You must be logged in
-2. **Check RLS policies**: Ensure you have permission to view your own images
-3. **Check browser console**: Look for errors
+1. **Check permissions**: Ensure you have edit access to the table
+2. **Check RLS policies**: Ensure you have permission to update your own images
+3. **Verify connection**: Check that you're connected to the correct Supabase project
 
 ### Images not updating
 

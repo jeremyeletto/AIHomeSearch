@@ -42,17 +42,16 @@ class FeaturedCarousel {
     // Fetch featured images from Supabase
     async fetchFeaturedImages() {
         try {
-            if (!this.supabase) {
-                await this.init();
-            }
+            if (!this.supabase) await this.init();
+            if (!this.supabase) return [];
 
             const { data, error } = await this.supabase
                 .from('generated_images')
-                .select('id, original_image_url, generated_image_url, upgrade_type, image_category, property_address, display_order, created_at, prompt, description')
+                .select('id, original_image_url, generated_image_url, upgrade_type, image_category, property_address, display_order, created_at, prompt')
                 .eq('is_featured', true)
                 .order('display_order', { ascending: true, nullsFirst: false })
                 .order('created_at', { ascending: false })
-                .limit(20); // Limit to 20 featured images
+                .limit(20);
 
             if (error) {
                 console.error('Error fetching featured images:', error);
@@ -79,45 +78,29 @@ class FeaturedCarousel {
             const escapedUpgradeType = this.escapeHtml(upgradeType);
             const escapedAddress = image.property_address ? this.escapeHtml(image.property_address) : '';
             const escapedPrompt = image.prompt ? this.escapeHtml(image.prompt) : '';
-            const escapedDescription = image.description ? this.escapeHtml(image.description) : '';
+            const fallbackSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2394a3b8%22 font-family=%22Arial%22 font-size=%2218%22%3EImage not available%3C/text%3E%3C/svg%3E';
             
             const cloneClass = isClone ? ' carousel-item-clone' : '';
             let itemHtml = '<div class="carousel-item-card' + cloneClass + '" data-index="' + index + '">';
             itemHtml += '<div class="before-after-container">';
             itemHtml += '<div class="before-section">';
             itemHtml += '<div class="label-badge">BEFORE</div>';
-            const fallbackSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2394a3b8%22 font-family=%22Arial%22 font-size=%2218%22%3EImage not available%3C/text%3E%3C/svg%3E';
-            itemHtml += '<img src="' + image.original_image_url + '" ';
-            itemHtml += 'alt="Before ' + escapedUpgradeType + '" ';
-            itemHtml += 'class="before-after-image" ';
-            itemHtml += 'loading="lazy" ';
+            itemHtml += '<img src="' + (image.original_image_url || fallbackSvg) + '" ';
+            itemHtml += 'alt="Before ' + escapedUpgradeType + '" class="before-after-image" loading="lazy" ';
             itemHtml += 'onerror="this.src=\'' + fallbackSvg + '\'">';
             itemHtml += '</div>';
             itemHtml += '<div class="after-section">';
             itemHtml += '<div class="label-badge">AFTER</div>';
-            itemHtml += '<img src="' + image.generated_image_url + '" ';
-            itemHtml += 'alt="After ' + escapedUpgradeType + '" ';
-            itemHtml += 'class="before-after-image" ';
-            itemHtml += 'loading="lazy" ';
+            itemHtml += '<img src="' + (image.generated_image_url || fallbackSvg) + '" ';
+            itemHtml += 'alt="After ' + escapedUpgradeType + '" class="before-after-image" loading="lazy" ';
             itemHtml += 'onerror="this.src=\'' + fallbackSvg + '\'">';
             itemHtml += '</div>';
             itemHtml += '<div class="carousel-caption">';
             itemHtml += '<div class="upgrade-type-badge">' + escapedUpgradeType + '</div>';
-            if (escapedAddress) {
-                itemHtml += '<p class="property-address">' + escapedAddress + '</p>';
-            }
-            if (escapedPrompt) {
-                itemHtml += '<p class="carousel-prompt">' + escapedPrompt + '</p>';
-            }
-            if (escapedDescription) {
-                itemHtml += '<p class="carousel-description">' + escapedDescription + '</p>';
-            }
-            if (category !== 'other') {
-                itemHtml += '<span class="category-badge category-' + category + '">' + category + '</span>';
-            }
-            itemHtml += '</div>';
-            itemHtml += '</div>';
-            itemHtml += '</div>';
+            if (escapedAddress) itemHtml += '<p class="property-address">' + escapedAddress + '</p>';
+            if (escapedPrompt) itemHtml += '<p class="carousel-prompt">' + escapedPrompt + '</p>';
+            if (category !== 'other') itemHtml += '<span class="category-badge category-' + category + '">' + category + '</span>';
+            itemHtml += '</div></div></div>';
             
             return itemHtml;
         };
@@ -162,38 +145,33 @@ class FeaturedCarousel {
     // Load and display carousel
     async loadCarousel(containerId = 'featuredCarouselContainer') {
         const container = document.getElementById(containerId);
-        if (!container) {
-            console.error(`Container with id "${containerId}" not found`);
-            return;
-        }
+        if (!container) return;
 
-        // Show loading state
         container.innerHTML = '<div class="featured-carousel-loading"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
 
         try {
             const images = await this.fetchFeaturedImages();
-            this.featuredImages = images;
-
-            if (images.length > 0) {
-                container.innerHTML = this.renderCarousel(images);
-                this.updateItemsPerView();
-                // Start at first real item (after clones)
-                const itemsToClone = Math.min(this.itemsPerView, images.length);
-                this.currentIndex = itemsToClone;
-                this.initCarouselControls();
-                this.updateCarousel();
-                this.startAutoPlay();
-                
-                // Update on window resize
-                window.addEventListener('resize', () => {
-                    this.updateItemsPerView();
-                    const newItemsToClone = Math.min(this.itemsPerView, images.length);
-                    this.currentIndex = newItemsToClone;
-                    this.updateCarousel();
-                });
-            } else {
+            
+            if (!images || images.length === 0) {
                 container.innerHTML = '<div class="featured-carousel-empty"><p>No featured images available yet. Check back soon!</p></div>';
+                return;
             }
+
+            this.featuredImages = images;
+            container.innerHTML = this.renderCarousel(images);
+            this.updateItemsPerView();
+            
+            const itemsToClone = Math.min(this.itemsPerView, images.length);
+            this.currentIndex = itemsToClone;
+            this.initCarouselControls();
+            this.updateCarousel();
+            this.startAutoPlay();
+            
+            window.addEventListener('resize', () => {
+                this.updateItemsPerView();
+                this.currentIndex = Math.min(this.itemsPerView, images.length);
+                this.updateCarousel();
+            });
         } catch (error) {
             console.error('Error loading carousel:', error);
             container.innerHTML = '<div class="featured-carousel-error"><p>Unable to load featured images. Please try again later.</p></div>';
