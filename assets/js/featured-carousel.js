@@ -164,7 +164,6 @@ class FeaturedCarousel {
             container.innerHTML = '<div class="featured-carousel-error"><p>Unable to load featured images. Please try again later.</p></div>';
         }
     }
-}
 
     // Initialize carousel controls
     initCarouselControls() {
