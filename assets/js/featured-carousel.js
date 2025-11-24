@@ -75,34 +75,41 @@ class FeaturedCarousel {
         const items = images.map((image, index) => {
             const category = image.image_category || 'other';
             const upgradeType = image.upgrade_type || 'Upgrade';
+            const escapedUpgradeType = this.escapeHtml(upgradeType);
+            const escapedAddress = image.property_address ? this.escapeHtml(image.property_address) : '';
             
-            return `
-                <div class="carousel-item-card" data-index="${index}">
-                    <div class="before-after-container">
-                        <div class="before-section">
-                            <div class="label-badge">BEFORE</div>
-                            <img src="${image.original_image_url}" 
-                                 alt="Before ${upgradeType}" 
-                                 class="before-after-image"
-                                 loading="lazy"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 300%27%3E%3Crect fill=\'%23e2e8f0\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2394a3b8\' font-family=\'Arial\' font-size=\'18\'%3EImage not available%3C/text%3E%3C/svg%3E'">
-                        </div>
-                        <div class="after-section">
-                            <div class="label-badge">AFTER</div>
-                            <img src="${image.generated_image_url}" 
-                                 alt="After ${upgradeType}" 
-                                 class="before-after-image"
-                                 loading="lazy"
-                                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 300%27%3E%3Crect fill=\'%23e2e8f0\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2394a3b8\' font-family=\'Arial\' font-size=\'18\'%3EImage not available%3C/text%3E%3C/svg%3E'">
-                        </div>
-                    </div>
-                    <div class="carousel-caption">
-                        <div class="upgrade-type-badge">${this.escapeHtml(upgradeType)}</div>
-                        ${image.property_address ? `<p class="property-address">${this.escapeHtml(image.property_address)}</p>` : ''}
-                        ${category !== 'other' ? `<span class="category-badge category-${category}">${category}</span>` : ''}
-                    </div>
-                </div>
-            `;
+            // Build the carousel item HTML explicitly
+            let itemHtml = '<div class="carousel-item-card" data-index="' + index + '">';
+            itemHtml += '<div class="before-after-container">';
+            itemHtml += '<div class="before-section">';
+            itemHtml += '<div class="label-badge">BEFORE</div>';
+            itemHtml += '<img src="' + image.original_image_url + '" ';
+            itemHtml += 'alt="Before ' + escapedUpgradeType + '" ';
+            itemHtml += 'class="before-after-image" ';
+            itemHtml += 'loading="lazy" ';
+            itemHtml += 'onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 400 300%27%3E%3Crect fill=\\'%23e2e8f0\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%2394a3b8\\' font-family=\\'Arial\\' font-size=\\'18\\'%3EImage not available%3C/text%3E%3C/svg%3E\'">';
+            itemHtml += '</div>';
+            itemHtml += '<div class="after-section">';
+            itemHtml += '<div class="label-badge">AFTER</div>';
+            itemHtml += '<img src="' + image.generated_image_url + '" ';
+            itemHtml += 'alt="After ' + escapedUpgradeType + '" ';
+            itemHtml += 'class="before-after-image" ';
+            itemHtml += 'loading="lazy" ';
+            itemHtml += 'onerror="this.src=\'data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 400 300%27%3E%3Crect fill=\\'%23e2e8f0\\' width=\\'400\\' height=\\'300\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' text-anchor=\\'middle\\' dy=\\'.3em\\' fill=\\'%2394a3b8\\' font-family=\\'Arial\\' font-size=\\'18\\'%3EImage not available%3C/text%3E%3C/svg%3E\'">';
+            itemHtml += '</div>';
+            itemHtml += '</div>';
+            itemHtml += '<div class="carousel-caption">';
+            itemHtml += '<div class="upgrade-type-badge">' + escapedUpgradeType + '</div>';
+            if (escapedAddress) {
+                itemHtml += '<p class="property-address">' + escapedAddress + '</p>';
+            }
+            if (category !== 'other') {
+                itemHtml += '<span class="category-badge category-' + category + '">' + category + '</span>';
+            }
+            itemHtml += '</div>';
+            itemHtml += '</div>';
+            
+            return itemHtml;
         }).join('');
 
         return `
