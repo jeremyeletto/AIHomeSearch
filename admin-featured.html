@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Featured Images | homeupgrades.xyz</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/buttons.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 2rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .admin-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0;
+        }
+
+        .admin-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .image-card.featured {
+            border: 3px solid #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .image-preview {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .before-after-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 250px;
+        }
+
+        .before-after-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .image-card-body {
+            padding: 1.5rem;
+        }
+
+        .image-meta {
+            margin-bottom: 1rem;
+        }
+
+        .image-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .image-meta-item i {
+            color: #667eea;
+            width: 20px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+
+        .category-badge.category-interior {
+            background: rgba(236, 72, 153, 0.1);
+            color: #ec4899;
+        }
+
+        .category-badge.category-exterior {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-feature {
+            flex: 1;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .filters {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: end;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .images-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-row {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation will be injected by header-component.js -->
+    
+    <div class="admin-header">
+        <div class="admin-container">
+            <h1><i class="fas fa-star"></i> Featured Images Manager</h1>
+            <p class="text-muted mb-0">Select images to feature on the home page carousel</p>
+        </div>
+    </div>
+
+    <div class="admin-container">
+        <!-- Stats -->
+        <div class="stats-card">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalImages">0</div>
+                    <div class="stat-label">Total Images</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="featuredImages">0</div>
+                    <div class="stat-label">Featured</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="interiorImages">0</div>
+                    <div class="stat-label">Interior</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="exteriorImages">0</div>
+                    <div class="stat-label">Exterior</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <div class="filters-row">
+                <div class="filter-group">
+                    <label class="form-label">Filter by Category</label>
+                    <select class="form-select" id="categoryFilter">
+                        <option value="all">All Categories</option>
+                        <option value="interior">Interior</option>
+                        <option value="exterior">Exterior</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="form-label">Filter by Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="all">All Images</option>
+                        <option value="featured">Featured Only</option>
+                        <option value="not-featured">Not Featured</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by address or upgrade type...">
+                </div>
+                <div class="filter-group">
+                    <button class="btn btn-primary w-100" onclick="loadImages()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Images Grid -->
+        <div id="imagesGrid" class="images-grid">
+            <!-- Images will be loaded here -->
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-auth.js"></script>
+    <script src="assets/js/header-component.js"></script>
+    
+    <script>
+        let allImages = [];
+        let filteredImages = [];
+
+        // Check authentication
+        async function checkAuth() {
+            if (!window.supabaseAuth || !window.supabaseAuth.isAuthenticated()) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Load all images
+        async function loadImages() {
+            if (!await checkAuth()) return;
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const supabase = window.supabaseAuth.supabase;
+                const { data, error } = await supabase
+                    .from('generated_images')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(1000);
+
+                if (error) {
+                    console.error('Error loading images:', error);
+                    alert('Error loading images: ' + error.message);
+                    return;
+                }
+
+                allImages = data || [];
+                applyFilters();
+                updateStats();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading images: ' + error.message);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredImages = allImages.filter(image => {
+                // Category filter
+                if (categoryFilter !== 'all') {
+                    if (image.image_category !== categoryFilter) return false;
+                }
+
+                // Status filter
+                if (statusFilter === 'featured' && !image.is_featured) return false;
+                if (statusFilter === 'not-featured' && image.is_featured) return false;
+
+                // Search filter
+                if (searchTerm) {
+                    const address = (image.property_address || '').toLowerCase();
+                    const upgradeType = (image.upgrade_type || '').toLowerCase();
+                    if (!address.includes(searchTerm) && !upgradeType.includes(searchTerm)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            renderImages();
+        }
+
+        // Render images
+        function renderImages() {
+            const grid = document.getElementById('imagesGrid');
+
+            if (filteredImages.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1;">
+                        <i class="fas fa-images"></i>
+                        <h3>No images found</h3>
+                        <p>Try adjusting your filters or load more images.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filteredImages.map(image => {
+                const isFeatured = image.is_featured;
+                const category = image.image_category || 'other';
+                const upgradeType = image.upgrade_type || 'Upgrade';
+                const address = image.property_address || 'No address';
+
+                return `
+                    <div class="image-card ${isFeatured ? 'featured' : ''}" data-image-id="${image.id}">
+                        ${isFeatured ? '<div class="featured-badge"><i class="fas fa-star"></i> Featured</div>' : ''}
+                        <div class="image-preview">
+                            <div class="before-after-preview">
+                                <img src="${image.original_image_url || ''}" alt="Before" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 300%27%3E%3Crect fill=\'%23e2e8f0\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2394a3b8\' font-family=\'Arial\' font-size=\'18\'%3ENo image%3C/text%3E%3C/svg%3E'">
+                                <img src="${image.generated_image_url || ''}" alt="After" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 300%27%3E%3Crect fill=\'%23e2e8f0\' width=\'400\' height=\'300\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\' fill=\'%2394a3b8\' font-family=\'Arial\' font-size=\'18\'%3ENo image%3C/text%3E%3C/svg%3E'">
+                            </div>
+                        </div>
+                        <div class="image-card-body">
+                            <div class="image-meta">
+                                <div class="image-meta-item">
+                                    <i class="fas fa-tag"></i>
+                                    <span>${escapeHtml(upgradeType)}</span>
+                                </div>
+                                <div class="image-meta-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>${escapeHtml(address)}</span>
+                                </div>
+                                <div class="image-meta-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>${new Date(image.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <span class="category-badge category-${category}">${category}</span>
+                            </div>
+                            <div class="image-actions">
+                                <button class="btn ${isFeatured ? 'btn-outline-primary' : 'btn-primary'} btn-feature" 
+                                        onclick="toggleFeatured('${image.id}', ${!isFeatured})">
+                                    <i class="fas fa-${isFeatured ? 'star' : 'star'}"></i>
+                                    ${isFeatured ? 'Unfeature' : 'Feature'}
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="editImage('${image.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle featured status
+        async function toggleFeatured(imageId, shouldFeature) {
+            if (!await checkAuth()) return;
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const supabase = window.supabaseAuth.supabase;
+                
+                // Get current image to determine display order
+                const image = allImages.find(img => img.id === imageId);
+                let displayOrder = image?.display_order || 0;
+
+                // If featuring, set a display order if not already set
+                if (shouldFeature && !displayOrder) {
+                    const featuredCount = allImages.filter(img => img.is_featured).length;
+                    displayOrder = featuredCount + 1;
+                }
+
+                const { error } = await supabase
+                    .from('generated_images')
+                    .update({
+                        is_featured: shouldFeature,
+                        display_order: shouldFeature ? displayOrder : 0
+                    })
+                    .eq('id', imageId);
+
+                if (error) {
+                    throw error;
+                }
+
+                // Update local data
+                const imageIndex = allImages.findIndex(img => img.id === imageId);
+                if (imageIndex !== -1) {
+                    allImages[imageIndex].is_featured = shouldFeature;
+                    allImages[imageIndex].display_order = displayOrder;
+                }
+
+                applyFilters();
+                updateStats();
+            } catch (error) {
+                console.error('Error toggling featured status:', error);
+                alert('Error updating featured status: ' + error.message);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Edit image (category and display order)
+        async function editImage(imageId) {
+            if (!await checkAuth()) return;
+
+            const image = allImages.find(img => img.id === imageId);
+            if (!image) return;
+
+            const category = prompt('Enter category (interior/exterior/other):', image.image_category || 'other');
+            if (category === null) return;
+
+            if (!['interior', 'exterior', 'other'].includes(category.toLowerCase())) {
+                alert('Invalid category. Must be: interior, exterior, or other');
+                return;
+            }
+
+            const displayOrderStr = prompt('Enter display order (number, lower = first):', image.display_order || '0');
+            if (displayOrderStr === null) return;
+
+            const displayOrder = parseInt(displayOrderStr) || 0;
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                const supabase = window.supabaseAuth.supabase;
+                const { error } = await supabase
+                    .from('generated_images')
+                    .update({
+                        image_category: category.toLowerCase(),
+                        display_order: displayOrder
+                    })
+                    .eq('id', imageId);
+
+                if (error) {
+                    throw error;
+                }
+
+                // Update local data
+                const imageIndex = allImages.findIndex(img => img.id === imageId);
+                if (imageIndex !== -1) {
+                    allImages[imageIndex].image_category = category.toLowerCase();
+                    allImages[imageIndex].display_order = displayOrder;
+                }
+
+                applyFilters();
+            } catch (error) {
+                console.error('Error updating image:', error);
+                alert('Error updating image: ' + error.message);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalImages').textContent = allImages.length;
+            document.getElementById('featuredImages').textContent = allImages.filter(img => img.is_featured).length;
+            document.getElementById('interiorImages').textContent = allImages.filter(img => img.image_category === 'interior').length;
+            document.getElementById('exteriorImages').textContent = allImages.filter(img => img.image_category === 'exterior').length;
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (await checkAuth()) {
+                // Set up filter listeners
+                document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+                document.getElementById('statusFilter').addEventListener('change', applyFilters);
+                document.getElementById('searchInput').addEventListener('input', applyFilters);
+
+                // Load images
+                await loadImages();
+            }
+        });
+    </script>
+</body>
+</html>
+
