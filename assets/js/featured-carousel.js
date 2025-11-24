@@ -76,8 +76,6 @@ class FeaturedCarousel {
             const category = image.image_category || 'other';
             const upgradeType = image.upgrade_type || 'Upgrade';
             const escapedUpgradeType = this.escapeHtml(upgradeType);
-            const escapedAddress = image.property_address ? this.escapeHtml(image.property_address) : '';
-            const escapedPrompt = image.prompt ? this.escapeHtml(image.prompt) : '';
             const fallbackSvg = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22%3E%3Crect fill=%22%23e2e8f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%2394a3b8%22 font-family=%22Arial%22 font-size=%2218%22%3EImage not available%3C/text%3E%3C/svg%3E';
             
             const cloneClass = isClone ? ' carousel-item-clone' : '';
@@ -97,8 +95,6 @@ class FeaturedCarousel {
             itemHtml += '</div>';
             itemHtml += '<div class="carousel-caption">';
             itemHtml += '<div class="upgrade-type-badge">' + escapedUpgradeType + '</div>';
-            if (escapedAddress) itemHtml += '<p class="property-address">' + escapedAddress + '</p>';
-            if (escapedPrompt) itemHtml += '<p class="carousel-prompt">' + escapedPrompt + '</p>';
             if (category !== 'other') itemHtml += '<span class="category-badge category-' + category + '">' + category + '</span>';
             itemHtml += '</div></div></div>';
             
