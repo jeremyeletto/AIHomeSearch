@@ -5,7 +5,9 @@ class FeaturedCarousel {
         this.featuredImages = [];
         this.currentIndex = 0;
         this.autoPlayInterval = null;
-        this.autoPlayDelay = 5000; // 5 seconds
+        this.autoPlayDelay = 8000; // 8 seconds - slower animation
+        this.itemsPerView = 3; // Desktop: 3 items
+        this.isAnimating = false;
     }
 
     // Initialize Supabase client
@@ -70,13 +72,12 @@ class FeaturedCarousel {
             return '<div class="featured-carousel-empty"><p>No featured images available yet.</p></div>';
         }
 
-        const slides = images.map((image, index) => {
-            const isActive = index === 0 ? 'active' : '';
+        const items = images.map((image, index) => {
             const category = image.image_category || 'other';
             const upgradeType = image.upgrade_type || 'Upgrade';
             
             return `
-                <div class="carousel-item ${isActive}" data-index="${index}">
+                <div class="carousel-item-card" data-index="${index}">
                     <div class="before-after-container">
                         <div class="before-section">
                             <div class="label-badge">BEFORE</div>
@@ -104,26 +105,20 @@ class FeaturedCarousel {
             `;
         }).join('');
 
-        const indicators = images.map((_, index) => 
-            `<button type="button" data-bs-target="#featuredCarousel" data-bs-slide-to="${index}" ${index === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${index + 1}"></button>`
-        ).join('');
-
         return `
-            <div id="featuredCarousel" class="carousel slide featured-carousel" data-bs-ride="carousel" data-bs-interval="5000">
-                <div class="carousel-indicators">
-                    ${indicators}
+            <div class="featured-carousel-wrapper">
+                <div class="carousel-container">
+                    <div class="carousel-track" id="carouselTrack">
+                        ${items}
+                    </div>
                 </div>
-                <div class="carousel-inner">
-                    ${slides}
-                </div>
-                <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Previous</span>
+                <button class="carousel-nav-btn carousel-prev" id="carouselPrev" aria-label="Previous">
+                    <i class="fas fa-chevron-left"></i>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#featuredCarousel" data-bs-slide="next">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Next</span>
+                <button class="carousel-nav-btn carousel-next" id="carouselNext" aria-label="Next">
+                    <i class="fas fa-chevron-right"></i>
                 </button>
+                <div class="carousel-indicators" id="carouselIndicators"></div>
             </div>
         `;
     }
@@ -152,24 +147,144 @@ class FeaturedCarousel {
 
             if (images.length > 0) {
                 container.innerHTML = this.renderCarousel(images);
+                this.initCarouselControls();
+                this.updateItemsPerView();
+                this.startAutoPlay();
                 
-                // Initialize Bootstrap carousel if available
-                if (typeof bootstrap !== 'undefined') {
-                    const carouselElement = document.getElementById('featuredCarousel');
-                    if (carouselElement) {
-                        new bootstrap.Carousel(carouselElement, {
-                            interval: this.autoPlayDelay,
-                            wrap: true,
-                            keyboard: true
-                        });
-                    }
-                }
+                // Update on window resize
+                window.addEventListener('resize', () => {
+                    this.updateItemsPerView();
+                    this.updateCarousel();
+                });
             } else {
                 container.innerHTML = '<div class="featured-carousel-empty"><p>No featured images available yet. Check back soon!</p></div>';
             }
         } catch (error) {
             console.error('Error loading carousel:', error);
             container.innerHTML = '<div class="featured-carousel-error"><p>Unable to load featured images. Please try again later.</p></div>';
+        }
+    }
+}
+
+    // Initialize carousel controls
+    initCarouselControls() {
+        const prevBtn = document.getElementById('carouselPrev');
+        const nextBtn = document.getElementById('carouselNext');
+        const track = document.getElementById('carouselTrack');
+        
+        if (!prevBtn || !nextBtn || !track) return;
+
+        prevBtn.addEventListener('click', () => this.prevSlide());
+        nextBtn.addEventListener('click', () => this.nextSlide());
+        
+        // Touch/swipe support
+        let startX = 0;
+        let isDragging = false;
+        
+        track.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        });
+        
+        track.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+        });
+        
+        track.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            const endX = e.changedTouches[0].clientX;
+            const diff = startX - endX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    this.nextSlide();
+                } else {
+                    this.prevSlide();
+                }
+            }
+        });
+
+        // Update indicators
+        this.updateIndicators();
+    }
+
+    // Update items per view based on screen size
+    updateItemsPerView() {
+        const width = window.innerWidth;
+        if (width >= 1200) {
+            this.itemsPerView = 3; // Desktop: 3 items
+        } else if (width >= 768) {
+            this.itemsPerView = 2; // Tablet: 2 items
+        } else {
+            this.itemsPerView = 1; // Mobile: 1 item
+        }
+    }
+
+    // Update carousel position
+    updateCarousel() {
+        const track = document.getElementById('carouselTrack');
+        if (!track) return;
+
+        const itemWidth = 100 / this.itemsPerView;
+        const translateX = -this.currentIndex * itemWidth;
+        
+        track.style.transform = `translateX(${translateX}%)`;
+        this.updateIndicators();
+    }
+
+    // Go to next slide
+    nextSlide() {
+        if (this.isAnimating) return;
+        
+        const maxIndex = Math.max(0, this.featuredImages.length - this.itemsPerView);
+        this.currentIndex = (this.currentIndex >= maxIndex) ? 0 : this.currentIndex + 1;
+        this.updateCarousel();
+    }
+
+    // Go to previous slide
+    prevSlide() {
+        if (this.isAnimating) return;
+        
+        const maxIndex = Math.max(0, this.featuredImages.length - this.itemsPerView);
+        this.currentIndex = (this.currentIndex <= 0) ? maxIndex : this.currentIndex - 1;
+        this.updateCarousel();
+    }
+
+    // Update indicators
+    updateIndicators() {
+        const indicatorsContainer = document.getElementById('carouselIndicators');
+        if (!indicatorsContainer) return;
+
+        const totalSlides = Math.ceil(this.featuredImages.length / this.itemsPerView);
+        indicatorsContainer.innerHTML = '';
+
+        for (let i = 0; i < totalSlides; i++) {
+            const indicator = document.createElement('button');
+            indicator.className = `indicator-dot ${i === Math.floor(this.currentIndex / this.itemsPerView) ? 'active' : ''}`;
+            indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
+            indicator.addEventListener('click', () => {
+                this.currentIndex = i * this.itemsPerView;
+                this.updateCarousel();
+            });
+            indicatorsContainer.appendChild(indicator);
+        }
+    }
+
+    // Start auto-play
+    startAutoPlay() {
+        this.stopAutoPlay();
+        this.autoPlayInterval = setInterval(() => {
+            this.nextSlide();
+        }, this.autoPlayDelay);
+    }
+
+    // Stop auto-play
+    stopAutoPlay() {
+        if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
         }
     }
 }
