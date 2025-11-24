@@ -48,7 +48,7 @@ class FeaturedCarousel {
 
             const { data, error } = await this.supabase
                 .from('generated_images')
-                .select('id, original_image_url, generated_image_url, upgrade_type, image_category, property_address, display_order, created_at')
+                .select('id, original_image_url, generated_image_url, upgrade_type, image_category, property_address, display_order, created_at, prompt, description')
                 .eq('is_featured', true)
                 .order('display_order', { ascending: true, nullsFirst: false })
                 .order('created_at', { ascending: false })
@@ -72,14 +72,17 @@ class FeaturedCarousel {
             return '<div class="featured-carousel-empty"><p>No featured images available yet.</p></div>';
         }
 
-        const items = images.map((image, index) => {
+        // Helper function to build item HTML
+        const buildItemHtml = (image, index, isClone = false) => {
             const category = image.image_category || 'other';
             const upgradeType = image.upgrade_type || 'Upgrade';
             const escapedUpgradeType = this.escapeHtml(upgradeType);
             const escapedAddress = image.property_address ? this.escapeHtml(image.property_address) : '';
+            const escapedPrompt = image.prompt ? this.escapeHtml(image.prompt) : '';
+            const escapedDescription = image.description ? this.escapeHtml(image.description) : '';
             
-            // Build the carousel item HTML explicitly
-            let itemHtml = '<div class="carousel-item-card" data-index="' + index + '">';
+            const cloneClass = isClone ? ' carousel-item-clone' : '';
+            let itemHtml = '<div class="carousel-item-card' + cloneClass + '" data-index="' + index + '">';
             itemHtml += '<div class="before-after-container">';
             itemHtml += '<div class="before-section">';
             itemHtml += '<div class="label-badge">BEFORE</div>';
@@ -98,26 +101,44 @@ class FeaturedCarousel {
             itemHtml += 'loading="lazy" ';
             itemHtml += 'onerror="this.src=\'' + fallbackSvg + '\'">';
             itemHtml += '</div>';
-            itemHtml += '</div>';
             itemHtml += '<div class="carousel-caption">';
             itemHtml += '<div class="upgrade-type-badge">' + escapedUpgradeType + '</div>';
             if (escapedAddress) {
                 itemHtml += '<p class="property-address">' + escapedAddress + '</p>';
+            }
+            if (escapedPrompt) {
+                itemHtml += '<p class="carousel-prompt">' + escapedPrompt + '</p>';
+            }
+            if (escapedDescription) {
+                itemHtml += '<p class="carousel-description">' + escapedDescription + '</p>';
             }
             if (category !== 'other') {
                 itemHtml += '<span class="category-badge category-' + category + '">' + category + '</span>';
             }
             itemHtml += '</div>';
             itemHtml += '</div>';
+            itemHtml += '</div>';
             
             return itemHtml;
-        }).join('');
+        };
+
+        // Build original items
+        const originalItems = images.map((image, index) => buildItemHtml(image, index, false)).join('');
+        
+        // Build cloned items for infinite loop (clone last items at start, first items at end)
+        const itemsToClone = Math.min(this.itemsPerView, images.length);
+        const startClones = images.slice(-itemsToClone).map((image, index) => 
+            buildItemHtml(image, images.length - itemsToClone + index, true)
+        ).join('');
+        const endClones = images.slice(0, itemsToClone).map((image, index) => 
+            buildItemHtml(image, index, true)
+        ).join('');
 
         return `
             <div class="featured-carousel-wrapper">
                 <div class="carousel-container">
                     <div class="carousel-track" id="carouselTrack">
-                        ${items}
+                        ${startClones}${originalItems}${endClones}
                     </div>
                 </div>
                 <button class="carousel-nav-btn carousel-prev" id="carouselPrev" aria-label="Previous">
@@ -155,13 +176,19 @@ class FeaturedCarousel {
 
             if (images.length > 0) {
                 container.innerHTML = this.renderCarousel(images);
-                this.initCarouselControls();
                 this.updateItemsPerView();
+                // Start at first real item (after clones)
+                const itemsToClone = Math.min(this.itemsPerView, images.length);
+                this.currentIndex = itemsToClone;
+                this.initCarouselControls();
+                this.updateCarousel();
                 this.startAutoPlay();
                 
                 // Update on window resize
                 window.addEventListener('resize', () => {
                     this.updateItemsPerView();
+                    const newItemsToClone = Math.min(this.itemsPerView, images.length);
+                    this.currentIndex = newItemsToClone;
                     this.updateCarousel();
                 });
             } else {
@@ -230,33 +257,67 @@ class FeaturedCarousel {
     }
 
     // Update carousel position
-    updateCarousel() {
+    updateCarousel(instant = false) {
         const track = document.getElementById('carouselTrack');
         if (!track) return;
 
         const itemWidth = 100 / this.itemsPerView;
         const translateX = -this.currentIndex * itemWidth;
         
+        if (instant) {
+            track.style.transition = 'none';
+        } else {
+            track.style.transition = '';
+        }
+        
         track.style.transform = `translateX(${translateX}%)`;
         this.updateIndicators();
+        
+        // Restore transition after instant jump
+        if (instant) {
+            requestAnimationFrame(() => {
+                track.style.transition = '';
+            });
+        }
     }
 
     // Go to next slide
     nextSlide() {
         if (this.isAnimating) return;
         
-        const maxIndex = Math.max(0, this.featuredImages.length - this.itemsPerView);
-        this.currentIndex = (this.currentIndex >= maxIndex) ? 0 : this.currentIndex + 1;
-        this.updateCarousel();
+        const itemsToClone = Math.min(this.itemsPerView, this.featuredImages.length);
+        const totalItems = this.featuredImages.length + (itemsToClone * 2);
+        const realStartIndex = itemsToClone;
+        const realEndIndex = itemsToClone + this.featuredImages.length - this.itemsPerView;
+        
+        this.currentIndex++;
+        
+        // If we've reached the end clones, jump to the beginning real items
+        if (this.currentIndex > realEndIndex + 1) {
+            this.currentIndex = realStartIndex;
+            this.updateCarousel(true); // Instant jump
+        } else {
+            this.updateCarousel();
+        }
     }
 
     // Go to previous slide
     prevSlide() {
         if (this.isAnimating) return;
         
-        const maxIndex = Math.max(0, this.featuredImages.length - this.itemsPerView);
-        this.currentIndex = (this.currentIndex <= 0) ? maxIndex : this.currentIndex - 1;
-        this.updateCarousel();
+        const itemsToClone = Math.min(this.itemsPerView, this.featuredImages.length);
+        const realStartIndex = itemsToClone;
+        const realEndIndex = itemsToClone + this.featuredImages.length - this.itemsPerView;
+        
+        this.currentIndex--;
+        
+        // If we've reached the start clones, jump to the end real items
+        if (this.currentIndex < realStartIndex - 1) {
+            this.currentIndex = realEndIndex;
+            this.updateCarousel(true); // Instant jump
+        } else {
+            this.updateCarousel();
+        }
     }
 
     // Update indicators
@@ -265,14 +326,21 @@ class FeaturedCarousel {
         if (!indicatorsContainer) return;
 
         const totalSlides = Math.ceil(this.featuredImages.length / this.itemsPerView);
+        const itemsToClone = Math.min(this.itemsPerView, this.featuredImages.length);
+        const realStartIndex = itemsToClone;
+        
+        // Calculate which real slide we're on
+        const realIndex = this.currentIndex - realStartIndex;
+        const currentSlide = Math.floor(realIndex / this.itemsPerView);
+        
         indicatorsContainer.innerHTML = '';
 
         for (let i = 0; i < totalSlides; i++) {
             const indicator = document.createElement('button');
-            indicator.className = `indicator-dot ${i === Math.floor(this.currentIndex / this.itemsPerView) ? 'active' : ''}`;
+            indicator.className = `indicator-dot ${i === currentSlide ? 'active' : ''}`;
             indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
             indicator.addEventListener('click', () => {
-                this.currentIndex = i * this.itemsPerView;
+                this.currentIndex = realStartIndex + (i * this.itemsPerView);
                 this.updateCarousel();
             });
             indicatorsContainer.appendChild(indicator);
